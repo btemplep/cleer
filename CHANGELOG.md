@@ -22,29 +22,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security 
 -->
 
-<!-- 
-## [Unreleased] - YYYY-MM-DD
 
-### Added
-
-### Changed
-
-### Deprecated
-
-### Removed
-
-### Fixed
-
-### Security 
--->
-
-
-## [0.1.0a2] - 2026-07-18
+## [0.1.0a2] - 2026-07-20
 
 Initial Release
 
 
 ## [0.1.0a1] - 2024-02-18
 
-- Initial stub 
+Initial stub 
 

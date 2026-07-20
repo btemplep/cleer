@@ -6,7 +6,7 @@ import nox
 nox.options.sessions = ["unit-tests-versions"]
 
 
-@nox.session(name="publish-package")
+@nox.session(name="publish")
 def publish(session: nox.Session):
     """Build a new src and wheel and publish to PYPI
     """
@@ -84,4 +84,4 @@ def dev_venv_setup(session: nox.Session):
         "pip",
         "build"
     )
-    session.install("-e", ".[dev,all]")
+    session.install("-e", ".[dev]")
