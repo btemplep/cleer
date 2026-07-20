@@ -1,0 +1,19 @@
+{
+    "autoDocstring.docstringFormat": "numpy",
+    "editor.formatOnSave": true,
+    "emeraldwalk.runonsave": {
+        "commands": [
+            {
+                "cmd": "./venv/bin/cleer format --log-level DEBUG ${file}"
+            }
+        ]
+    },
+    "cSpell.words": [
+        "cleer",
+        "compatibilty",
+        "emeraldwalk",
+        "pathlib",
+        "runonsave",
+        "venv"
+    ]
+}
