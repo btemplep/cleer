@@ -13,7 +13,8 @@ from cleer.types import *
 
 def cleer_default(
     current_packages: List[str] | None=None,
-    internal_packages: List[str] | None=None
+    internal_packages: List[str] | None=None,
+    python_excludes: List[str] | None=None
 ) -> Cleer:
     """Generate a new instance of cleer with the default configs.
 
@@ -29,6 +30,8 @@ def cleer_default(
         Identity the list of internal packages for import formatting.
         Internal packages are those that are hosted on private
         repositories, not including current packages.
+    python_excludes : List[str] | None, default=["**/venv/**", "**/.venv/**"]
+        File patterns to exclude from formatting python files.
 
     Returns
     -------
@@ -39,6 +42,9 @@ def cleer_default(
     if current_packages is not None:
         package_includes += current_packages
 
+    if python_excludes is None:
+        python_excludes = []
+
     logger.debug(f"Package includes: {package_includes}")
 
     return Cleer(
@@ -46,10 +52,7 @@ def cleer_default(
             "groups": [
                 {
                     "includes": package_includes,
-                    "excludes": [
-                        "**/.venv*/**",
-                        "**/venv*/**"
-                    ],
+                    "excludes": ["**/.venv*/**", "**/venv*/**"] + python_excludes,
                     "stages": [
                         {
                             "tokenizer": FileTokenizer(),
@@ -59,10 +62,7 @@ def cleer_default(
                 },
                 {
                     "includes": ["**/*.py"],
-                    "excludes": [
-                        "**/.venv*/**",
-                        "**/venv*/**"
-                    ],
+                    "excludes": ["**/.venv*/**", "**/venv*/**"] + python_excludes,
                     "stages": [
                         {
                             "tokenizer": FileStartWhitespaceTokenizer(),

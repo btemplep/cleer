@@ -187,3 +187,11 @@ def test_format_elif_after_colon():
     result = formatter.format(token)
 
     assert "    elif y:\n        pass\n" in result
+
+
+def test_format_removes_blank_after_multiline_signature():
+    formatter = PyFunctionInternalNewLinesFormatter()
+    token = "def my_func(\n    arg1,\n    arg2\n):\n\n    x = 1\n    return x\n"
+    result = formatter.format(token)
+
+    assert result == "def my_func(\n    arg1,\n    arg2\n):\n    x = 1\n    return x\n"

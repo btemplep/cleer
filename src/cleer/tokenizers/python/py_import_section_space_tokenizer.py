@@ -91,7 +91,10 @@ class PyImportSectionSpaceTokenizer(Tokenizer):
             return tokens
 
         next_content = last_import_line + 1
-        while next_content < len(lines) and lines[next_content].strip() == "":
+        while (
+            next_content < len(lines)
+            and lines[next_content].strip() == ""
+        ):
             next_content += 1
 
         if next_content >= len(lines):

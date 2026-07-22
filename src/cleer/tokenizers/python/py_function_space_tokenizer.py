@@ -55,7 +55,10 @@ class PyFunctionSpaceTokenizer(Tokenizer):
                 if lines[i].rstrip().endswith(":"):
                     return i
 
-                if i + 1 < len(lines) and lines[i + 1].strip().startswith("->"):
+                if (
+                    i + 1 < len(lines)
+                    and lines[i + 1].strip().startswith("->")
+                ):
                     j = i + 1
                     while j < len(lines):
                         if lines[j].rstrip().endswith(":"):
@@ -121,7 +124,10 @@ class PyFunctionSpaceTokenizer(Tokenizer):
             if current_indent < def_indent:
                 break
 
-            if current_indent == def_indent and stripped.startswith("@"):
+            if (
+                current_indent == def_indent
+                and stripped.startswith("@")
+            ):
                 result = i
                 i -= 1
                 continue
@@ -130,7 +136,10 @@ class PyFunctionSpaceTokenizer(Tokenizer):
                 i -= 1
                 continue
 
-            if current_indent == def_indent and not stripped.startswith("@"):
+            if (
+                current_indent == def_indent
+                and not stripped.startswith("@")
+            ):
                 paren_depth = 0
                 scan = i
                 found_decorator = False
@@ -227,17 +236,9 @@ class PyFunctionSpaceTokenizer(Tokenizer):
                 base_indent = len(match.group(1))
                 decorator_start = self._find_decorators_start(lines, i)
 
-                func_end = self._find_function_end(
-                    lines,
-                    i,
-                    base_indent
-                )
+                func_end = self._find_function_end(lines, i, base_indent)
                 func_ranges.append(
-                    (
-                        decorator_start,
-                        func_end - 1,
-                        base_indent
-                    )
+                    (decorator_start, func_end - 1, base_indent)
                 )
 
                 for j in range(decorator_start, func_end):
@@ -278,18 +279,17 @@ class PyFunctionSpaceTokenizer(Tokenizer):
 
         for start, end, indent in func_ranges:
             next_line = end + 1
-            while next_line < len(lines) and lines[next_line].strip() == "":
+            while (
+                next_line < len(lines)
+                and lines[next_line].strip() == ""
+            ):
                 next_line += 1
 
             if next_line >= len(lines):
                 continue
 
             is_next_func = (
-                (
-                    start,
-                    end,
-                    indent
-                ) != func_ranges[-1]
+                (start, end, indent) != func_ranges[-1]
                 and any(s == next_line for s, _, _ in func_ranges)
             )
             if is_next_func:

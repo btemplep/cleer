@@ -63,7 +63,10 @@ def test_init_multiple_groups():
 def test_inspect_str_with_violations():
     config = _make_config()
     cleer = Cleer(config=config)
-    violations = cleer.inspect_str("hello   \nworld\n", pathlib.Path("test.py"))
+    violations = cleer.inspect_str(
+        "hello   \nworld\n",
+        pathlib.Path("test.py")
+    )
 
     assert len(violations) == 1
     assert violations[0]['start_index'] == 0
@@ -74,7 +77,10 @@ def test_inspect_str_with_violations():
 def test_inspect_str_no_matching_glob():
     config = _make_config(includes=["**/*.txt"])
     cleer = Cleer(config=config)
-    violations = cleer.inspect_str("hello   \nworld\n", pathlib.Path("test.py"))
+    violations = cleer.inspect_str(
+        "hello   \nworld\n",
+        pathlib.Path("test.py")
+    )
 
     assert violations == []
 
@@ -82,7 +88,10 @@ def test_inspect_str_no_matching_glob():
 def test_inspect_str_no_violations():
     config = _make_config()
     cleer = Cleer(config=config)
-    violations = cleer.inspect_str("hello\nworld\n", pathlib.Path("test.py"))
+    violations = cleer.inspect_str(
+        "hello\nworld\n",
+        pathlib.Path("test.py")
+    )
 
     assert violations == []
 
@@ -140,14 +149,13 @@ def test_inspect_dir_with_subdirectories(tmp_path):
     assert len(results[0]['violations']) == 1
 
 
-def test_inspect_dir_deduplicates_same_file_across_globs(tmp_path):
+def test_inspect_dir_deduplicates_same_file_across_globs(
+    tmp_path
+):
     config = {
         "groups": [
             {
-                "includes": [
-                    "**/*.py",
-                    "*.py"
-                ],
+                "includes": ["**/*.py", "*.py"],
                 "excludes": [],
                 "stages": [
                     {
@@ -168,7 +176,10 @@ def test_inspect_dir_deduplicates_same_file_across_globs(tmp_path):
 def test_format_str_with_matching_glob():
     config = _make_config()
     cleer = Cleer(config=config)
-    result = cleer.format_str("hello   \nworld   \n", pathlib.Path("test.py"))
+    result = cleer.format_str(
+        "hello   \nworld   \n",
+        pathlib.Path("test.py")
+    )
 
     assert result == "hello\nworld\n"
 
@@ -176,7 +187,10 @@ def test_format_str_with_matching_glob():
 def test_format_str_with_no_matching_glob():
     config = _make_config(includes=["**/*.txt"])
     cleer = Cleer(config=config)
-    result = cleer.format_str("hello   \nworld   \n", pathlib.Path("test.py"))
+    result = cleer.format_str(
+        "hello   \nworld   \n",
+        pathlib.Path("test.py")
+    )
 
     assert result == "hello   \nworld   \n"
 
@@ -252,14 +266,13 @@ def test_format_dir_handles_subdirectories(tmp_path):
     assert (sub / "deep.py").read_text() == "trailing\n"
 
 
-def test_format_dir_deduplicates_same_file_across_globs(tmp_path):
+def test_format_dir_deduplicates_same_file_across_globs(
+    tmp_path
+):
     config = {
         "groups": [
             {
-                "includes": [
-                    "**/*.py",
-                    "*.py"
-                ],
+                "includes": ["**/*.py", "*.py"],
                 "excludes": [],
                 "stages": [
                     {
@@ -352,7 +365,10 @@ def test_format_dir_with_string_path(tmp_path):
 def test_inspect_str_with_string_path():
     config = _make_config()
     cleer = Cleer(config=config)
-    violations = cleer.inspect_str("hello   \nworld\n", "test.py")
+    violations = cleer.inspect_str(
+        "hello   \nworld\n",
+        "test.py"
+    )
 
     assert len(violations) == 1
 
@@ -405,7 +421,10 @@ def test_format_str_not_excluded():
 def test_inspect_str_excluded_by_pattern():
     config = _make_config(excludes=["**/.venv*/**"])
     cleer = Cleer(config=config)
-    violations = cleer.inspect_str("hello   \n", ".venv/test.py")
+    violations = cleer.inspect_str(
+        "hello   \n",
+        ".venv/test.py"
+    )
 
     assert violations == []
 
@@ -439,6 +458,9 @@ def test_inspect_dir_excludes_venv(tmp_path):
 def test_excludes_dot_venv_pattern():
     config = _make_config(excludes=["**/.venv*/**"])
     cleer = Cleer(config=config)
-    result = cleer.format_str("hello   \n", ".venv311/lib/test.py")
+    result = cleer.format_str(
+        "hello   \n",
+        ".venv311/lib/test.py"
+    )
 
     assert result == "hello   \n"

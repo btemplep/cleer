@@ -31,7 +31,11 @@ class PyFunctionSignatureTokenizer(Tokenizer):
     emits_token_type = "function_signature"
 
 
-    def _find_matching_paren(self, text: str, start: int) -> int:
+    def _find_matching_paren(
+        self,
+        text: str,
+        start: int
+    ) -> int:
         """Find the matching closing parenthesis."""
         depth = 1
         i = start + 1
@@ -43,10 +47,7 @@ class PyFunctionSignatureTokenizer(Tokenizer):
                 i += 2
                 continue
 
-            if text[i:i + 3] in (
-                "'''",
-                '"""'
-            ):
+            if text[i:i + 3] in ("'''", '"""'):
                 quote = text[i:i + 3]
                 end = text.find(quote, i + 3)
                 if end != -1:
@@ -104,7 +105,10 @@ class PyFunctionSignatureTokenizer(Tokenizer):
             ```
         """
         tokens: List[dict] = []
-        pattern = re.compile(r"^([ \t]*)(async\s+)?def\s+", re.MULTILINE)
+        pattern = re.compile(
+            r"^([ \t]*)(async\s+)?def\s+",
+            re.MULTILINE
+        )
 
         for match in pattern.finditer(document):
             start = match.start()

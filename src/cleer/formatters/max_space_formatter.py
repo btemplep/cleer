@@ -37,21 +37,11 @@ class MaxSpaceFormatter(Formatter):
         while i < len(text):
             if (
                 i < len(text)
-                and text[i] in (
-                    "f",
-                    "r",
-                    "b",
-                    "F",
-                    "R",
-                    "B"
-                )
+                and text[i] in ("f", "r", "b", "F", "R", "B")
             ):
                 if (
                     i + 1 < len(text)
-                    and text[i + 1] in (
-                        "'",
-                        '"'
-                    )
+                    and text[i + 1] in ("'", '"')
                 ):
                     result.append(text[i])
                     i += 1
@@ -59,32 +49,16 @@ class MaxSpaceFormatter(Formatter):
 
                 if (
                     i + 2 < len(text)
-                    and text[i + 1] in (
-                        "f",
-                        "r",
-                        "b",
-                        "F",
-                        "R",
-                        "B"
-                    )
-                    and text[i + 2] in (
-                        "'",
-                        '"'
-                    )
+                    and text[i + 1] in ("f", "r", "b", "F", "R", "B")
+                    and text[i + 2] in ("'", '"')
                 ):
                     result.append(text[i])
                     i += 1
                     continue
 
-            if text[i] in (
-                "'",
-                '"'
-            ):
+            if text[i] in ("'", '"'):
                 quote_char = text[i]
-                if text[i:i + 3] in (
-                    '"""',
-                    "'''"
-                ):
+                if text[i:i + 3] in ('"""', "'''"):
                     triple = text[i:i + 3]
                     end = text.find(triple, i + 3)
                     if end != -1:

@@ -29,7 +29,11 @@ class PyDecoratorArgsNewLineFormatter(Formatter):
     accepts_token_types = ["decorator"]
 
 
-    def _find_matching_paren(self, text: str, start: int) -> int:
+    def _find_matching_paren(
+        self,
+        text: str,
+        start: int
+    ) -> int:
         """Find matching closing parenthesis."""
         depth = 1
         i = start + 1
@@ -169,8 +173,13 @@ class PyDecoratorArgsNewLineFormatter(Formatter):
 
         args = self._split_args(inner)
 
-        if len(args) <= 2:
-            return token
+        single_line = f"{indent}{prefix}({', '.join(a.strip() for a in args)}){suffix}"
+        content_line = f"{prefix}({', '.join(a.strip() for a in args)}){suffix}"
+        exceeds_total = len(single_line) > 100
+        exceeds_content = len(content_line) > 60
+
+        if not exceeds_total and not exceeds_content:
+            return single_line
 
         arg_indent = indent + "    "
         lines = [f"{indent}{prefix}("]

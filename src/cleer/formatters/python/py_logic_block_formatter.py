@@ -73,7 +73,10 @@ class PyLogicBlockFormatter(Formatter):
         i = 0
 
         while i < len(lines):
-            block_lines, consumed = self._try_collect_logic_block(lines, i)
+            block_lines, consumed = self._try_collect_logic_block(
+                lines,
+                i
+            )
             if block_lines is not None:
                 formatted = self._format_logic_block(block_lines)
                 result_lines.extend(formatted)
@@ -199,7 +202,10 @@ class PyLogicBlockFormatter(Formatter):
         return None, 0
 
 
-    def _format_logic_block(self, block_lines: list[str]) -> list[str]:
+    def _format_logic_block(
+        self,
+        block_lines: list[str]
+    ) -> list[str]:
         """Format a collected logic block according to the rules.
 
         Parameters
@@ -238,7 +244,11 @@ class PyLogicBlockFormatter(Formatter):
 
         if len(statements) == 1:
             single_line = prefix.rstrip() + " " + statements[0] + trailing_colon
-            if len(single_line) <= max_length:
+            content_line = single_line.lstrip()
+            if (
+                len(single_line) <= max_length
+                and len(content_line) <= 60
+            ):
                 return [single_line]
 
         if len(statements) <= 2:
@@ -249,14 +259,21 @@ class PyLogicBlockFormatter(Formatter):
                 joined += " " + op + " " + stmt
 
             single_line = prefix.rstrip() + " " + joined + trailing_colon
-            if len(single_line) <= max_length:
+            content_line = single_line.lstrip()
+            if (
+                len(single_line) <= max_length
+                and len(content_line) <= 60
+            ):
                 return [single_line]
 
         ops = self._extract_operators(rhs)
         continuation_indent = indent + "    "
         result = [prefix.rstrip() + " ("]
         for idx, stmt in enumerate(statements):
-            expanded_stmt = self._expand_statement(stmt, continuation_indent)
+            expanded_stmt = self._expand_statement(
+                stmt,
+                continuation_indent
+            )
             if idx == 0:
                 result.extend(
                     [
@@ -275,7 +292,11 @@ class PyLogicBlockFormatter(Formatter):
         return result
 
 
-    def _expand_statement(self, stmt: str, base_indent: str) -> list[str]:
+    def _expand_statement(
+        self,
+        stmt: str,
+        base_indent: str
+    ) -> list[str]:
         """Recursively expand a statement if it contains logic operators."""
         inner = self._unwrap_outer_parens(stmt.strip())
         sub_statements = self._split_statements(inner)
@@ -336,7 +357,10 @@ class PyLogicBlockFormatter(Formatter):
                     depth -= 1
                 elif depth == 0:
                     remaining = stmt[i:]
-                    if remaining.startswith(" and ") or remaining.startswith(" or "):
+                    if (
+                        remaining.startswith(" and ")
+                        or remaining.startswith(" or ")
+                    ):
                         return True
 
             i += 1
@@ -426,27 +450,17 @@ class PyLogicBlockFormatter(Formatter):
                 j = i + 1
                 while (
                     j < len(text)
-                    and text[j] in (
-                        " ",
-                        "\t",
-                        "\n"
-                    )
+                    and text[j] in (" ", "\t", "\n")
                 ):
                     j += 1
 
                 result.append(" ")
                 i = j
-            elif text[i] in (
-                " ",
-                "\t"
-            ):
+            elif text[i] in (" ", "\t"):
                 j = i + 1
                 while (
                     j < len(text)
-                    and text[j] in (
-                        " ",
-                        "\t"
-                    )
+                    and text[j] in (" ", "\t")
                 ):
                     j += 1
 
@@ -533,10 +547,7 @@ class PyLogicBlockFormatter(Formatter):
                         or remaining.startswith("for\n")
                     ):
                         before_char = inner[i - 1] if i > 0 else " "
-                        if before_char in (
-                            " ",
-                            "\n"
-                        ):
+                        if before_char in (" ", "\n"):
                             has_for_keyword = True
 
         if has_for_keyword:
@@ -551,19 +562,11 @@ class PyLogicBlockFormatter(Formatter):
         i = 0
 
         while i < len(text):
-            if text[i] in (
-                " ",
-                "\t",
-                "\n"
-            ):
+            if text[i] in (" ", "\t", "\n"):
                 j = i + 1
                 while (
                     j < len(text)
-                    and text[j] in (
-                        " ",
-                        "\t",
-                        "\n"
-                    )
+                    and text[j] in (" ", "\t", "\n")
                 ):
                     j += 1
 
@@ -602,7 +605,10 @@ class PyLogicBlockFormatter(Formatter):
         return None
 
 
-    def _has_logic_operator_at_depth_zero(self, text: str) -> bool:
+    def _has_logic_operator_at_depth_zero(
+        self,
+        text: str
+    ) -> bool:
         """Check if text contains `and`/`or` at paren/bracket depth 0.
 
         Parameters
@@ -639,10 +645,7 @@ class PyLogicBlockFormatter(Formatter):
                 i += 1
                 continue
 
-            if ch in (
-                "\"",
-                "'"
-            ):
+            if ch in ("\"", "'"):
                 if text[i:i + 3] == ch * 3:
                     in_string = ch
                     i += 3
@@ -652,17 +655,9 @@ class PyLogicBlockFormatter(Formatter):
 
                 continue
 
-            if ch in (
-                "(",
-                "[",
-                "{"
-            ):
+            if ch in ("(", "[", "{"):
                 depth += 1
-            elif ch in (
-                ")",
-                "]",
-                "}"
-            ):
+            elif ch in (")", "]", "}"):
                 depth -= 1
 
             if depth == 0:
@@ -691,7 +686,11 @@ class PyLogicBlockFormatter(Formatter):
         return False
 
 
-    def _has_logic_operator_at_depth_one(self, text: str, prefix: str) -> bool:
+    def _has_logic_operator_at_depth_one(
+        self,
+        text: str,
+        prefix: str
+    ) -> bool:
         """Check if text has `and`/`or` at depth 1 (inside one layer of parens).
 
         This is used for multiline blocks that are already wrapped in parens.
@@ -750,10 +749,7 @@ class PyLogicBlockFormatter(Formatter):
                 i += 1
                 continue
 
-            if ch in (
-                "\"",
-                "'"
-            ):
+            if ch in ("\"", "'"):
                 if text[i:i + 3] == ch * 3:
                     in_string = ch
                     i += 3
@@ -763,17 +759,9 @@ class PyLogicBlockFormatter(Formatter):
 
                 continue
 
-            if ch in (
-                "(",
-                "[",
-                "{"
-            ):
+            if ch in ("(", "[", "{"):
                 depth += 1
-            elif ch in (
-                ")",
-                "]",
-                "}"
-            ):
+            elif ch in (")", "]", "}"):
                 depth -= 1
 
             i += 1
@@ -822,10 +810,7 @@ class PyLogicBlockFormatter(Formatter):
                 i += 1
                 continue
 
-            if ch in (
-                "\"",
-                "'"
-            ):
+            if ch in ("\"", "'"):
                 if text[i:i + 3] == ch * 3:
                     in_string = ch
                     i += 3
@@ -894,10 +879,7 @@ class PyLogicBlockFormatter(Formatter):
                 i += 1
                 continue
 
-            if ch in (
-                "\"",
-                "'"
-            ):
+            if ch in ("\"", "'"):
                 if text[i:i + 3] == ch * 3:
                     in_string = ch
                     current += text[i:i + 3]
@@ -909,32 +891,36 @@ class PyLogicBlockFormatter(Formatter):
 
                 continue
 
-            if ch in (
-                "(",
-                "[",
-                "{"
-            ):
+            if ch in ("(", "[", "{"):
                 depth += 1
                 current += ch
                 i += 1
                 continue
-            elif ch in (
-                ")",
-                "]",
-                "}"
-            ):
+            elif ch in (")", "]", "}"):
                 depth -= 1
                 current += ch
                 i += 1
                 continue
 
             if depth == 0:
-                if text[i:i + 5] == " and " or (text[i:i + 4] == " and" and i + 4 == len(text)):
+                if (
+                    text[i:i + 5] == " and "
+                    or (
+                        text[i:i + 4] == " and"
+                        and i + 4 == len(text)
+                    )
+                ):
                     statements.append(current.strip())
                     current = ""
                     i += 5
                     continue
-                elif text[i:i + 4] == " or " or (text[i:i + 3] == " or" and i + 3 == len(text)):
+                elif (
+                    text[i:i + 4] == " or "
+                    or (
+                        text[i:i + 3] == " or"
+                        and i + 3 == len(text)
+                    )
+                ):
                     statements.append(current.strip())
                     current = ""
                     i += 4
@@ -996,10 +982,7 @@ class PyLogicBlockFormatter(Formatter):
                 i += 1
                 continue
 
-            if ch in (
-                "\"",
-                "'"
-            ):
+            if ch in ("\"", "'"):
                 if text[i:i + 3] == ch * 3:
                     in_string = ch
                     i += 3
@@ -1009,25 +992,29 @@ class PyLogicBlockFormatter(Formatter):
 
                 continue
 
-            if ch in (
-                "(",
-                "[",
-                "{"
-            ):
+            if ch in ("(", "[", "{"):
                 depth += 1
-            elif ch in (
-                ")",
-                "]",
-                "}"
-            ):
+            elif ch in (")", "]", "}"):
                 depth -= 1
 
             if depth == 0:
-                if text[i:i + 5] == " and " or (text[i:i + 4] == " and" and i + 4 == len(text)):
+                if (
+                    text[i:i + 5] == " and "
+                    or (
+                        text[i:i + 4] == " and"
+                        and i + 4 == len(text)
+                    )
+                ):
                     operators.append("and")
                     i += 5
                     continue
-                elif text[i:i + 4] == " or " or (text[i:i + 3] == " or" and i + 3 == len(text)):
+                elif (
+                    text[i:i + 4] == " or "
+                    or (
+                        text[i:i + 3] == " or"
+                        and i + 3 == len(text)
+                    )
+                ):
                     operators.append("or")
                     i += 4
                     continue
@@ -1081,10 +1068,7 @@ class PyLogicBlockFormatter(Formatter):
                 i += 1
                 continue
 
-            if ch in (
-                "\"",
-                "'"
-            ):
+            if ch in ("\"", "'"):
                 if s[i:i + 3] == ch * 3:
                     in_string = ch
                     i += 3
@@ -1130,10 +1114,7 @@ class PyLogicBlockFormatter(Formatter):
                     ci += 1
                     continue
 
-                if c_ch in (
-                    "\"",
-                    "'"
-                ):
+                if c_ch in ("\"", "'"):
                     if inner[ci:ci + 3] == c_ch * 3:
                         c_in_string = c_ch
                         ci += 3
@@ -1143,17 +1124,9 @@ class PyLogicBlockFormatter(Formatter):
 
                     continue
 
-                if c_ch in (
-                    "(",
-                    "[",
-                    "{"
-                ):
+                if c_ch in ("(", "[", "{"):
                     comma_depth += 1
-                elif c_ch in (
-                    ")",
-                    "]",
-                    "}"
-                ):
+                elif c_ch in (")", "]", "}"):
                     comma_depth -= 1
                 elif c_ch == "," and comma_depth == 0:
                     return s

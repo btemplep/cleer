@@ -660,7 +660,10 @@ def test_get_paren_depth_with_double_quote():
 
 def test_is_in_function_signature_true():
     tokenizer = BinaryOperatorTokenizer()
-    assert tokenizer._is_in_function_signature("def func(x=1):\n", 11) is True
+    assert tokenizer._is_in_function_signature(
+        "def func(x=1):\n",
+        11
+    ) is True
 
 
 def test_is_in_function_signature_no_def():
@@ -670,12 +673,18 @@ def test_is_in_function_signature_no_def():
 
 def test_is_in_function_signature_paren_after():
     tokenizer = BinaryOperatorTokenizer()
-    assert tokenizer._is_in_function_signature("def func\nx = 1", 11) is False
+    assert tokenizer._is_in_function_signature(
+        "def func\nx = 1",
+        11
+    ) is False
 
 
 def test_is_in_function_signature_pos_after_close():
     tokenizer = BinaryOperatorTokenizer()
-    assert tokenizer._is_in_function_signature("def func(x):\ny = 1", 15) is False
+    assert tokenizer._is_in_function_signature(
+        "def func(x):\ny = 1",
+        15
+    ) is False
 
 
 def test_is_in_function_call_true():
@@ -710,11 +719,7 @@ def test_is_decorator_false():
 
 def test_is_unary_operator_not_unary_op():
     tokenizer = BinaryOperatorTokenizer()
-    assert tokenizer._is_unary_operator(
-        "x = 1",
-        "=",
-        2
-    ) is False
+    assert tokenizer._is_unary_operator("x = 1", "=", 2) is False
 
 
 def test_exclude_signature_equals_found():

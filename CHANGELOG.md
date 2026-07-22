@@ -22,6 +22,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security 
 -->
 
+## [0.1.0a3] - 2026-07-20
+
+### Fixed
+    - missing `glob.translate` in python 3.11/12
+    - bad formatting on functions with "*" as an arg
+
 
 ## [0.1.0a2] - 2026-07-20
 

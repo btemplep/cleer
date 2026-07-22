@@ -30,7 +30,11 @@ class PyFunctionSignatureKwargsEqualsTokenizer(Tokenizer):
     emits_token_type = "kwargs_equals"
 
 
-    def _find_matching_paren(self, text: str, start: int) -> int:
+    def _find_matching_paren(
+        self,
+        text: str,
+        start: int
+    ) -> int:
         """Find matching closing parenthesis."""
         depth = 1
         i = start + 1
@@ -42,10 +46,7 @@ class PyFunctionSignatureKwargsEqualsTokenizer(Tokenizer):
                 i += 2
                 continue
 
-            if text[i:i + 3] in (
-                "'''",
-                '"""'
-            ):
+            if text[i:i + 3] in ("'''", '"""'):
                 quote = text[i:i + 3]
                 end = text.find(quote, i + 3)
                 if end != -1:
@@ -103,7 +104,10 @@ class PyFunctionSignatureKwargsEqualsTokenizer(Tokenizer):
             ```
         """
         tokens: List[dict] = []
-        def_pattern = re.compile(r"(async\s+)?def\s+\w+\s*\(", re.MULTILINE)
+        def_pattern = re.compile(
+            r"(async\s+)?def\s+\w+\s*\(",
+            re.MULTILINE
+        )
 
         for match in def_pattern.finditer(document):
             paren_start = document.find("(", match.start())
@@ -119,16 +123,14 @@ class PyFunctionSignatureKwargsEqualsTokenizer(Tokenizer):
             depth = 0
             in_single = False
             in_double = False
+            has_annotation = False
 
             while i < len(inner):
                 if inner[i] == "\\" and (in_single or in_double):
                     i += 2
                     continue
 
-                if inner[i:i + 3] in (
-                    "'''",
-                    '"""'
-                ):
+                if inner[i:i + 3] in ("'''", '"""'):
                     quote = inner[i:i + 3]
                     end = inner.find(quote, i + 3)
                     if end != -1:
@@ -153,12 +155,22 @@ class PyFunctionSignatureKwargsEqualsTokenizer(Tokenizer):
                         depth += 1
                     elif inner[i] in ")]}":
                         depth -= 1
+                    elif inner[i] == "," and depth == 0:
+                        has_annotation = False
+                        i += 1
+                        continue
+                    elif inner[i] == ":" and depth == 0:
+                        has_annotation = True
                     elif inner[i] == "=" and depth == 0:
                         if i + 1 < len(inner) and inner[i + 1] == "=":
                             i += 2
                             continue
 
                         if i > 0 and inner[i - 1] in "!<>":
+                            i += 1
+                            continue
+
+                        if has_annotation:
                             i += 1
                             continue
 

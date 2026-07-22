@@ -30,7 +30,11 @@ class PyDecoratorTokenizer(Tokenizer):
     emits_token_type = "decorator"
 
 
-    def _find_matching_paren(self, text: str, start: int) -> int:
+    def _find_matching_paren(
+        self,
+        text: str,
+        start: int
+    ) -> int:
         """Find matching closing parenthesis."""
         depth = 1
         i = start + 1
@@ -108,7 +112,10 @@ class PyDecoratorTokenizer(Tokenizer):
             paren_pos = line_content.find("(")
             if paren_pos != -1:
                 abs_paren_pos = start + paren_pos
-                paren_end = self._find_matching_paren(document, abs_paren_pos)
+                paren_end = self._find_matching_paren(
+                    document,
+                    abs_paren_pos
+                )
                 if paren_end != -1:
                     end = paren_end + 1
                 else:

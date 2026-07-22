@@ -61,7 +61,10 @@ class PyDocstringSpaceTokenizer(Tokenizer):
                     if lines[j].rstrip().endswith(":"):
                         return j
 
-                    if lines[j].strip() and not lines[j].strip().startswith("->"):
+                    if (
+                        lines[j].strip()
+                        and not lines[j].strip().startswith("->")
+                    ):
                         break
 
                     j += 1
@@ -109,7 +112,10 @@ class PyDocstringSpaceTokenizer(Tokenizer):
             line_starts.append(current_pos)
             current_pos += len(line) + 1
 
-        def_pattern = re.compile(r"^([ \t]*)(async\s+)?def\s+|^([ \t]*)class\s+", re.MULTILINE)
+        def_pattern = re.compile(
+            r"^([ \t]*)(async\s+)?def\s+|^([ \t]*)class\s+",
+            re.MULTILINE
+        )
 
         for i, line in enumerate(lines):
             if not def_pattern.match(line):

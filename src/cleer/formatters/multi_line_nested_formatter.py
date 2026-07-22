@@ -123,7 +123,10 @@ class MultiLineNestedFormatter(Formatter):
         return -1
 
 
-    def _split_elements(self, text: str) -> tuple[list[str], list[str]]:
+    def _split_elements(
+        self,
+        text: str
+    ) -> tuple[list[str], list[str]]:
         """Split text by commas and adjacent string literals at the top level."""
         elements = []
         separators = []
@@ -200,13 +203,7 @@ class MultiLineNestedFormatter(Formatter):
 
             if (
                 depth == 0
-                and text[i] in (
-                    "'",
-                    '"',
-                    "r",
-                    "b",
-                    "f"
-                )
+                and text[i] in ("'", '"', "r", "b", "f")
                 and current.strip()
             ):
                 is_string_start = False
@@ -214,16 +211,10 @@ class MultiLineNestedFormatter(Formatter):
                 if (
                     text[i] in "rbf"
                     and check_pos + 1 < len(text)
-                    and text[check_pos + 1] in (
-                        "'",
-                        '"'
-                    )
+                    and text[check_pos + 1] in ("'", '"')
                 ):
                     is_string_start = True
-                elif text[i] in (
-                    "'",
-                    '"'
-                ):
+                elif text[i] in ("'", '"'):
                     is_string_start = True
 
                 if is_string_start:
@@ -231,10 +222,7 @@ class MultiLineNestedFormatter(Formatter):
                     rstripped = current[:last_str_end]
                     if (
                         rstripped
-                        and rstripped[-1] in (
-                            "'",
-                            '"'
-                        )
+                        and rstripped[-1] in ("'", '"')
                     ):
                         elements.append(current.strip())
                         separators.append("")
@@ -360,7 +348,7 @@ class MultiLineNestedFormatter(Formatter):
 
 
     def _needs_expansion(self, text: str) -> bool:
-        """Check if any nested structure has more than 1 element or bracket nesting exceeds 2 levels."""
+        """Check if any nested structure needs expansion due to structural rules."""
         if self._get_bracket_nesting_depth(text) > 2:
             return True
 
@@ -412,20 +400,11 @@ class MultiLineNestedFormatter(Formatter):
                     inner = text[i + 1:close_pos]
                     elements, _ = self._split_elements(inner)
 
-                    is_func_call = (
-                        open_char == "("
-                        and i > 0
-                        and (
-                            text[i - 1].isalnum()
-                            or text[i - 1] in "_)"
-                        )
-                    )
                     is_type_annotation = (
                         open_char == "["
                         and i > 0
                         and text[i - 1].isalnum()
                     )
-                    min_elements = 3 if is_func_call else 2
 
                     if is_type_annotation:
                         bracket_depth = self._get_bracket_nesting_depth(text[i:close_pos + 1])
@@ -433,7 +412,18 @@ class MultiLineNestedFormatter(Formatter):
                             i = close_pos + 1
                             continue
 
-                    if len(elements) >= min_elements:
+                    if (
+                        open_char == "{"
+                        and inner.strip()
+                        and self._has_top_level_colon(inner)
+                    ):
+                        return True
+
+                    if (
+                        open_char == "{"
+                        and not self._has_top_level_colon(inner)
+                        and len(elements) >= 2
+                    ):
                         return True
 
                     if inner.strip():
@@ -450,12 +440,16 @@ class MultiLineNestedFormatter(Formatter):
         text: str,
         indent_level: int,
         base_indent: int=4,
-        max_length: int=100
+        max_length: int=100,
+        max_content_length: int=60
     ) -> bool:
         """Check if text would exceed max line length at given indent level."""
         indent_chars = indent_level * base_indent
         for line in text.split("\n"):
             if indent_chars + len(line) > max_length:
+                return True
+
+            if len(line) > max_content_length:
                 return True
 
         return False
@@ -465,7 +459,8 @@ class MultiLineNestedFormatter(Formatter):
         self,
         text: str,
         indent_level: int,
-        base_indent: int=4
+        base_indent: int=4,
+        inside_container: bool=False
     ) -> str:
         """Recursively format nested paired punctuation."""
         pairs = {
@@ -479,14 +474,8 @@ class MultiLineNestedFormatter(Formatter):
         next_indent = " " * ((indent_level + 1) * base_indent)
 
         while i < len(text):
-            if text[i] in (
-                "'",
-                '"'
-            ):
-                if text[i:i + 3] in (
-                    "'''",
-                    '"""'
-                ):
+            if text[i] in ("'", '"'):
+                if text[i:i + 3] in ("'''", '"""'):
                     quote = text[i:i + 3]
                     end = text.find(quote, i + 3)
                     if end != -1:
@@ -539,10 +528,27 @@ class MultiLineNestedFormatter(Formatter):
                             or text[i - 1] == "_"
                         )
                     )
-                    is_generator_expr = is_func_call and self._contains_generator(inner)
-                    min_elements = 3 if is_func_call else 2
+                    is_generator_expr = (
+                        is_func_call
+                        and self._contains_generator(inner)
+                    )
 
-                    should_expand = len(elements) >= min_elements
+                    is_import = (
+                        open_char == "("
+                        and result.rstrip().endswith("import")
+                    )
+                    is_dict = (
+                        open_char == "{"
+                        and inner.strip()
+                        and self._has_top_level_colon(inner)
+                    )
+
+                    if is_dict:
+                        should_expand = len(elements) >= 2
+                    elif is_import:
+                        should_expand = len(elements) >= 2
+                    else:
+                        should_expand = False
 
                     if is_generator_expr:
                         should_expand = False
@@ -558,19 +564,58 @@ class MultiLineNestedFormatter(Formatter):
                         if inner.strip() and self._needs_expansion(inner.strip()):
                             should_expand = True
 
+                    if (
+                        not should_expand
+                        and inside_container
+                        and open_char == "{"
+                        and inner.strip()
+                        and self._has_top_level_colon(inner)
+                    ):
+                        should_expand = True
+
                     if not should_expand and "\n" in inner:
-                        if is_func_call and len(elements) == 1:
-                            collapsed_single = result + open_char + elements[0].strip() + close_char
-                            if not self._exceeds_line_length(
-                                collapsed_single,
+                        if len(elements) == 1:
+                            elem_stripped = elements[0].strip()
+                            if "\n" in elem_stripped:
+                                should_expand = True
+                            else:
+                                collapsed_single = result + open_char + elem_stripped + close_char
+                                if not self._exceeds_line_length(
+                                    collapsed_single,
+                                    indent_level,
+                                    base_indent
+                                ):
+                                    result += open_char + elem_stripped + close_char
+                                    i = close_pos + 1
+                                    continue
+                                else:
+                                    should_expand = True
+
+                        if not should_expand and len(elements) > 1:
+                            parts = []
+                            for j, elem in enumerate(elements):
+                                if j > 0:
+                                    if j - 1 < len(separators) and separators[j - 1] == "":
+                                        parts.append(" ")
+                                    else:
+                                        parts.append(", ")
+
+                                parts.append(elem.strip())
+
+                            collapsed = result + open_char + "".join(parts) + close_char
+                            if self._exceeds_line_length(
+                                collapsed,
                                 indent_level,
                                 base_indent
                             ):
-                                result += open_char + elements[0].strip() + close_char
+                                should_expand = True
+                            else:
+                                result += open_char + "".join(parts) + close_char
                                 i = close_pos + 1
                                 continue
 
-                        should_expand = True
+                        if not should_expand and len(elements) <= 1:
+                            should_expand = True
 
                     if not should_expand and len(elements) > 1:
                         parts = []
@@ -591,6 +636,20 @@ class MultiLineNestedFormatter(Formatter):
                         ):
                             should_expand = True
 
+                    if (
+                        not should_expand
+                        and len(elements) == 1
+                        and not is_dict
+                    ):
+                        formatted_elem = self._format_nested(
+                            elements[0].strip(),
+                            indent_level + 1,
+                            base_indent,
+                            inside_container=True
+                        )
+                        if "\n" in formatted_elem:
+                            should_expand = True
+
                     if should_expand:
                         has_trailing_comma = len(separators) > len(elements) - 1
                         is_single_item_set = (
@@ -605,13 +664,17 @@ class MultiLineNestedFormatter(Formatter):
                             and has_trailing_comma
                             and not is_func_call
                         )
-                        preserve_trailing = is_single_item_set or is_single_item_tuple
+                        preserve_trailing = (
+                            is_single_item_set
+                            or is_single_item_tuple
+                        )
                         result += open_char + "\n"
                         for j, elem in enumerate(elements):
                             formatted_elem = self._format_nested(
                                 elem.strip(),
                                 indent_level + 1,
-                                base_indent
+                                base_indent,
+                                inside_container=True
                             )
                             if j < len(elements) - 1:
                                 if j < len(separators) and separators[j] == "":
@@ -659,7 +722,8 @@ class MultiLineNestedFormatter(Formatter):
                         inner_formatted = self._format_nested(
                             collapsed_inner,
                             indent_level,
-                            base_indent
+                            base_indent,
+                            inside_container=True
                         )
                         result += open_char + inner_formatted + close_char
 

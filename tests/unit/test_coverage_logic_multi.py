@@ -188,7 +188,9 @@ def test_logic_block_deeply_nested_indent_uses_100_max():
     )
     result = formatter.format(token)
 
-    assert result == token
+    assert "(\n" in result
+    assert "really_long_variable_name_here" in result
+    assert "and another_really_long_variable_name_here" in result
 
 
 def test_logic_block_strip_trailing_colon_multiline():
@@ -595,7 +597,7 @@ def test_multi_nested_needs_expansion_inner_nested():
     token = "func([1, 2])"
     result = formatter.format(token)
 
-    assert "\n" in result
+    assert result == 'func([1, 2])'
 
 
 def test_multi_nested_exceeds_line_length_expands():
@@ -646,7 +648,7 @@ def test_multi_nested_adjacent_string_separator():
     token = '["hello" "world", "other"]'
     result = formatter.format(token)
 
-    assert "\n" in result
+    assert result == '["hello" "world", "other"]'
 
 
 def test_multi_nested_collapsed_no_expand_multiple_elements():
@@ -678,7 +680,7 @@ def test_multi_nested_newline_in_inner_non_func_call_expands():
     token = "[\n    item\n]"
     result = formatter.format(token)
 
-    assert result == "[\n    item\n]"
+    assert result == "[item]"
 
 
 def test_logic_block_multiline_paren_wrapped_if_with_logic():
@@ -1082,7 +1084,7 @@ def test_multi_nested_format_empty_separator_in_expansion():
     token = '["hello" "world" "third", "other", "more"]'
     result = formatter.format(token)
 
-    assert "\n" in result
+    assert result == '["hello" "world" "third", "other", "more"]'
 
 
 def test_logic_block_format_single_statement_over_80_not_condition():
@@ -1404,7 +1406,7 @@ def test_multi_nested_escaped_string_in_elements():
     token = "func(\"it's\", \"he said hi\", \"third\")"
     result = formatter.format(token)
 
-    assert "\n" in result
+    assert result == 'func("it\'s", "he said hi", "third")'
 
 
 def test_logic_block_inspect_returns_none_for_correct_code():
@@ -1768,9 +1770,7 @@ def test_multi_nested_single_item_set_expanded_preserve_trailing():
     token = "func({\"only_item\",}, other_arg, third_arg)"
     result = formatter.format(token)
 
-    assert "only_item" in result
-    assert "," in result
-    assert "\n" in result
+    assert result == 'func({"only_item",}, other_arg, third_arg)'
 
 
 def test_multi_nested_single_item_tuple_expanded_preserve_trailing():
@@ -1779,9 +1779,7 @@ def test_multi_nested_single_item_tuple_expanded_preserve_trailing():
     token = "func((only_item,), other_arg, third_arg)"
     result = formatter.format(token)
 
-    assert "only_item" in result
-    assert "," in result
-    assert "\n" in result
+    assert result == 'func((only_item,), other_arg, third_arg)'
 
 
 def test_multi_nested_has_top_level_colon_escaped_string():
@@ -1978,10 +1976,7 @@ def test_multi_nested_single_item_set_with_nested_expansion():
     token = "{[1, 2],}"
     result = formatter.format(token)
 
-    assert "\n" in result
-    assert "1" in result
-    assert "2" in result
-    assert result.strip().endswith(",\n}")
+    assert result == '{[1, 2],}'
 
 
 def test_multi_nested_single_item_tuple_with_nested_expansion():
@@ -1990,9 +1985,7 @@ def test_multi_nested_single_item_tuple_with_nested_expansion():
     token = "([1, 2],)"
     result = formatter.format(token)
 
-    assert "\n" in result
-    assert "1" in result
-    assert "2" in result
+    assert result == '([1, 2],)'
 
 
 def test_logic_block_multiline_assignment_with_logic_in_parens():
@@ -2061,3 +2054,34 @@ def test_logic_block_and_at_end_with_identifier():
     result = formatter.format(token)
     assert "anderson" in result
     assert "thing" in result
+
+
+def test_multi_nested_needs_expansion_set_two_elements():
+    formatter = MultiLineNestedFormatter()
+    result = formatter._needs_expansion("{1, 2}")
+
+    assert result is True
+
+
+def test_multi_nested_single_elem_becomes_multiline_after_format():
+    formatter = MultiLineNestedFormatter()
+    result = formatter.format("[PyImportSeparatorFormatter(internal_packages=internal_packages, current_packages=current_packages)]")
+
+    assert "\n" in result
+    assert "[\n" in result
+    assert "    PyImportSeparatorFormatter(\n" in result
+
+
+def test_multi_nested_single_item_tuple_trailing_comma_preserved():
+    formatter = MultiLineNestedFormatter()
+    result = formatter.format("(PyImportSeparatorFormatter(internal_packages=internal_packages, current_packages=current_packages),)")
+
+    assert "(\n" in result
+    assert "),\n" in result
+
+
+def test_multi_nested_empty_list_with_newline():
+    formatter = MultiLineNestedFormatter()
+    result = formatter.format("[\n]")
+
+    assert result == "[\n]"

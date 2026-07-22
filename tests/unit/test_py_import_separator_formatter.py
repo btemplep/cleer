@@ -184,7 +184,10 @@ def test_get_full_import_statement_backslash_multi_line():
         "    exists, \\",
         "    dirname"
     ]
-    statement, end_idx = formatter._get_full_import_statement(lines, 0)
+    statement, end_idx = formatter._get_full_import_statement(
+        lines,
+        0
+    )
 
     assert "join" in statement
     assert "dirname" in statement

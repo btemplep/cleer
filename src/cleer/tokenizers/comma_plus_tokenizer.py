@@ -29,7 +29,11 @@ class CommaPlusTokenizer(Tokenizer):
     emits_token_type = "comma_plus"
 
 
-    def _is_single_item_set(self, document: str, comma_pos: int) -> bool:
+    def _is_single_item_set(
+        self,
+        document: str,
+        comma_pos: int
+    ) -> bool:
         """Check if comma at comma_pos is the sole comma in a single-item set."""
         depth = 0
         has_colon = False
@@ -85,7 +89,11 @@ class CommaPlusTokenizer(Tokenizer):
         return False
 
 
-    def _is_single_item_tuple(self, document: str, comma_pos: int) -> bool:
+    def _is_single_item_tuple(
+        self,
+        document: str,
+        comma_pos: int
+    ) -> bool:
         """Check if comma at comma_pos is the sole comma in a single-item tuple (not a function call)."""
         depth = 0
         has_other_comma = False
@@ -131,7 +139,13 @@ class CommaPlusTokenizer(Tokenizer):
                         while before >= 0 and document[before] in " \t":
                             before -= 1
 
-                        if before >= 0 and (document[before].isalnum() or document[before] in "_)"):
+                        if (
+                            before >= 0
+                            and (
+                                document[before].isalnum()
+                                or document[before] in "_)"
+                            )
+                        ):
                             return False
 
                         return True

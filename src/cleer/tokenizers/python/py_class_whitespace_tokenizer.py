@@ -105,16 +105,9 @@ class PyClassWhitespaceTokenizer(Tokenizer):
             match = class_pattern.match(line)
             if match:
                 base_indent = len(match.group(1))
-                class_end = self._find_class_end(
-                    lines,
-                    i,
-                    base_indent
-                )
+                class_end = self._find_class_end(lines, i, base_indent)
                 class_ranges.append(
-                    (
-                        i,
-                        class_end - 1
-                    )
+                    (i, class_end - 1)
                 )
                 for j in range(i, class_end):
                     covered_lines.add(j)
@@ -150,7 +143,10 @@ class PyClassWhitespaceTokenizer(Tokenizer):
 
             if first_member <= class_end:
                 first_stripped = lines[first_member].lstrip()
-                is_docstring = first_stripped.startswith('"""') or first_stripped.startswith("'''")
+                is_docstring = (
+                    first_stripped.startswith('"""')
+                    or first_stripped.startswith("'''")
+                )
                 is_method_or_class = (
                     first_stripped.startswith("def ")
                     or first_stripped.startswith("class ")
@@ -172,7 +168,10 @@ class PyClassWhitespaceTokenizer(Tokenizer):
 
                 else:
                     quote_char = first_stripped[:3]
-                    if first_stripped.count(quote_char) >= 2 and len(first_stripped) > 3:
+                    if (
+                        first_stripped.count(quote_char) >= 2
+                        and len(first_stripped) > 3
+                    ):
                         docstring_end_line = first_member
                     else:
                         docstring_end_line = first_member + 1
@@ -184,7 +183,10 @@ class PyClassWhitespaceTokenizer(Tokenizer):
 
                     if docstring_end_line <= class_end:
                         after_docstring = docstring_end_line + 1
-                        while after_docstring < len(lines) and lines[after_docstring].strip() == "":
+                        while (
+                            after_docstring < len(lines)
+                            and lines[after_docstring].strip() == ""
+                        ):
                             after_docstring += 1
 
                         if after_docstring <= class_end:

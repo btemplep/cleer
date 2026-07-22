@@ -36,12 +36,18 @@ class PyImportParenthesisFormatter(Formatter):
         return match.group(1) if match else ""
 
 
-    def _parse_from_import(self, token: str) -> tuple[str | None, list[str] | None]:
+    def _parse_from_import(
+        self,
+        token: str
+    ) -> tuple[str | None, list[str] | None]:
         """Parse a from...import statement into module and items."""
         stripped = token.strip()
 
         if "(" in stripped:
-            match = re.match(r"from\s+([\w.]+)\s+import\s*\(\s*", stripped)
+            match = re.match(
+                r"from\s+([\w.]+)\s+import\s*\(\s*",
+                stripped
+            )
             if match:
                 module = match.group(1)
                 content = stripped[stripped.index("(") + 1:stripped.rindex(")")]
@@ -65,14 +71,13 @@ class PyImportParenthesisFormatter(Formatter):
         return None, None
 
 
-    def _parse_plain_import(self, token: str) -> list[str] | None:
+    def _parse_plain_import(
+        self,
+        token: str
+    ) -> list[str] | None:
         """Parse a plain import statement into items."""
         stripped = token.strip()
-        match = re.match(
-            r"import\s+(.+)",
-            stripped,
-            re.DOTALL
-        )
+        match = re.match(r"import\s+(.+)", stripped, re.DOTALL)
         if match:
             items_str = match.group(1).replace("\\\n", " ")
             items = [item.strip().rstrip(",") for item in items_str.split(",") if item.strip().rstrip(",")]

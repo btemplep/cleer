@@ -9,7 +9,10 @@ from typing import List
 from cleer.tokenizers.tokenizer import Tokenizer
 
 
-TRAILING_WHITESPACE_PATTERN = re.compile(r"(?<=\S)(\s+)$", re.DOTALL)
+TRAILING_WHITESPACE_PATTERN = re.compile(
+    r"(?<=\S)(\s+)$",
+    re.DOTALL
+)
 
 
 class FileEndWhitespaceTokenizer(Tokenizer):

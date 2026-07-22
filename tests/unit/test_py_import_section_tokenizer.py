@@ -131,8 +131,14 @@ def test_is_import_line_with_comment():
 
 def test_is_multiline_continuation():
     tokenizer = PyImportSectionTokenizer()
-    assert tokenizer._is_multiline_import_continuation("    x,", True) is True
-    assert tokenizer._is_multiline_import_continuation("x \\", False) is True
+    assert tokenizer._is_multiline_import_continuation(
+        "    x,",
+        True
+    ) is True
+    assert tokenizer._is_multiline_import_continuation(
+        "x \\",
+        False
+    ) is True
 
 
 def test_subsequent_multiline_import_in_section():

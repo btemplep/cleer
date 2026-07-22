@@ -41,7 +41,10 @@ class PyImportEntrySortFormatter(Formatter):
         return token.strip().startswith("from ")
 
 
-    def _parse_items(self, token: str) -> tuple[str | None, list[str] | None, bool]:
+    def _parse_items(
+        self,
+        token: str
+    ) -> tuple[str | None, list[str] | None, bool]:
         """Parse items from a from...import statement."""
         stripped = token.strip()
 

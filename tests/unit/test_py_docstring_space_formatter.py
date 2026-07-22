@@ -13,7 +13,10 @@ def test_inspect_returns_message_for_extra_blank():
     result = formatter.inspect("\n\n    ")
 
     assert result is not None
-    assert "blank lines" in result.lower() or "no blank lines" in result.lower()
+    assert (
+        "blank lines" in result.lower()
+        or "no blank lines" in result.lower()
+    )
 
 
 def test_inspect_returns_message_for_multiple_blanks():

@@ -5,15 +5,77 @@ This project is cleer.  A file formatter that primarily uses tokenizers, whose t
 instance updates the document accordingly. 
 
 
+- [ ] Formatters
+    - if no args in function call don't ever expand
+    - special handler for string type of paired punctuation
+    - ```("def func():\n" "    x = a or b or c\n")```
+    - this should always be multi line if it is setup a string type paired punctuation
+    - if lists are nested under other lists or dicts or tuple, always expand as well, unless empty
+    - At this point I think you need to merge all the pair punctuation into one python specific formatter. just because all the different scenarios are so closely linked and the different formatters play with each other in weird ways. and it's not always clear how that is resold unless it is in just one formatter.  
+        - the tokenizer can probably just take any any top level statement for paired punctuation, including indent. 
+        - the formatter should first condense it all down to one properly formatted line
+        - 
+```python
+result = subprocess.run([
+            "cleer",
+            "inspect",
+            str(tmp_path)
+        ], capture_output=True, text=True)
+```
+
+```python
+if not (self._exclude_dict_keys and self._is_dict_key_context(document, i)):
+```
+
+```python
+    pairs = [(
+                "(",
+                ")"
+            ), (
+                "[",
+                "]"
+            ), (
+                "{",
+                "}"
+            )]
+```
+
+```python
+for i, (
+        s1,
+        e1
+    ) in enumerate(indices):
+        for j, (
+            s2,
+            e2
+        ) in enumerate(indices):
+            if i != j:
+                assert not (s1 < e2 and s2 < e1)
+```
+
+```python
+def test_format_adds_newline_after_yield_with_following_statement(
+):
+```
+
+- [ ] default cleer function should be for config, not class. That way they can easily update the config as needed.
+- [ ] fix errors when formatting project
+- [ ] 100% coverage
 
 
+- [x] change function call formatting to be multi line if any of the follwoing
+    - the length of the whole line without indent is over 60 characters
+    - the length of the line with indent is over 100 characters
+    - there is a multiline statement within the function call.
+- [x] do the same for function definition formatting and non-nested paired punctuation
+    - non-nested paired punctuation different rules for dicts.  if a dict has more than one entry always expand. Keep the rule that if a nested dict, always expand, unless empty. 
+- [x] update so that python exclude patterns are taken with default_cleer
+- [x] update to make glob.translate compatible with 3.11/12
+- [x] update so that {} with at least one entry that are nested, should be expanded.
+- [x] fix formatting with *, in good_format.py
 - [x] before release
     - test coverage 100%
     - upload to github
-
-
-
-
 - [x] vscode integration
     - vscode run on save extension to run it on save `cleer format ${file}`
     - Add to README

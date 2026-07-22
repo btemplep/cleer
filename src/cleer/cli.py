@@ -37,7 +37,10 @@ def main(argv: List[str]=None) -> None:
         action="version",
         version=cleer_version
     )
-    sub_parsers = parser.add_subparsers(title="commands", dest="command")
+    sub_parsers = parser.add_subparsers(
+        title="commands",
+        dest="command"
+    )
 
     command_args_parser = argparse.ArgumentParser(add_help=False)
     command_args_parser.add_argument(
@@ -56,16 +59,13 @@ def main(argv: List[str]=None) -> None:
         "--log-level",
         type=str,
         default="CRITICAL",
-        choices=[
-            "DEBUG",
-            "INFO",
-            "WARNING",
-            "ERROR",
-            "CRITICAL"
-        ],
+        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
         help=f"{FMT.bold}[default: \"{FMT.end}{FMT.green}CRITICAL{FMT.end}{FMT.bold}\"]{FMT.end} Set logging level."
     )
-    command_args_parser.add_argument("path", help="Path to file or directory.")
+    command_args_parser.add_argument(
+        "path",
+        help="Path to file or directory."
+    )
 
     inspect_parser = sub_parsers.add_parser(
         "inspect",
@@ -115,14 +115,11 @@ def main(argv: List[str]=None) -> None:
 
     if args.command == "inspect":
         logger.info("Running inspect command...")
-        print(
-            json.dumps(
+        print(json.dumps(
                 clr.inspect_path(args.path),
                 indent=4,
                 default=str
-            ),
-            flush=True
-        )
+            ), flush=True)
         logger.info("Inspect command complete!")
     elif args.command == "format":
         logger.info("Running format command...")

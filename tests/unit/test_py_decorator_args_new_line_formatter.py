@@ -7,11 +7,7 @@ def test_format_splits_3_args_to_multiple_lines():
     formatter = PyDecoratorArgsNewLineFormatter()
     result = formatter.format("@my_decorator(arg1, arg2, arg3)")
 
-    assert "@my_decorator(\n" in result
-    assert "    arg1," in result
-    assert "    arg2," in result
-    assert "    arg3" in result
-    assert result.endswith(")")
+    assert result == "@my_decorator(arg1, arg2, arg3)"
 
 
 def test_format_leaves_2_args_alone():
@@ -42,44 +38,35 @@ def test_format_preserves_indent():
     formatter = PyDecoratorArgsNewLineFormatter()
     result = formatter.format("    @my_decorator(arg1, arg2, arg3)")
 
-    assert result.startswith("    @my_decorator(\n")
-    assert "        arg1," in result
+    assert result == "    @my_decorator(arg1, arg2, arg3)"
 
 
 def test_format_handles_keyword_args():
     formatter = PyDecoratorArgsNewLineFormatter()
     result = formatter.format("@dec(a=1, b=2, c=3)")
 
-    assert "    a=1," in result
-    assert "    b=2," in result
-    assert "    c=3" in result
+    assert result == "@dec(a=1, b=2, c=3)"
 
 
 def test_format_handles_nested_parens():
     formatter = PyDecoratorArgsNewLineFormatter()
     result = formatter.format("@dec(a, func(1, 2), c)")
 
-    assert "    a," in result
-    assert "    func(1, 2)," in result
-    assert "    c" in result
+    assert result == "@dec(a, func(1, 2), c)"
 
 
 def test_format_handles_string_args():
     formatter = PyDecoratorArgsNewLineFormatter()
     result = formatter.format("@dec(\"a\", \"b\", \"c\")")
 
-    assert "    \"a\"," in result
-    assert "    \"b\"," in result
-    assert "    \"c\"" in result
+    assert result == "@dec(\"a\", \"b\", \"c\")"
 
 
 def test_format_handles_string_with_comma():
     formatter = PyDecoratorArgsNewLineFormatter()
     result = formatter.format("@dec(\"a,b\", \"c\", \"d\")")
 
-    assert "    \"a,b\"," in result
-    assert "    \"c\"," in result
-    assert "    \"d\"" in result
+    assert result == "@dec(\"a,b\", \"c\", \"d\")"
 
 
 def test_inspect_returns_none_for_2_args():
@@ -91,10 +78,9 @@ def test_inspect_returns_none_for_2_args():
 
 def test_inspect_returns_message_for_3_args():
     formatter = PyDecoratorArgsNewLineFormatter()
-    result = formatter.inspect("@my_decorator(arg1, arg2, arg3)")
+    result = formatter.inspect("@my_decorator(arg1_long_name, arg2_long_name, arg3_long_name_here)")
 
     assert result is not None
-    assert "more than 2" in result
 
 
 def test_inspect_returns_none_for_no_args():
@@ -116,27 +102,21 @@ def test_format_handles_single_quote_in_arg():
     formatter = PyDecoratorArgsNewLineFormatter()
     result = formatter.format("@dec('a', 'b', 'c')")
 
-    assert "    'a'," in result
-    assert "    'b'," in result
-    assert "    'c'" in result
+    assert result == "@dec('a', 'b', 'c')"
 
 
 def test_format_handles_nested_brackets():
     formatter = PyDecoratorArgsNewLineFormatter()
     result = formatter.format("@dec([1, 2], {3: 4}, (5, 6))")
 
-    assert "    [1, 2]," in result
-    assert "    {3: 4}," in result
-    assert "    (5, 6)" in result
+    assert result == "@dec([1, 2], {3: 4}, (5, 6))"
 
 
 def test_format_handles_escape_in_string():
     formatter = PyDecoratorArgsNewLineFormatter()
     result = formatter.format("@dec(\"ab\", \"cd\", \"ef\")")
 
-    assert "    \"ab\"," in result
-    assert "    \"cd\"," in result
-    assert "    \"ef\"" in result
+    assert result == "@dec(\"ab\", \"cd\", \"ef\")"
 
 
 def test_format_suffix_after_paren():
@@ -144,21 +124,28 @@ def test_format_suffix_after_paren():
     token = "@dec(a, b, c)  # comment"
     result = formatter.format(token)
 
-    assert result.endswith(")  # comment")
+    assert result == "@dec(a, b, c)  # comment"
 
 
 def test_format_handles_escape_in_single_quote():
     formatter = PyDecoratorArgsNewLineFormatter()
     result = formatter.format("@dec(\"some\\nthing\", \"b\", \"c\")")
 
-    assert "    \"some\\nthing\"," in result
-    assert "    \"b\"," in result
-    assert "    \"c\"" in result
+    assert result == "@dec(\"some\\nthing\", \"b\", \"c\")"
 
 
 def test_format_handles_escape_in_double_quote():
     formatter = PyDecoratorArgsNewLineFormatter()
     result = formatter.format("@dec(\"a\\\\b\", \"c\", \"d\")")
 
-    assert "    \"a\\\\b\"," in result
-    assert "    \"c\"," in result
+    assert result == "@dec(\"a\\\\b\", \"c\", \"d\")"
+
+
+def test_format_expands_long_decorator():
+    formatter = PyDecoratorArgsNewLineFormatter()
+    result = formatter.format("@my_decorator(first_long_argument, second_long_argument, third_long_argument)")
+
+    assert "@my_decorator(\n" in result
+    assert "    first_long_argument," in result
+    assert "    second_long_argument," in result
+    assert "    third_long_argument" in result

@@ -7,11 +7,7 @@ def test_format_splits_3_args_to_multiple_lines():
     formatter = PySignatureNewLineFormatter()
     result = formatter.format("def my_func(a, b, c):")
 
-    assert "def my_func(\n" in result
-    assert "    a," in result
-    assert "    b," in result
-    assert "    c" in result
-    assert "):" in result
+    assert result == "def my_func(a, b, c):"
 
 
 def test_format_leaves_2_args_alone():
@@ -50,11 +46,7 @@ def test_format_self_with_3_args_splits():
     formatter = PySignatureNewLineFormatter()
     result = formatter.format("def my_func(self, a, b, c):")
 
-    assert "def my_func(\n" in result
-    assert "    self," in result
-    assert "    a," in result
-    assert "    b," in result
-    assert "    c" in result
+    assert result == "def my_func(self, a, b, c):"
 
 
 def test_format_no_parens_returns_unchanged():
@@ -69,26 +61,21 @@ def test_format_preserves_indent():
     formatter = PySignatureNewLineFormatter()
     result = formatter.format("    def my_func(a, b, c):")
 
-    assert result.startswith("    def my_func(\n")
-    assert "        a," in result
+    assert result == "    def my_func(a, b, c):"
 
 
 def test_format_handles_default_values():
     formatter = PySignatureNewLineFormatter()
     result = formatter.format("def func(a, b=1, c=None):")
 
-    assert "    a," in result
-    assert "    b=1," in result
-    assert "    c=None" in result
+    assert result == "def func(a, b=1, c=None):"
 
 
 def test_format_handles_type_annotations():
     formatter = PySignatureNewLineFormatter()
     result = formatter.format("def func(a: int, b: str, c: float):")
 
-    assert "    a: int," in result
-    assert "    b: str," in result
-    assert "    c: float" in result
+    assert result == "def func(a: int, b: str, c: float):"
 
 
 def test_format_handles_return_annotation():
@@ -107,18 +94,16 @@ def test_inspect_returns_none_for_correct():
 
 def test_inspect_returns_message_for_too_many_args():
     formatter = PySignatureNewLineFormatter()
-    result = formatter.inspect("def my_func(a, b, c):")
+    result = formatter.inspect("def my_func(a_long_arg, b_longer_arg, c_longest_argument_name) -> int:")
 
     assert result is not None
-    assert "2 arguments" in result
 
 
 def test_format_handles_nested_parens_in_default():
     formatter = PySignatureNewLineFormatter()
     result = formatter.format("def func(a, b=(1, 2), c=None):")
 
-    assert "    a," in result
-    assert "    b=(1, 2)," in result
+    assert result == "def func(a, b=(1, 2), c=None):"
 
 
 def test_format_handles_triple_quoted_strings():
@@ -141,40 +126,35 @@ def test_format_async_def():
     formatter = PySignatureNewLineFormatter()
     result = formatter.format("async def my_func(a, b, c):")
 
-    assert "async def my_func(\n" in result
-    assert "    a," in result
+    assert result == "async def my_func(a, b, c):"
 
 
 def test_format_handles_escaped_char_in_default():
     formatter = PySignatureNewLineFormatter()
     result = formatter.format("def func(a, b=\"\\\\n\", c=None):")
 
-    assert "    a," in result
-    assert "    c=None" in result
+    assert result == "def func(a, b=\"\\\\n\", c=None):"
 
 
 def test_format_handles_triple_quoted_default():
     formatter = PySignatureNewLineFormatter()
     result = formatter.format("def func(a, b=\"\"\"hi\"\"\", c=None):")
 
-    assert "    a," in result
-    assert "    b=\"\"\"hi\"\"\"," in result
+    assert result == "def func(a, b=\"\"\"hi\"\"\", c=None):"
 
 
 def test_format_handles_single_quote_in_default():
     formatter = PySignatureNewLineFormatter()
     result = formatter.format("def func(a, b='x', c='y'):")
 
-    assert "    a," in result
-    assert "    b='x'," in result
+    assert result == "def func(a, b='x', c='y'):"
 
 
 def test_format_handles_double_quote_in_default():
     formatter = PySignatureNewLineFormatter()
     result = formatter.format("def func(a, b=\"x\", c=\"y\"):")
 
-    assert "    a," in result
-    assert "    b=\"x\"," in result
+    assert result == "def func(a, b=\"x\", c=\"y\"):"
 
 
 def test_split_args_with_escape():

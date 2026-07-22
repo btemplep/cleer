@@ -20,7 +20,8 @@ def test_format_no_extra_newlines_between_if_elif_else():
     assert "    elif y:\n        pass\n    else:" in result
 
 
-def test_format_no_extra_newlines_between_try_except_finally():
+def test_format_no_extra_newlines_between_try_except_finally(
+):
     formatter = PyCodeBlockNewLinesFormatter()
     token = "def func():\n    try:\n        pass\n\n\n    except:\n        pass\n\n\n    finally:\n        pass\n    z = 1\n"
     result = formatter.format(token)
@@ -182,11 +183,7 @@ def test_is_inside_function_or_class_with_empty_line():
 
 def test_is_inside_function_or_class_at_indent_zero():
     formatter = PyCodeBlockNewLinesFormatter()
-    lines = [
-        "if x:",
-        "    pass",
-        "y = 1"
-    ]
+    lines = ["if x:", "    pass", "y = 1"]
     result = formatter._is_inside_function_or_class(lines, 2)
 
     assert result is False
@@ -263,13 +260,10 @@ def test_format_block_with_prev_ending_in_colon():
     assert "    for i in range(10):\n        if i > 5:" in result
 
 
-def test_is_inside_function_or_class_non_function_token_with_class():
+def test_is_inside_function_or_class_non_function_token_with_class(
+):
     formatter = PyCodeBlockNewLinesFormatter()
-    lines = [
-        "class Foo:",
-        "    if x:",
-        "        pass"
-    ]
+    lines = ["class Foo:", "    if x:", "        pass"]
     result = formatter._is_inside_function_or_class(lines, 1)
 
     assert result is True
@@ -283,7 +277,8 @@ def test_format_block_at_end_no_following_code():
     assert result == token
 
 
-def test_format_block_with_multiple_blank_lines_between_connected():
+def test_format_block_with_multiple_blank_lines_between_connected(
+):
     formatter = PyCodeBlockNewLinesFormatter()
     token = "def func():\n    if x:\n        pass\n\n\n    else:\n        pass\n    y = 1\n"
     result = formatter.format(token)
@@ -306,11 +301,7 @@ def test_is_inside_function_or_class_async_def_nested():
 
 def test_format_non_function_token_not_nested():
     formatter = PyCodeBlockNewLinesFormatter()
-    lines = [
-        "x = 1",
-        "    if y:",
-        "        pass"
-    ]
+    lines = ["x = 1", "    if y:", "        pass"]
     result = formatter._is_inside_function_or_class(lines, 1)
 
     assert result is False
@@ -361,12 +352,7 @@ def test_format_if_block_with_blank_before_deeper_code():
 
 def test_non_function_token_with_blank_line_scanning():
     formatter = PyCodeBlockNewLinesFormatter()
-    lines = [
-        "class Foo:",
-        "",
-        "    if x:",
-        "        pass"
-    ]
+    lines = ["class Foo:", "", "    if x:", "        pass"]
     result = formatter._is_inside_function_or_class(lines, 2)
 
     assert result is True

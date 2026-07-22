@@ -17,31 +17,15 @@ from cleer import (
 )
 
 
-@pytest.thing(
-    "thing",
-    4,
-    "here"
-)
-def my_func(
-    a,
-    b,
-    c="hello",
-    d=4
-):
+@pytest.thing("thing", 4, "here")
+def my_func(a, b, c="hello", d=4):
     x = my_dict['key']
     y = other.get("value")
-    data = [
-        1,
-        2,
-        3
-    ]
+    data = [1, 2, 3]
     nested = my_func(
         [
             {
-                "my_key": [
-                    1,
-                    2
-                ],
+                "my_key": [1, 2],
                 "other_key": [0]
             }
         ]
@@ -83,10 +67,7 @@ def another(a, b):
     return result
 
 
-another(
-    a="thing",
-    b="hello"
-)
+another(a="thing", b="hello")
 
 
 class Thing:
@@ -143,19 +124,11 @@ class Thing:
         return 9
 
 
-def new_thing(
-    a,
-    b,
-    c
-):
+def new_thing(a, b, c):
     return -1
 
 
-async def athing(
-    a,
-    b,
-    c
-):
+async def athing(a, b, c):
     return -1
 
 
@@ -204,9 +177,15 @@ class MyOtherType:
         return -1
 
 
-for i in range(
-    5 - 1,
-    -1,
-    -1
-):
+for i in range(5 - 1, -1, -1):
     print(i)
+
+
+def translate(
+    pat,
+    *,
+    recursive=False,
+    include_hidden=False,
+    seps=None
+):
+    return 4

@@ -40,7 +40,11 @@ class PySignatureNewLineFormatter(Formatter):
         self.max_line_length = max_line_length
 
 
-    def _find_matching_paren(self, text: str, start: int) -> int:
+    def _find_matching_paren(
+        self,
+        text: str,
+        start: int
+    ) -> int:
         """Find matching closing parenthesis."""
         depth = 1
         i = start + 1
@@ -52,10 +56,7 @@ class PySignatureNewLineFormatter(Formatter):
                 i += 2
                 continue
 
-            if text[i:i + 3] in (
-                "'''",
-                '"""'
-            ):
+            if text[i:i + 3] in ("'''", '"""'):
                 quote = text[i:i + 3]
                 end = text.find(quote, i + 3)
                 if end != -1:
@@ -194,13 +195,13 @@ class PySignatureNewLineFormatter(Formatter):
 
         args = self._split_args(inner)
 
-        countable_args = [a for a in args if a.strip() not in ("self", "cls")]
-
         single_line = f"{indent}{prefix}({', '.join(a.strip() for a in args)}){suffix}"
-        exceeds_length = len(single_line) > self.max_line_length
+        content_line = f"{prefix}({', '.join(a.strip() for a in args)}){suffix}"
+        exceeds_total = len(single_line) > self.max_line_length
+        exceeds_content = len(content_line) > 60
 
-        if len(countable_args) <= 2 and not exceeds_length:
-            return token
+        if not exceeds_total and not exceeds_content:
+            return single_line
 
         arg_indent = indent + "    "
         lines = [f"{indent}{prefix}("]

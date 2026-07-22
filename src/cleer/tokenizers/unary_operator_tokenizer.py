@@ -131,11 +131,7 @@ class UnaryOperatorTokenizer(Tokenizer):
 
     def _is_in_comment(self, document: str, pos: int) -> bool:
         """Check if a position is in a comment."""
-        line_start = document.rfind(
-            "\n",
-            0,
-            pos
-        ) + 1
+        line_start = document.rfind("\n", 0, pos) + 1
         line = document[line_start:pos]
 
         in_single = False
@@ -187,10 +183,7 @@ class UnaryOperatorTokenizer(Tokenizer):
 
         while i < len(document):
             if document[i] in "'\"":#
-                if document[i:i + 3] in (
-                    "'''",
-                    '"""'
-                ):
+                if document[i:i + 3] in ("'''", '"""'):
                     quote = document[i:i + 3]
                     end = document.find(quote, i + 3)
                     if end != -1:
@@ -248,7 +241,10 @@ class UnaryOperatorTokenizer(Tokenizer):
                             is_unary = True
                         elif document[before_pos] in self.UNARY_CONTEXT_CHARS:
                             is_unary = True
-                        elif document[before_pos].isalpha() or document[before_pos] == "_":
+                        elif (
+                            document[before_pos].isalpha()
+                            or document[before_pos] == "_"
+                        ):
                             word_end = before_pos + 1
                             word_start = before_pos
                             while (

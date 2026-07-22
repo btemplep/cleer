@@ -290,7 +290,11 @@ class PyImportSeparatorFormatter(Formatter):
         return stripped.startswith("from .")
 
 
-    def _get_full_import_statement(self, lines: list[str], start_idx: int) -> tuple[str, int]:
+    def _get_full_import_statement(
+        self,
+        lines: list[str],
+        start_idx: int
+    ) -> tuple[str, int]:
         """Get a full import statement that may span multiple lines."""
         statement_lines = [lines[start_idx]]
         i = start_idx
@@ -343,8 +347,14 @@ class PyImportSeparatorFormatter(Formatter):
 
         while i < len(lines):
             stripped = lines[i].strip()
-            if stripped.startswith("import ") or stripped.startswith("from "):
-                statement, end_idx = self._get_full_import_statement(lines, i)
+            if (
+                stripped.startswith("import ")
+                or stripped.startswith("from ")
+            ):
+                statement, end_idx = self._get_full_import_statement(
+                    lines,
+                    i
+                )
                 statements.append(statement)
                 i = end_idx + 1
             else:
@@ -407,12 +417,7 @@ class PyImportSeparatorFormatter(Formatter):
         if not statements:
             return token
 
-        blocks: list[list[str]] = [
-            [],
-            [],
-            [],
-            []
-        ]
+        blocks: list[list[str]] = [[], [], [], []]
 
         for statement in statements:
             first_line = statement.split("\n")[0]

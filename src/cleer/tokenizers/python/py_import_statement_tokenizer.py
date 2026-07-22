@@ -72,7 +72,10 @@ class PyImportStatementTokenizer(Tokenizer):
             line = lines[i]
             stripped = line.strip()
 
-            if stripped.startswith("import ") or stripped.startswith("from "):
+            if (
+                stripped.startswith("import ")
+                or stripped.startswith("from ")
+            ):
                 start_index = line_starts[i]
                 end_line = i
 

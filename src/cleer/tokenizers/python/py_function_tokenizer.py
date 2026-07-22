@@ -58,7 +58,10 @@ class PyFunctionTokenizer(Tokenizer):
                 if lines[i].rstrip().endswith(":"):
                     return i
 
-                if i + 1 < len(lines) and lines[i + 1].strip().startswith("->"):
+                if (
+                    i + 1 < len(lines)
+                    and lines[i + 1].strip().startswith("->")
+                ):
                     j = i + 1
                     while j < len(lines):
                         if lines[j].rstrip().endswith(":"):
@@ -125,7 +128,10 @@ class PyFunctionTokenizer(Tokenizer):
             if current_indent < def_indent:
                 break
 
-            if current_indent == def_indent and stripped.startswith("@"):
+            if (
+                current_indent == def_indent
+                and stripped.startswith("@")
+            ):
                 result = i
                 i -= 1
                 continue
@@ -134,7 +140,10 @@ class PyFunctionTokenizer(Tokenizer):
                 i -= 1
                 continue
 
-            if current_indent == def_indent and not stripped.startswith("@"):
+            if (
+                current_indent == def_indent
+                and not stripped.startswith("@")
+            ):
                 paren_depth = 0
                 scan = i
                 found_decorator = False
@@ -232,11 +241,7 @@ class PyFunctionTokenizer(Tokenizer):
 
                 decorator_start = self._find_decorators_start(lines, i)
 
-                func_end = self._find_function_end(
-                    lines,
-                    i,
-                    base_indent
-                )
+                func_end = self._find_function_end(lines, i, base_indent)
 
                 start_index = line_starts[decorator_start]
                 end_index = line_starts[func_end] + len(lines[func_end])

@@ -9,7 +9,10 @@ from typing import List
 from cleer.tokenizers.tokenizer import Tokenizer
 
 
-IMPORT_LINE_PATTERN = re.compile(r"^[ \t]*(import |from [\w.]+ import )", re.MULTILINE)
+IMPORT_LINE_PATTERN = re.compile(
+    r"^[ \t]*(import |from [\w.]+ import )",
+    re.MULTILINE
+)
 
 
 class PyImportSectionTokenizer(Tokenizer):
@@ -46,7 +49,11 @@ class PyImportSectionTokenizer(Tokenizer):
         )
 
 
-    def _is_multiline_import_continuation(self, line: str, in_paren: bool) -> bool:
+    def _is_multiline_import_continuation(
+        self,
+        line: str,
+        in_paren: bool
+    ) -> bool:
         """Check if a line is a continuation of a multi-line import."""
         if in_paren:
             return True

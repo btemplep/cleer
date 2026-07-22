@@ -34,7 +34,11 @@ class PyReturnYieldNewLineFormatter(Formatter):
     accepts_token_types = ["function"]
 
 
-    def _get_block_indent(self, lines: list[str], line_idx: int) -> int:
+    def _get_block_indent(
+        self,
+        lines: list[str],
+        line_idx: int
+    ) -> int:
         """Get the indent level of the current block."""
         line = lines[line_idx]
         if line.strip():
@@ -65,17 +69,17 @@ class PyReturnYieldNewLineFormatter(Formatter):
         )
 
 
-    def _is_only_statement_in_block(self, lines: list[str], line_idx: int) -> bool:
+    def _is_only_statement_in_block(
+        self,
+        lines: list[str],
+        line_idx: int
+    ) -> bool:
         """Check if this return/yield is the only statement in its block."""
         line = lines[line_idx]
         current_indent = len(line) - len(line.lstrip())
 
         in_docstring = False
-        for i in range(
-            line_idx - 1,
-            -1,
-            -1
-        ):
+        for i in range(line_idx - 1, -1, -1):
             check_line = lines[i]
             if check_line.strip() == "":
                 continue
@@ -194,11 +198,7 @@ class PyReturnYieldNewLineFormatter(Formatter):
                     result_lines.append(line)
                 else:
                     has_prev_statement = False
-                    for j in range(
-                        i - 1,
-                        -1,
-                        -1
-                    ):
+                    for j in range(i - 1, -1, -1):
                         if lines[j].strip() == "":
                             break
 

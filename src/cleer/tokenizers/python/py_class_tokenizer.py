@@ -103,11 +103,7 @@ class PyClassTokenizer(Tokenizer):
             match = class_pattern.match(line)
             if match:
                 base_indent = len(match.group(1))
-                class_end = self._find_class_end(
-                    lines,
-                    i,
-                    base_indent
-                )
+                class_end = self._find_class_end(lines, i, base_indent)
 
                 start_index = line_starts[i]
                 end_index = line_starts[class_end] + len(lines[class_end])

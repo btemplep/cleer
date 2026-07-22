@@ -172,11 +172,7 @@ class BinaryOperatorTokenizer(Tokenizer):
 
     def _is_in_comment(self, document: str, pos: int) -> bool:
         """Check if a position is in a comment."""
-        line_start = document.rfind(
-            "\n",
-            0,
-            pos
-        ) + 1
+        line_start = document.rfind("\n", 0, pos) + 1
         line = document[line_start:pos]
 
         in_single = False
@@ -223,13 +219,13 @@ class BinaryOperatorTokenizer(Tokenizer):
         return depth
 
 
-    def _is_in_function_signature(self, document: str, pos: int) -> bool:
+    def _is_in_function_signature(
+        self,
+        document: str,
+        pos: int
+    ) -> bool:
         """Check if the position is inside a function signature."""
-        line_start = document.rfind(
-            "\n",
-            0,
-            pos
-        ) + 1
+        line_start = document.rfind("\n", 0, pos) + 1
         before = document[:pos]
         last_def = before.rfind("def ")
 
@@ -257,17 +253,17 @@ class BinaryOperatorTokenizer(Tokenizer):
         return False
 
 
-    def _is_in_function_call(self, document: str, pos: int) -> bool:
+    def _is_in_function_call(
+        self,
+        document: str,
+        pos: int
+    ) -> bool:
         """Check if the equals sign is in a function call kwargs context."""
         before = document[:pos]
 
         paren_pos = -1
         depth = 0
-        for i in range(
-            pos - 1,
-            -1,
-            -1
-        ):
+        for i in range(pos - 1, -1, -1):
             if document[i] == ")":
                 depth += 1
             elif document[i] == "(":
@@ -284,7 +280,13 @@ class BinaryOperatorTokenizer(Tokenizer):
         while j >= 0 and document[j] in " \t":
             j -= 1
 
-        if j >= 0 and (document[j].isalnum() or document[j] in "_."):
+        if (
+            j >= 0
+            and (
+                document[j].isalnum()
+                or document[j] in "_."
+            )
+        ):
             return True
 
         return False
@@ -292,23 +294,19 @@ class BinaryOperatorTokenizer(Tokenizer):
 
     def _is_decorator(self, document: str, pos: int) -> bool:
         """Check if the operator is in a decorator line."""
-        line_start = document.rfind(
-            "\n",
-            0,
-            pos
-        ) + 1
+        line_start = document.rfind("\n", 0, pos) + 1
         line = document[line_start:].split("\n")[0]
 
         return line.lstrip().startswith("@")
 
 
-    def _is_annotated_assignment(self, document: str, pos: int) -> bool:
+    def _is_annotated_assignment(
+        self,
+        document: str,
+        pos: int
+    ) -> bool:
         """Check if the equals sign is in an annotated assignment (e.g. x: int=5)."""
-        line_start = document.rfind(
-            "\n",
-            0,
-            pos
-        ) + 1
+        line_start = document.rfind("\n", 0, pos) + 1
         line_before_eq = document[line_start:pos]
 
         depth = 0
@@ -330,11 +328,7 @@ class BinaryOperatorTokenizer(Tokenizer):
         pos: int
     ) -> bool:
         """Check if the operator is used as a unary operator."""
-        if op not in (
-            "+",
-            "-",
-            "~"
-        ):
+        if op not in ("+", "-", "~"):
             return False
 
         before_pos = pos - 1
@@ -417,14 +411,8 @@ class BinaryOperatorTokenizer(Tokenizer):
 
         i = 0
         while i < len(document):
-            if document[i] in (
-                "'",
-                '"'
-            ):
-                if document[i:i + 3] in (
-                    "'''",
-                    '"""'
-                ):
+            if document[i] in ("'", '"'):
+                if document[i:i + 3] in ("'''", '"""'):
                     quote = document[i:i + 3]
                     end = document.find(quote, i + 3)
                     if end != -1:
@@ -461,11 +449,7 @@ class BinaryOperatorTokenizer(Tokenizer):
             matched = False
             for op in BINARY_OPS:
                 if document[i:i + len(op)] == op:
-                    if self._is_unary_operator(
-                        document,
-                        op,
-                        i
-                    ):
+                    if self._is_unary_operator(document, op, i):
                         break
 
                     if op == "=" and self._exclude_signature_equals:
@@ -480,16 +464,20 @@ class BinaryOperatorTokenizer(Tokenizer):
                         if self._is_annotated_assignment(document, i):
                             break
 
-                    if op in (
-                        "*",
-                        "**"
-                    ):
+                    if op in ("*", "**"):
                         if self._get_paren_depth(document, i) > 0:
                             before_pos = i - 1
                             while before_pos >= 0 and document[before_pos] in " \t":
                                 before_pos -= 1
 
-                            if before_pos >= 0 and document[before_pos] in ",(":
+                            if before_pos >= 0 and document[before_pos] in ",(\n":
+                                break
+
+                            if (
+                                op == "*"
+                                and before_pos >= 0
+                                and document[before_pos] == "*"
+                            ):
                                 break
 
                     ws_start = i

@@ -115,12 +115,7 @@ class PyTypeHintSpacingTokenizer(Tokenizer):
         offset = 0
 
         for line in lines:
-            self._process_line(
-                line,
-                offset,
-                document,
-                tokens
-            )
+            self._process_line(line, offset, document, tokens)
             offset += len(line) + 1
 
         return tokens
@@ -226,10 +221,7 @@ class PyTypeHintSpacingTokenizer(Tokenizer):
         """
         i = 0
         while i < pos:
-            if document[i:i + 3] in (
-                "'''",
-                '"""'
-            ):
+            if document[i:i + 3] in ("'''", '"""'):
                 quote = document[i:i + 3]
                 end = document.find(quote, i + 3)
                 if end == -1:
@@ -241,10 +233,7 @@ class PyTypeHintSpacingTokenizer(Tokenizer):
                 i = end + 3
                 continue
 
-            if document[i] in (
-                "'",
-                '"'
-            ):
+            if document[i] in ("'", '"'):
                 quote_char = document[i]
                 j = i + 1
                 while j < len(document):
@@ -311,7 +300,11 @@ class PyTypeHintSpacingTokenizer(Tokenizer):
         return False
 
 
-    def _is_dict_or_slice(self, line: str, colon_pos: int) -> bool:
+    def _is_dict_or_slice(
+        self,
+        line: str,
+        colon_pos: int
+    ) -> bool:
         """Check if the colon is inside dict braces or slice brackets.
 
         Parameters
@@ -367,7 +360,11 @@ class PyTypeHintSpacingTokenizer(Tokenizer):
         return False
 
 
-    def _is_block_end_colon(self, line: str, colon_pos: int) -> bool:
+    def _is_block_end_colon(
+        self,
+        line: str,
+        colon_pos: int
+    ) -> bool:
         """Check if this colon ends a block statement.
 
         Parameters
@@ -394,7 +391,11 @@ class PyTypeHintSpacingTokenizer(Tokenizer):
         return False
 
 
-    def _will_expand_multiline(self, line: str, colon_pos: int) -> bool:
+    def _will_expand_multiline(
+        self,
+        line: str,
+        colon_pos: int
+    ) -> bool:
         """Check if the type annotation after the colon has nesting > 2 levels.
 
         Parameters
@@ -419,10 +420,7 @@ class PyTypeHintSpacingTokenizer(Tokenizer):
                 max_depth = max(max_depth, depth)
             elif char == "]":
                 depth -= 1
-            elif char in (
-                "=",
-                "\n"
-            ):
+            elif char in ("=", "\n"):
                 break
 
         return max_depth > 2

@@ -44,10 +44,7 @@ class PyCodeBlockNewLinesFormatter(Formatter):
     result = formatter.format("if x:\\n    pass\\n\\n\\nprint(y)\\n")
     ```
     """
-    accepts_token_types = [
-        "function",
-        "file"
-    ]
+    accepts_token_types = ["function", "file"]
 
 
     def _get_block_end(
@@ -76,7 +73,10 @@ class PyCodeBlockNewLinesFormatter(Formatter):
                     if peek_indent == base_indent:
                         first_word = peek_stripped.split()[0] if peek_stripped.split() else ""
                         first_token = peek_stripped.split(":")[0] + ":" if ":" in peek_stripped else first_word
-                        if first_word in CONNECTED_KEYWORDS or first_token in CONNECTED_KEYWORDS:
+                        if (
+                            first_word in CONNECTED_KEYWORDS
+                            or first_token in CONNECTED_KEYWORDS
+                        ):
                             i = peek
                             continue
 
@@ -90,7 +90,10 @@ class PyCodeBlockNewLinesFormatter(Formatter):
                 if current_indent <= base_indent:
                     first_word = stripped.split()[0] if stripped.split() else ""
                     first_token = stripped.split(":")[0] + ":" if ":" in stripped else first_word
-                    if first_word in CONNECTED_KEYWORDS or first_token in CONNECTED_KEYWORDS:
+                    if (
+                        first_word in CONNECTED_KEYWORDS
+                        or first_token in CONNECTED_KEYWORDS
+                    ):
                         i += 1
                         continue
 
@@ -105,10 +108,19 @@ class PyCodeBlockNewLinesFormatter(Formatter):
         """Check if a line starts a code block (non-function/class)."""
         stripped = line.lstrip()
 
-        return bool(re.match(r"(for |if |elif |else:|try:|except |except:|finally:|with |while )", stripped))
+        return bool(
+            re.match(
+                r"(for |if |elif |else:|try:|except |except:|finally:|with |while )",
+                stripped
+            )
+        )
 
 
-    def _is_inside_function_or_class(self, lines: list[str], line_idx: int) -> bool:
+    def _is_inside_function_or_class(
+        self,
+        lines: list[str],
+        line_idx: int
+    ) -> bool:
         """Check if the line is inside a nested function or class definition.
 
         When processing a function token, we want to format blocks at the
@@ -135,17 +147,16 @@ class PyCodeBlockNewLinesFormatter(Formatter):
             if current_indent <= body_indent:
                 return False
 
-            for i in range(
-                line_idx - 1,
-                -1,
-                -1
-            ):
+            for i in range(line_idx - 1, -1, -1):
                 check_line = lines[i]
                 if check_line.strip() == "":
                     continue
 
                 check_indent = len(check_line) - len(check_line.lstrip())
-                if check_indent < current_indent and check_indent >= body_indent:
+                if (
+                    check_indent < current_indent
+                    and check_indent >= body_indent
+                ):
                     check_stripped = check_line.lstrip()
                     if (
                         check_stripped.startswith("def ")
@@ -159,11 +170,7 @@ class PyCodeBlockNewLinesFormatter(Formatter):
 
             return False
 
-        for i in range(
-            line_idx - 1,
-            -1,
-            -1
-        ):
+        for i in range(line_idx - 1, -1, -1):
             check_line = lines[i]
             if check_line.strip() == "":
                 continue
@@ -171,7 +178,10 @@ class PyCodeBlockNewLinesFormatter(Formatter):
             check_indent = len(check_line) - len(check_line.lstrip())
             if check_indent < current_indent:
                 check_stripped = check_line.lstrip()
-                if check_stripped.startswith("def ") or check_stripped.startswith("class "):
+                if (
+                    check_stripped.startswith("def ")
+                    or check_stripped.startswith("class ")
+                ):
                     return True
 
                 if check_indent == 0:
@@ -241,11 +251,7 @@ class PyCodeBlockNewLinesFormatter(Formatter):
                 and not self._is_inside_function_or_class(lines, i)
             ):
                 base_indent = len(line) - len(line.lstrip())
-                block_end = self._get_block_end(
-                    lines,
-                    i,
-                    base_indent
-                )
+                block_end = self._get_block_end(lines, i, base_indent)
 
                 for j in range(i, min(block_end, len(lines))):
                     curr_line = lines[j]
@@ -271,7 +277,10 @@ class PyCodeBlockNewLinesFormatter(Formatter):
                                 continue
 
                             prev_non_empty = j - 1
-                            while prev_non_empty >= i and lines[prev_non_empty].strip() == "":
+                            while (
+                                prev_non_empty >= i
+                                and lines[prev_non_empty].strip() == ""
+                            ):
                                 prev_non_empty -= 1
 
                             if prev_non_empty >= i:
@@ -292,20 +301,11 @@ class PyCodeBlockNewLinesFormatter(Formatter):
                                     if (
                                         prev_indent > curr_indent
                                         and not curr_line.lstrip().startswith(
-                                            (
-                                                "elif ",
-                                                "else:",
-                                                "except",
-                                                "finally:"
-                                            )
+                                            ("elif ", "else:", "except", "finally:")
                                         )
                                     ):
                                         block_owner_idx = None
-                                        for scan in range(
-                                            j - 1,
-                                            i - 1,
-                                            -1
-                                        ):
+                                        for scan in range(j - 1, i - 1, -1):
                                             scan_line = lines[scan]
                                             if scan_line.strip() == "":
                                                 continue
@@ -322,12 +322,7 @@ class PyCodeBlockNewLinesFormatter(Formatter):
                                             for scan_body in range(block_owner_idx + 1, j):
                                                 body_stripped = lines[scan_body].lstrip()
                                                 if body_stripped.startswith(
-                                                    (
-                                                        "break",
-                                                        "continue",
-                                                        "return",
-                                                        "raise"
-                                                    )
+                                                    ("break", "continue", "return", "raise")
                                                 ):
                                                     has_exit_stmt = True
                                                     break
@@ -356,6 +351,14 @@ class PyCodeBlockNewLinesFormatter(Formatter):
                             and not is_closing_paren
                         ):
                             result_lines.append("")
+                            if (
+                                next_stripped.startswith("def ")
+                                or next_stripped.startswith("async def ")
+                                or next_stripped.startswith("@")
+                                or next_stripped.startswith("class ")
+                            ):
+                                result_lines.append("")
+
                             i = peek
                             continue
 
@@ -464,13 +467,7 @@ class PyCodeBlockNewLinesFormatter(Formatter):
             curr_indent = len(line) - len(line.lstrip())
 
             is_connected = stripped.startswith(
-                (
-                    "elif ",
-                    "else:",
-                    "except ",
-                    "except:",
-                    "finally:"
-                )
+                ("elif ", "else:", "except ", "except:", "finally:")
             )
 
             if (

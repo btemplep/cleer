@@ -1,7 +1,7 @@
 __all__ = ["Cleer"]
 
 
-import glob as pyglob
+import glob
 import io
 import pathlib
 import re
@@ -10,6 +10,7 @@ from typing import Dict, List
 from loguru import logger
 
 from cleer import exceptions
+from cleer.glob_to_regex import glob_to_regex
 from cleer.types import * 
 
 
@@ -82,9 +83,13 @@ class Cleer:
         self._config = config
 
 
-    def _is_excluded(self, file_path: pathlib.Path, group: CleerGroup) -> bool:
+    def _is_excluded(
+        self,
+        file_path: pathlib.Path,
+        group: CleerGroup
+    ) -> bool:
         for pattern in group['excludes']:
-            exclude_regex = pyglob.translate(
+            exclude_regex = glob_to_regex(
                 pattern,
                 recursive=True,
                 include_hidden=True
@@ -97,9 +102,13 @@ class Cleer:
         return False
 
 
-    def _matches_group(self, file_path: pathlib.Path, group: CleerGroup) -> bool:
+    def _matches_group(
+        self,
+        file_path: pathlib.Path,
+        group: CleerGroup
+    ) -> bool:
         for pattern in group['includes']:
-            include_regex = pyglob.translate(
+            include_regex = glob_to_regex(
                 pattern,
                 recursive=True,
                 include_hidden=True
@@ -115,7 +124,11 @@ class Cleer:
         return False
 
 
-    def _inspect_str_group(self, document: str, group: CleerGroup) -> List[Violation]:
+    def _inspect_str_group(
+        self,
+        document: str,
+        group: CleerGroup
+    ) -> List[Violation]:
         violations: List[Violation] = []
         for stage in group['stages']:
             tokens = stage['tokenizer'].tokenize(document)
@@ -134,7 +147,11 @@ class Cleer:
         return violations
 
 
-    def inspect_str(self, document: str, file_path: str | pathlib.Path) -> List[Violation]:
+    def inspect_str(
+        self,
+        document: str,
+        file_path: str | pathlib.Path
+    ) -> List[Violation]:
         """Inspect a document string for violations.
 
         Parameters
@@ -151,7 +168,10 @@ class Cleer:
         """
         file_path = pathlib.Path(file_path)
         violations: List[Violation] = []
-        for group, gi in zip(self._config['groups'], range(len(self._config['groups']))):
+        for group, gi in zip(
+            self._config['groups'],
+            range(len(self._config['groups']))
+        ):
             logger.info(f"Evaluating config groups[{gi}].")
             if self._matches_group(file_path, group) is True:
                 violations += self._inspect_str_group(document, group)
@@ -159,7 +179,11 @@ class Cleer:
         return violations
 
 
-    def inspect_fp(self, fp: io.TextIOBase, file_path: str | pathlib.Path) -> List[Violation]:
+    def inspect_fp(
+        self,
+        fp: io.TextIOBase,
+        file_path: str | pathlib.Path
+    ) -> List[Violation]:
         """Inspect a document file pointer for violations.
 
         **Does not close the file pointer upon return.**
@@ -183,7 +207,10 @@ class Cleer:
         return self.inspect_str(fp.read(), file_path)
 
 
-    def inspect_file(self, file_path: str | pathlib.Path) -> List[Violation]:
+    def inspect_file(
+        self,
+        file_path: str | pathlib.Path
+    ) -> List[Violation]:
         """Inspect a document at the given path for violations.
 
         Parameters
@@ -202,7 +229,10 @@ class Cleer:
         return self.inspect_str(document, file_path)
 
 
-    def inspect_dir(self, dir_path: str | pathlib.Path) -> List[FileInspectionResult]:
+    def inspect_dir(
+        self,
+        dir_path: str | pathlib.Path
+    ) -> List[FileInspectionResult]:
         """Inspect files under a directory.
 
         Files will be filtered for each stage by the glob for that stage.
@@ -219,7 +249,10 @@ class Cleer:
         """
         dir_path = pathlib.Path(dir_path)
         path_lookup: Dict[pathlib.Path, List[Violation]] = {}
-        for group, gi in zip(self._config['groups'], range(len(self._config['groups']))):
+        for group, gi in zip(
+            self._config['groups'],
+            range(len(self._config['groups']))
+        ):
             logger.info(f"Evaluating config groups[{gi}].")
             # keeps track of if a path was already run for this group
             group_included_paths = set()
@@ -241,7 +274,10 @@ class Cleer:
                                 path_lookup[file_path] = []
 
                             document = file_path.read_text()
-                            path_lookup[file_path] += self._inspect_str_group(document, group)
+                            path_lookup[file_path] += self._inspect_str_group(
+                                document,
+                                group
+                            )
 
         results: List[FileInspectionResult] = []
         for path, violations in path_lookup.items():
@@ -255,7 +291,10 @@ class Cleer:
         return results
 
 
-    def inspect_path(self, path: str | pathlib.Path) -> List[FileInspectionResult]:
+    def inspect_path(
+        self,
+        path: str | pathlib.Path
+    ) -> List[FileInspectionResult]:
         """Inspect a file or directory.
 
         Parameters
@@ -288,7 +327,11 @@ class Cleer:
             raise exceptions.BadPathError(f"Path '{path}' must be a file or directory.")
 
 
-    def _format_str_group(self, document: str, group: CleerGroup) -> str:
+    def _format_str_group(
+        self,
+        document: str,
+        group: CleerGroup
+    ) -> str:
         for stage in group['stages']:
             start_difference = 0
             for tr in stage['tokenizer'].tokenize(document):
@@ -303,7 +346,11 @@ class Cleer:
         return document
 
 
-    def format_str(self, document: str, file_path: str | pathlib.Path) -> str:
+    def format_str(
+        self,
+        document: str,
+        file_path: str | pathlib.Path
+    ) -> str:
         """Format a document string.
 
         Parameters
@@ -319,7 +366,10 @@ class Cleer:
             Formatted document.
         """
         file_path = pathlib.Path(file_path)
-        for group, gi in zip(self._config['groups'], range(len(self._config['groups']))):
+        for group, gi in zip(
+            self._config['groups'],
+            range(len(self._config['groups']))
+        ):
             logger.info(f"Evaluating config groups[{gi}].")
             if self._matches_group(file_path, group) is True:
                 document = self._format_str_group(document, group)
@@ -327,7 +377,11 @@ class Cleer:
         return document
 
 
-    def format_fp(self, fp: io.TextIOBase, file_path: str | pathlib.Path) -> None:
+    def format_fp(
+        self,
+        fp: io.TextIOBase,
+        file_path: str | pathlib.Path
+    ) -> None:
         """Format a document file pointer.
 
         **Does not close the file pointer upon return.**
@@ -352,7 +406,10 @@ class Cleer:
         fp.truncate()
 
 
-    def format_file(self, file_path: str | pathlib.Path) -> None:
+    def format_file(
+        self,
+        file_path: str | pathlib.Path
+    ) -> None:
         """Format a document at the given path.
 
         Parameters
@@ -385,7 +442,10 @@ class Cleer:
         None
         """
         dir_path = pathlib.Path(dir_path)
-        for group, gi in zip(self._config['groups'], range(len(self._config['groups']))):
+        for group, gi in zip(
+            self._config['groups'],
+            range(len(self._config['groups']))
+        ):
             logger.info(f"Evaluating config groups[{gi}].")
             # keeps track of if a path was already run for this group
             group_included_paths = set()
@@ -404,7 +464,10 @@ class Cleer:
                         if file_path not in group_included_paths:
                             logger.info(f"Including '{file_path}' file for matching the '{pattern}' include pattern.")
                             document = file_path.read_text()
-                            document = self._format_str_group(file_path.read_text(), group)
+                            document = self._format_str_group(
+                                file_path.read_text(),
+                                group
+                            )
                             file_path.write_text(document)
 
 

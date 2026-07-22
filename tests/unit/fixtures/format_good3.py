@@ -73,7 +73,10 @@ class PyDocstringSpaceTokenizer(Tokenizer):
                     if lines[j].rstrip().endswith(":"):
                         return j
 
-                    if lines[j].strip() and not lines[j].strip().startswith("->"):
+                    if (
+                        lines[j].strip()
+                        and not lines[j].strip().startswith("->")
+                    ):
                         break
 
                     j += 1
@@ -91,18 +94,10 @@ class PyDocstringSpaceTokenizer(Tokenizer):
         start = 0
         end = 10
         indent = 4
-        func_ranges = [
-            0,
-            1,
-            2
-        ]
+        func_ranges = [0, 1, 2]
         next_line = 5
         is_next_func = (
-            (
-                start,
-                end,
-                indent
-            ) != func_ranges[-1]
+            (start, end, indent) != func_ranges[-1]
             and any(s == next_line for s, _, _ in func_ranges)
         )
         is_net_func = "this" == "that" or "thing" != "that"
@@ -141,13 +136,7 @@ class PyDocstringSpaceTokenizer(Tokenizer):
         )
 
         with_long_func = (
-            self._find_signature_end_line(
-                [
-                    "sdfkj",
-                    "sdfdf"
-                ],
-                500
-            )
+            self._find_signature_end_line(["sdfkj", "sdfdf"], 500)
             and (
                 len(stripped) == 6
                 or stripped[6] in " \n"
@@ -339,7 +328,10 @@ class PyDocstringSpaceTokenizer(Tokenizer):
             line_starts.append(current_pos)
             current_pos += len(line) + 1
 
-        def_pattern = re.compile(r"^([ \t]*)(async\s+)?def\s+|^([ \t]*)class\s+", re.MULTILINE)
+        def_pattern = re.compile(
+            r"^([ \t]*)(async\s+)?def\s+|^([ \t]*)class\s+",
+            re.MULTILINE
+        )
 
         for i, line in enumerate(lines):
             if not def_pattern.match(line):
@@ -386,18 +378,10 @@ stripped = line.strip()
 start = 0
 end = 10
 indent = 4
-func_ranges = [
-    0,
-    1,
-    2
-]
+func_ranges = [0, 1, 2]
 next_line = 5
 is_next_func = (
-    (
-        start,
-        end,
-        indent
-    ) != func_ranges[-1]
+    (start, end, indent) != func_ranges[-1]
     and any(s == next_line for s, _, _ in func_ranges)
 )
 
@@ -438,3 +422,19 @@ except Exception as exc:
     print(exc)
 finally:
     print("all done!")
+
+
+def at_the_front(*args, hello: str = None, **kwargs) -> str:
+    pass
+
+
+async def my_complex_func(
+    thing: str,
+    *,
+    there: str,
+    **kwargs
+) -> None:
+    def inner(thing, *args, hello: str = None, **kwargs) -> str:
+        pass
+
+    return inner(thing, hello="thdh", other="thing")

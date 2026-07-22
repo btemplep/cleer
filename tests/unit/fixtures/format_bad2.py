@@ -85,3 +85,7 @@ class PyClassInitDocstringFormatter(Formatter):
         """
 
         return self.init_docstring_pattern.sub(r"\1", token)
+
+expand_dicts = [{"hello": "there"}]
+more_expand_dicts = [{"hello": "there"}, {"hello": "here", "now": "later"}, {}]
+nested_expanded = [{"hello": {"here": "now"}}]

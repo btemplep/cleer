@@ -135,11 +135,7 @@ class PyFunctionInternalNewLinesFormatter(Formatter):
 
                     if prev_line.strip() == "):":
                         is_multiline_sig = False
-                        for back_idx in range(
-                            len(result_lines) - 2,
-                            -1,
-                            -1
-                        ):
+                        for back_idx in range(len(result_lines) - 2, -1, -1):
                             back_line = result_lines[back_idx]
                             if bool(SIGNATURE_PATTERN.match(back_line)):
                                 is_multiline_sig = True

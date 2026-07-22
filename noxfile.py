@@ -18,13 +18,7 @@ def publish(session: nox.Session):
         "./dist/",
         external=True
     )
-    session.run(
-        "python",
-        "-m",
-        "build",
-        "--sdist",
-        "--wheel"
-    )
+    session.run("python", "-m", "build", "--sdist", "--wheel")
     session.run(
         "twine",
         "upload",
@@ -34,10 +28,7 @@ def publish(session: nox.Session):
     )
 
 
-@nox.session(
-    name="unit-tests",
-    python=False
-)
+@nox.session(name="unit-tests", python=False)
 def unit_tests(session: nox.Session):
     """Run tests with current python version and generate html coverage report.
     """
@@ -56,12 +47,7 @@ def unit_tests(session: nox.Session):
 
 @nox.session(
     name="unit-tests-versions",
-    python=[
-        "3.11",
-        "3.12",
-        "3.13",
-        "3.14"
-    ]
+    python=["3.11", "3.12", "3.13", "3.14"]
 )
 def unit_tests_versions(session: nox.Session):
     """Run tests with all specified python version and generate missing coverage report in terminal.
@@ -79,9 +65,5 @@ def unit_tests_versions(session: nox.Session):
 
 
 def dev_venv_setup(session: nox.Session):
-    session.install(
-        "-U",
-        "pip",
-        "build"
-    )
+    session.install("-U", "pip", "build")
     session.install("-e", ".[dev]")

@@ -31,12 +31,22 @@ class PyDecoratorSpaceTokenizer(Tokenizer):
     emits_token_type = "decorator_space"
 
 
-    def _find_decorator_end(self, document: str, start: int) -> int:
+    def _find_decorator_end(
+        self,
+        document: str,
+        start: int
+    ) -> int:
         """Find the end of a decorator including multi-line with parens."""
         paren_pos = document.find("(", start)
         newline_pos = document.find("\n", start)
 
-        if paren_pos != -1 and (newline_pos == -1 or paren_pos < newline_pos):
+        if (
+            paren_pos != -1
+            and (
+                newline_pos == -1
+                or paren_pos < newline_pos
+            )
+        ):
             depth = 1
             i = paren_pos + 1
             while i < len(document) and depth > 0:
@@ -83,14 +93,20 @@ class PyDecoratorSpaceTokenizer(Tokenizer):
         """
         tokens: List[dict] = []
         decorator_pattern = re.compile(r"^([ \t]*)@", re.MULTILINE)
-        def_pattern = re.compile(r"^([ \t]*)(async\s+)?def\s+|^([ \t]*)class\s+", re.MULTILINE)
+        def_pattern = re.compile(
+            r"^([ \t]*)(async\s+)?def\s+|^([ \t]*)class\s+",
+            re.MULTILINE
+        )
         matches = list(decorator_pattern.finditer(document))
 
         for i in range(len(matches) - 1):
             current_match = matches[i]
             next_match = matches[i + 1]
 
-            decorator_end = self._find_decorator_end(document, current_match.start())
+            decorator_end = self._find_decorator_end(
+                document,
+                current_match.start()
+            )
 
             space_start = decorator_end
             space_end = next_match.start()
@@ -107,12 +123,18 @@ class PyDecoratorSpaceTokenizer(Tokenizer):
                 )
 
         for match in matches:
-            decorator_end = self._find_decorator_end(document, match.start())
+            decorator_end = self._find_decorator_end(
+                document,
+                match.start()
+            )
             remaining = document[decorator_end:]
             def_match = def_pattern.match(remaining.lstrip("\n "))
 
             if def_match:
-                def_start = document.find(def_match.group(0).rstrip(), decorator_end)
+                def_start = document.find(
+                    def_match.group(0).rstrip(),
+                    decorator_end
+                )
 
                 token_text = document[decorator_end:def_start]
 

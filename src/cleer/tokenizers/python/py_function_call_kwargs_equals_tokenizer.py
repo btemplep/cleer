@@ -32,7 +32,11 @@ class PyFunctionCallKwargsEqualsTokenizer(Tokenizer):
     emits_token_type = "kwargs_equals"
 
 
-    def _find_matching_paren(self, text: str, start: int) -> int:
+    def _find_matching_paren(
+        self,
+        text: str,
+        start: int
+    ) -> int:
         """Find matching closing parenthesis."""
         depth = 1
         i = start + 1
@@ -44,10 +48,7 @@ class PyFunctionCallKwargsEqualsTokenizer(Tokenizer):
                 i += 2
                 continue
 
-            if text[i:i + 3] in (
-                "'''",
-                '"""'
-            ):
+            if text[i:i + 3] in ("'''", '"""'):
                 quote = text[i:i + 3]
                 end = text.find(quote, i + 3)
                 if end != -1:
@@ -77,13 +78,23 @@ class PyFunctionCallKwargsEqualsTokenizer(Tokenizer):
         return -1
 
 
-    def _is_function_call(self, document: str, paren_pos: int) -> bool:
+    def _is_function_call(
+        self,
+        document: str,
+        paren_pos: int
+    ) -> bool:
         """Check if a parenthesis is part of a function call."""
         j = paren_pos - 1
         while j >= 0 and document[j] in " \t":
             j -= 1
 
-        if j >= 0 and (document[j].isalnum() or document[j] in "_."):
+        if (
+            j >= 0
+            and (
+                document[j].isalnum()
+                or document[j] in "_."
+            )
+        ):
             return True
 
         return False
@@ -121,14 +132,8 @@ class PyFunctionCallKwargsEqualsTokenizer(Tokenizer):
 
         i = 0
         while i < len(document):
-            if document[i] in (
-                "'",
-                '"'
-            ):
-                if document[i:i + 3] in (
-                    "'''",
-                    '"""'
-                ):
+            if document[i] in ("'", '"'):
+                if document[i:i + 3] in ("'''", '"""'):
                     quote = document[i:i + 3]
                     end = document.find(quote, i + 3)
                     if end != -1:
@@ -164,14 +169,13 @@ class PyFunctionCallKwargsEqualsTokenizer(Tokenizer):
 
             if document[i] == "(":
                 if self._is_function_call(document, i):
-                    line_start = document.rfind(
-                        "\n",
-                        0,
-                        i
-                    ) + 1
+                    line_start = document.rfind("\n", 0, i) + 1
                     line = document[line_start:].split("\n")[0]
                     stripped = line.lstrip()
-                    if stripped.startswith("def ") or stripped.startswith("async def "):
+                    if (
+                        stripped.startswith("def ")
+                        or stripped.startswith("async def ")
+                    ):
                         i += 1
                         continue
 
@@ -190,10 +194,7 @@ class PyFunctionCallKwargsEqualsTokenizer(Tokenizer):
                                 j += 2
                                 continue
 
-                            if inner[j:j + 3] in (
-                                "'''",
-                                '"""'
-                            ):
+                            if inner[j:j + 3] in ("'''", '"""'):
                                 quote = inner[j:j + 3]
                                 end = inner.find(quote, j + 3)
                                 if end != -1:

@@ -378,3 +378,12 @@ finally:
 
 
     print("all done!")
+
+def at_the_front(*args, hello: str = None, **kwargs) -> str:
+    pass
+
+async def my_complex_func(thing:str, *, there: str, **kwargs) -> None:
+    def inner(thing, *args, hello: str = None, **kwargs) -> str:
+        pass
+
+    return inner(thing, hello="thdh", other="thing")

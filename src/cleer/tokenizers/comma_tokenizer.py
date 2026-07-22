@@ -141,7 +141,10 @@ class CommaTokenizer(Tokenizer):
                     ws_start -= 1
 
                 ws_end = i + 1
-                while ws_end < len(document) and document[ws_end] in " \t\n":
+                while (
+                    ws_end < len(document)
+                    and document[ws_end] in " \t\n"
+                ):
                     if document[ws_end] == "\n":
                         ws_end += 1
                         break
@@ -149,7 +152,10 @@ class CommaTokenizer(Tokenizer):
                     ws_end += 1
 
                 after_ws = ws_end
-                while after_ws < len(document) and document[after_ws] in " \t":
+                while (
+                    after_ws < len(document)
+                    and document[after_ws] in " \t"
+                ):
                     after_ws += 1
 
                 if after_ws < len(document) and document[after_ws] in ")]}":

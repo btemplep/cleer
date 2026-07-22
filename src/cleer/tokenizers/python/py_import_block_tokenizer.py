@@ -76,7 +76,10 @@ class PyImportBlockTokenizer(Tokenizer):
             line = lines[i]
             stripped = line.strip()
 
-            if stripped.startswith("import ") or stripped.startswith("from "):
+            if (
+                stripped.startswith("import ")
+                or stripped.startswith("from ")
+            ):
                 block_start = i
                 start_index = line_starts[i]
                 in_paren = "(" in line and ")" not in line

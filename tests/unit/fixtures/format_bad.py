@@ -160,3 +160,6 @@ for i in range(
     - 1
 ):
     print(i)
+
+def translate(pat, *, recursive=False, include_hidden=False, seps=None):
+    return 4

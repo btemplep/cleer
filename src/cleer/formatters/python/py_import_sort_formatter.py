@@ -37,7 +37,10 @@ class PyImportSortFormatter(Formatter):
             line = lines[i]
             stripped = line.strip()
 
-            if stripped.startswith("import ") or stripped.startswith("from "):
+            if (
+                stripped.startswith("import ")
+                or stripped.startswith("from ")
+            ):
                 statement_lines = [line]
 
                 if "(" in line and ")" not in line:
@@ -135,6 +138,9 @@ class PyImportSortFormatter(Formatter):
         if len(statements) <= 1:
             return token
 
-        sorted_statements = sorted(statements, key=self._get_sort_key)
+        sorted_statements = sorted(
+            statements,
+            key=self._get_sort_key
+        )
 
         return "\n".join(sorted_statements)
