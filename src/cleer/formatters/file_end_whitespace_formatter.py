@@ -47,7 +47,7 @@ class FileEndWhitespaceFormatter(Formatter):
             Returns `None` if there is no violation
         """
         if token != self._ending_token:
-            return f"Files should end with {self._blank_lines} blank lines"
+            return f"Files should end with {self._blank_lines} blank line(s)."
 
         return None
 

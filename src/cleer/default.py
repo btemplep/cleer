@@ -77,7 +77,9 @@ def cleer_default_config(
                 "stages": [
                     {
                         "tokenizer": FileEndWhitespaceTokenizer(),
-                        "formatters": [FileEndWhitespaceFormatter]
+                        "formatters": [
+                            FileEndWhitespaceFormatter()
+                        ]
                     }
                 ]
             }

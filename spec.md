@@ -9,7 +9,8 @@ Should use as granular of a tokenizer as possible in order to more easily identi
 
 ## Cleer Rules
 
-- In order to tokenize the tokens you are looking for must exist. 
+- In order to tokenize the tokens you are looking for must exist?
+    - "012345"
 
 ## Formatting Rules
 
