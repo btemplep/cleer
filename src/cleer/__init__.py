@@ -1,13 +1,16 @@
 __version__ = "0.1.0a3"
 
-__all__ = ["Cleer", "cleer_default"]
+__all__ = [
+    "Cleer", 
+    "cleer_default_config"
+]
 
 
 from loguru import logger
 logger.disable("cleer")
 
 from cleer.cleer import Cleer
-from cleer.default import cleer_default
+from cleer.default import cleer_default_config
 from cleer.exceptions import * 
 from cleer.exceptions import __all__ as exceptions_all
 __all__ += exceptions_all

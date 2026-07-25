@@ -168,10 +168,7 @@ class Cleer:
         """
         file_path = pathlib.Path(file_path)
         violations: List[Violation] = []
-        for group, gi in zip(
-            self._config['groups'],
-            range(len(self._config['groups']))
-        ):
+        for gi, group in enumerate(self._config['groups']):
             logger.info(f"Evaluating config groups[{gi}].")
             if self._matches_group(file_path, group) is True:
                 violations += self._inspect_str_group(document, group)
@@ -249,10 +246,7 @@ class Cleer:
         """
         dir_path = pathlib.Path(dir_path)
         path_lookup: Dict[pathlib.Path, List[Violation]] = {}
-        for group, gi in zip(
-            self._config['groups'],
-            range(len(self._config['groups']))
-        ):
+        for gi, group in enumerate(self._config['groups']):
             logger.info(f"Evaluating config groups[{gi}].")
             # keeps track of if a path was already run for this group
             group_included_paths = set()
@@ -366,10 +360,7 @@ class Cleer:
             Formatted document.
         """
         file_path = pathlib.Path(file_path)
-        for group, gi in zip(
-            self._config['groups'],
-            range(len(self._config['groups']))
-        ):
+        for gi, group in enumerate(self._config['groups']):
             logger.info(f"Evaluating config groups[{gi}].")
             if self._matches_group(file_path, group) is True:
                 document = self._format_str_group(document, group)
@@ -442,10 +433,7 @@ class Cleer:
         None
         """
         dir_path = pathlib.Path(dir_path)
-        for group, gi in zip(
-            self._config['groups'],
-            range(len(self._config['groups']))
-        ):
+        for gi, group in enumerate(self._config['groups']):
             logger.info(f"Evaluating config groups[{gi}].")
             # keeps track of if a path was already run for this group
             group_included_paths = set()

@@ -9,12 +9,6 @@ from typing import List
 from cleer.tokenizers.tokenizer import Tokenizer
 
 
-TRAILING_WHITESPACE_PATTERN = re.compile(
-    r"(?<=\S)(\s+)$",
-    re.DOTALL
-)
-
-
 class FileEndWhitespaceTokenizer(Tokenizer):
     """Tokenizes trailing whitespace at the end of a file.
 
@@ -31,10 +25,11 @@ class FileEndWhitespaceTokenizer(Tokenizer):
     from cleer import FileEndWhitespaceTokenizer
 
     tokenizer = FileEndWhitespaceTokenizer()
-    tokens = tokenizer.tokenize("import os\\n\\n\\n")
+    tokens = tokenizer.tokenize("import os\n\n\n")
     ```
     """
     emits_token_type = "file_end_whitespace"
+    trailing_whitespace_pattern = re.compile(r"\s*$")
 
 
     def tokenize(self, document: str) -> List[dict]:
@@ -50,7 +45,7 @@ class FileEndWhitespaceTokenizer(Tokenizer):
 
         ```python
         tokenizer = FileEndWhitespaceTokenizer()
-        tokens = tokenizer.tokenize("import os\\n\\n\\n")
+        tokens = tokenizer.tokenize("import os\n\n\n")
         ```
 
         Returns
@@ -61,33 +56,18 @@ class FileEndWhitespaceTokenizer(Tokenizer):
 
             ```python
             [
-                {"token": "\\n\\n\\n", "index": 9, "length": 3}
+                {"token": "\n\n\n", "index": 9, "length": 3}
             ]
             ```
         """
-        if not document:
-            return []
-
-        match = TRAILING_WHITESPACE_PATTERN.search(document)
-
-        if match is None:
-            return [
-                {
-                    "token": "",
-                    "index": len(document),
-                    "length": 0
-                }
-            ]
-
-        trailing = match.group(1)
-
-        if trailing == "\n":
-            return []
+        match = self.trailing_whitespace_pattern.search(document)
+        trailing_ws = match.group()
 
         return [
             {
-                "token": trailing,
-                "index": match.start(1),
-                "length": len(trailing)
+                "token": trailing_ws,
+                "index": match.start(),
+                "length": len(trailing_ws)
+
             }
         ]

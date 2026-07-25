@@ -1,6 +1,12 @@
 # TODO
 
 
+
+- [ ] config default generator instead of cleer class
+
+
+## OLD
+
 This project is cleer.  A file formatter that primarily uses tokenizers, whose tokens are passed to formatters, then the Cleer
 instance updates the document accordingly. 
 

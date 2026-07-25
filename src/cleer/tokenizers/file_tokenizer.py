@@ -56,13 +56,14 @@ class FileTokenizer(Tokenizer):
 
             ```python
             [
-                {"token": "hello\\nworld\\n", "index": 0, "length": 12}
+                {
+                    "token": "hello\\nworld\\n", 
+                    "index": 0, 
+                    "length": 12
+                }
             ]
             ```
         """
-        if not document:
-            return []
-
         return [
             {
                 "token": document,

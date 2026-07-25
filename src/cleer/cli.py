@@ -11,7 +11,8 @@ from typing import List
 from loguru import logger
 
 from cleer import __version__ as cleer_version
-from cleer.default import cleer_default
+from cleer.cleer import Cleer
+from cleer.default import cleer_default_config
 
 
 class FMT:
@@ -110,7 +111,7 @@ def main(argv: List[str]=None) -> None:
         else:
             logger.debug(f"Cleer instance from default path, 'clr:clr', could not be imported: {exc}")
 
-        clr = cleer_default()
+        clr = Cleer(cleer_default_config())
         logger.info("Default Cleer instance generated.")
 
     if args.command == "inspect":

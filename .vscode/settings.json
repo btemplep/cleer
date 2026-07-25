@@ -4,7 +4,7 @@
     "emeraldwalk.runonsave": {
         "commands": [
             {
-                "cmd": "./venv/bin/cleer format --log-level DEBUG ${file}"
+                "cmd": "./venv/bin/cleer inspect --log-level DEBUG ${file}"
             }
         ]
     },
