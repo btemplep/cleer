@@ -1,0 +1,93 @@
+"""Max blank lines formatter module."""
+
+__all__ = ["MaxBlankLinesFormatter"]
+
+
+from cleer.formatters.formatter import Formatter
+
+
+class MaxBlankLinesFormatter(Formatter):
+    """Format runs of consecutive blank lines to a maximum.
+
+    Replaces any run of consecutive blank lines that exceeds the configured
+    maximum with exactly the maximum number of blank lines.
+
+    Parameters
+    ----------
+    max_blank_lines : int, default=2
+        The maximum number of consecutive blank lines allowed.
+
+    Examples
+    --------
+
+    ```python
+    from cleer import MaxBlankLinesFormatter
+
+    formatter = MaxBlankLinesFormatter()
+    result = formatter.format("\n\n\n\n\n")
+    ```
+    """
+    accepts_token_types = ["whitespace"]
+
+
+    def __init__(self, max_blank_lines: int = 2):
+        self._max_blank_lines = max_blank_lines
+        self._replacement = "\n" * (max_blank_lines + 1)
+
+
+    def _count_blank_lines(self, token: str) -> int:
+        """Count the number of consecutive blank lines in a whitespace token.
+
+        A blank line is counted for each newline after the first. The first
+        newline ends the previous content line and is not a blank line itself.
+        """
+        newline_count = token.count("\n")
+
+        if newline_count <= 1:
+            return 0
+
+        return newline_count - 1
+
+
+    def inspect(self, token: str) -> str | None:
+        """Inspect a token for too many consecutive blank lines.
+
+        Parameters
+        ----------
+        token : str
+            String token to inspect (whitespace block).
+
+        Returns
+        -------
+        str | None
+            Error message if there are more blank lines than allowed.
+            Returns `None` if there is no violation.
+        """
+        blank_lines = self._count_blank_lines(token)
+
+        if blank_lines > self._max_blank_lines:
+            return f"No more than {self._max_blank_lines} consecutive blank line(s) allowed."
+
+        return None
+
+
+    def format(self, token: str) -> str:
+        """Format a run of blank lines down to the maximum.
+
+        Parameters
+        ----------
+        token : str
+            Token to format (whitespace block).
+
+        Returns
+        -------
+        str
+            The token unchanged if within limits, or the maximum allowed
+            number of consecutive blank lines.
+        """
+        blank_lines = self._count_blank_lines(token)
+
+        if blank_lines > self._max_blank_lines:
+            return self._replacement
+
+        return token

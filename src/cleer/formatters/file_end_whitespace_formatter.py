@@ -44,7 +44,7 @@ class FileEndWhitespaceFormatter(Formatter):
         -------
         str | None
             Error message if trailing whitespace does not match the expected. 
-            Returns `None` if there is no violation
+            Returns `None` if there is no violation.
         """
         if token != self._ending_token:
             return f"Files should end with {self._blank_lines} blank line(s)."

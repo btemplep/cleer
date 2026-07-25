@@ -1,3 +1,6 @@
+
+
+
 """"""
 
 ___all__ = ["hello"]
@@ -14,13 +17,14 @@ from cleer import (
 )
 
 
-tup = (2, )
+
+tup  = (2, )   
 thing = {
-    "hello": "there"
+    "hello": "there" 
 }
 find = [0, 1, 3, 4, 5, "hello ther lov", "how is all of that"]
 
-thing = [
+thing = [  
     {
         "hello": [1,2, "hello", "there", "how"],
         "there": [

@@ -76,6 +76,30 @@ def cleer_default_config(
                 "excludes": python_excludes,
                 "stages": [
                     {
+                        "tokenizer": NonAsciiWhitespaceTokenizer(),
+                        "formatters": [
+                            NonAsciiWhitespaceFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": TrailingWhitespaceTokenizer(),
+                        "formatters": [
+                            TrailingWhitespaceFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": FileStartWhitespaceTokenizer(),
+                        "formatters": [
+                            FileStartWhitespaceFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": WhitespaceTokenizer(),
+                        "formatters": [
+                            MaxBlankLinesFormatter()
+                        ]
+                    },
+                    {
                         "tokenizer": FileEndWhitespaceTokenizer(),
                         "formatters": [
                             FileEndWhitespaceFormatter()
