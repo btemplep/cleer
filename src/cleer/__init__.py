@@ -22,6 +22,8 @@ from cleer.tokenizers import __all__ as tokenizers_all
 __all__ += tokenizers_all
 from cleer.types import * 
 from cleer.types import __all__ as types_all
-
-
 __all__ += types_all
+from cleer.validators import *
+from cleer.validators import __all__ as validators_all
+__all__ += validators_all
+

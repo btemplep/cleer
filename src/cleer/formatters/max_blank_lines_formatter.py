@@ -83,11 +83,15 @@ class MaxBlankLinesFormatter(Formatter):
         -------
         str
             The token unchanged if within limits, or the maximum allowed
-            number of consecutive blank lines.
+            number of consecutive blank lines with any trailing indentation
+            preserved.
         """
         blank_lines = self._count_blank_lines(token)
 
         if blank_lines > self._max_blank_lines:
-            return self._replacement
+            last_newline = token.rfind("\n")
+            trailing = token[last_newline + 1:]
+
+            return self._replacement + trailing
 
         return token

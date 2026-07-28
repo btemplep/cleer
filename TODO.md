@@ -2,7 +2,9 @@
 
 
 
-- [ ] config default generator instead of cleer class
+- [ ] make sure tokenizers type hints for returns are correct
+- [ ] logging should only be debug for formatters, validators, and tokenizers
+- [x] config default generator instead of cleer class
 
 
 ## OLD

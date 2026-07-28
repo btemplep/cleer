@@ -1,11 +1,10 @@
 __all__ = ["Cleer"]
 
 
-import glob
 import io
 import pathlib
 import re
-from typing import Dict, List
+from typing import Dict, List, Literal, Tuple
 
 from loguru import logger
 
@@ -83,11 +82,27 @@ class Cleer:
         self._config = config
 
 
-    def _is_excluded(
+    def _get_file_pattern_match(
         self,
         file_path: pathlib.Path,
-        group: CleerGroup
-    ) -> bool:
+        patterns: List[str]
+    ) -> str | None:
+        for pattern in patterns:
+            regex = glob_to_regex(
+                pattern=pattern,
+                recursive=True,
+                include_hidden=True
+            )
+            if re.match(regex, str(file_path)) is not None:
+                return pattern
+
+        return None
+    
+    def _matches_exclude(
+        self,
+        file_path: pathlib.Path,
+        group: Group
+    ) -> str | None:
         for pattern in group['excludes']:
             exclude_regex = glob_to_regex(
                 pattern,
@@ -97,16 +112,19 @@ class Cleer:
             if re.match(exclude_regex, str(file_path)) is not None:
                 logger.debug(f"Excluding '{file_path}' file for matching the '{pattern}' exclude pattern.")
 
-                return True
+                return pattern
 
-        return False
+        return None
 
 
-    def _matches_group(
+    def _include_pattern(
         self,
         file_path: pathlib.Path,
-        group: CleerGroup
-    ) -> bool:
+        group: Group
+    ) -> Tuple[
+            Literal["no", "include", "exclude"],
+            str | None
+        ]:
         for pattern in group['includes']:
             include_regex = glob_to_regex(
                 pattern,
@@ -114,20 +132,37 @@ class Cleer:
                 include_hidden=True
             )
             if re.match(include_regex, str(file_path)) is not None:
-                if self._is_excluded(file_path, group):
-                    return False
+                exclude_pattern = self._matches_exclude(file_path, group)
+                if exclude_pattern is not None:
+                    return "exclude", exclude_pattern
 
                 logger.info(f"Including '{file_path.resolve()}' file for matching the '{pattern}' include pattern.")
 
-                return True
+                return "include", pattern
 
-        return False
+        return "no", None
+
+    def _validate_str_group(
+        self,
+        document: str,
+        group: Group
+    ) -> Invalidation | None:
+        for vi, validator in enumerate(group['validators']):
+            message = validator.validate(document)
+            if message is not None:
+                return {
+                    "group": 0,
+                    "validator": vi,
+                    "message": message
+                }
+
+        return None
 
 
     def _inspect_str_group(
         self,
         document: str,
-        group: CleerGroup
+        group: Group
     ) -> List[Violation]:
         violations: List[Violation] = []
         for stage in group['stages']:
@@ -151,7 +186,7 @@ class Cleer:
         self,
         document: str,
         file_path: str | pathlib.Path
-    ) -> List[Violation]:
+    ) -> Inspection:
         """Inspect a document string for violations.
 
         Parameters
@@ -163,24 +198,76 @@ class Cleer:
 
         Returns
         -------
-        List[Violation]
-            List of violations for the document.
+        Inspection
+            Inspection details for the file. 
         """
         file_path = pathlib.Path(file_path)
-        violations: List[Violation] = []
+        insp: Inspection = {
+            "path": file_path,
+            "included": [],
+            "excluded": [],
+            "invalidations": [],
+            "violations": []
+        }
         for gi, group in enumerate(self._config['groups']):
             logger.info(f"Evaluating config groups[{gi}].")
-            if self._matches_group(file_path, group) is True:
-                violations += self._inspect_str_group(document, group)
+            include_pattern = self._get_file_pattern_match(file_path, group['includes'])
+            if include_pattern is not None:
+                exclude_pattern = self._get_file_pattern_match(file_path, group['excludes'])
+                if exclude_pattern is not None:
+                    logger.debug(f"Excluding '{file_path}' from groups[{gi}] for matching the '{exclude_pattern}' exclude pattern.")
+                    insp['excluded'].append(
+                        {
+                            "group": gi,
+                            "pattern": exclude_pattern
+                        }
+                    )
+                    continue
 
-        return violations
+                logger.info(f"Including '{file_path.resolve()}' in groups[{gi}] for matching the '{include_pattern}' include pattern.")
+                insp['included'].append(
+                    {
+                        "group": gi,
+                        "pattern": include_pattern
+                    }
+                )
+                inval = self._validate_str_group(document, group)
+                if inval is not None:
+                    logger.error(f"File '{file_path}' did not pass validation is groups[{gi}] from validators[{inval['validator']}]: {inval['message']}")
+                    insp['invalidations'].append(
+                        {
+                            "group": gi,
+                            "validator": inval['validator'],
+                            "message": inval['message']
+                        }
+                    )
+                    continue
+
+                for si, stage in enumerate(group['stages']):
+                    tokens = stage['tokenizer'].tokenize(document)
+                    for tr in tokens:
+                        for fi, formatter in enumerate(stage['formatters']):
+                            message = formatter.inspect(tr['token'])
+                            if message is not None:
+                                insp['violations'].append(
+                                    {
+                                        "start_index": tr['index'],
+                                        "length": tr['length'],
+                                        "group": gi,
+                                        "stage": si,
+                                        "formatter": fi,
+                                        "message": message
+                                    }
+                                )
+        
+        return insp
 
 
     def inspect_fp(
         self,
         fp: io.TextIOBase,
         file_path: str | pathlib.Path
-    ) -> List[Violation]:
+    ) -> Inspection:
         """Inspect a document file pointer for violations.
 
         **Does not close the file pointer upon return.**
@@ -196,8 +283,8 @@ class Cleer:
 
         Returns
         -------
-        List[Violation]
-            List of violations for the document.
+        Inspection
+            Inspection details for the file. 
         """
         file_path = pathlib.Path(file_path)
 
@@ -207,7 +294,7 @@ class Cleer:
     def inspect_file(
         self,
         file_path: str | pathlib.Path
-    ) -> List[Violation]:
+    ) -> Inspection:
         """Inspect a document at the given path for violations.
 
         Parameters
@@ -217,8 +304,8 @@ class Cleer:
 
         Returns
         -------
-        List[Violation]
-            List of violations for the document.
+        Inspection
+            Inspection details for the file. 
         """
         file_path = pathlib.Path(file_path)
         document = file_path.read_text()
@@ -229,7 +316,7 @@ class Cleer:
     def inspect_dir(
         self,
         dir_path: str | pathlib.Path
-    ) -> List[FileInspectionResult]:
+    ) -> List[Inspection]:
         """Inspect files under a directory.
 
         Files will be filtered for each stage by the glob for that stage.
@@ -241,8 +328,8 @@ class Cleer:
 
         Returns
         -------
-        List[FileInspectionResult]
-            List of inspection results that include the file path and violations.
+        List[Inspection]
+            Inspection details for the file. 
         """
         dir_path = pathlib.Path(dir_path)
         path_lookup: Dict[pathlib.Path, List[Violation]] = {}
@@ -256,7 +343,7 @@ class Cleer:
                     if file_path in group_excluded_paths:
                         continue
 
-                    if self._is_excluded(file_path, group) is True:
+                    if self._matches_exclude(file_path, group) is True:
                         group_excluded_paths.add(file_path)
                         continue
 
@@ -288,7 +375,7 @@ class Cleer:
     def inspect_path(
         self,
         path: str | pathlib.Path
-    ) -> List[FileInspectionResult]:
+    ) -> List[Inspection]:
         """Inspect a file or directory.
 
         Parameters
@@ -298,9 +385,8 @@ class Cleer:
 
         Returns
         -------
-        List[FileInspectionResult]
-            List of inspection results that include the file path and violations.
-            For a file this will only be one entry.
+        List[Inspection]
+            Inspection details for the files. 
 
         Raises
         ------
@@ -324,7 +410,7 @@ class Cleer:
     def _format_str_group(
         self,
         document: str,
-        group: CleerGroup
+        group: Group
     ) -> str:
         for stage in group['stages']:
             start_difference = 0
@@ -344,7 +430,7 @@ class Cleer:
         self,
         document: str,
         file_path: str | pathlib.Path
-    ) -> str:
+    ) -> FormatStringResult:
         """Format a document string.
 
         Parameters
@@ -356,13 +442,13 @@ class Cleer:
 
         Returns
         -------
-        str
-            Formatted document.
+        FormatStringResult
+            Formatted document and info.
         """
         file_path = pathlib.Path(file_path)
         for gi, group in enumerate(self._config['groups']):
             logger.info(f"Evaluating config groups[{gi}].")
-            if self._matches_group(file_path, group) is True:
+            if self._include_group(file_path, group) is True:
                 document = self._format_str_group(document, group)
 
         return document
@@ -372,7 +458,7 @@ class Cleer:
         self,
         fp: io.TextIOBase,
         file_path: str | pathlib.Path
-    ) -> None:
+    ) -> FormatResult:
         """Format a document file pointer.
 
         **Does not close the file pointer upon return.**
@@ -388,7 +474,8 @@ class Cleer:
 
         Returns
         -------
-        None
+        FormatResult
+            Info about the formatted files.
         """
         file_path = pathlib.Path(file_path)
         document = self.format_str(fp.read(), file_path)
@@ -400,7 +487,7 @@ class Cleer:
     def format_file(
         self,
         file_path: str | pathlib.Path
-    ) -> None:
+    ) -> FormatResult:
         """Format a document at the given path.
 
         Parameters
@@ -410,7 +497,8 @@ class Cleer:
 
         Returns
         -------
-        None
+        FormatResult
+            Info about the formatted files.
         """
         file_path = pathlib.Path(file_path)
         document = file_path.read_text()
@@ -418,7 +506,7 @@ class Cleer:
         file_path.write_text(document)
 
 
-    def format_dir(self, dir_path: str | pathlib.Path) -> None:
+    def format_dir(self, dir_path: str | pathlib.Path) -> FormatResult:
         """Format files under a directory.
 
         Files will be filtered for each stage by the glob for that stage.
@@ -430,7 +518,8 @@ class Cleer:
 
         Returns
         -------
-        None
+        FormatResult
+            Info about the formatted files.
         """
         dir_path = pathlib.Path(dir_path)
         for gi, group in enumerate(self._config['groups']):
@@ -443,7 +532,7 @@ class Cleer:
                     if file_path in group_excluded_paths:
                         continue
 
-                    if self._is_excluded(file_path, group) is True:
+                    if self._matches_exclude(file_path, group) is True:
                         group_excluded_paths.add(file_path)
                         continue
 
@@ -459,7 +548,7 @@ class Cleer:
                             file_path.write_text(document)
 
 
-    def format_path(self, path: str | pathlib.Path) -> None:
+    def format_path(self, path: str | pathlib.Path) -> FormatResult:
         """Format a file or directory.
 
         Parameters
@@ -469,7 +558,8 @@ class Cleer:
 
         Returns
         -------
-        None
+        FormatResult
+            Info about the formatted files.ne
 
         Raises
         ------

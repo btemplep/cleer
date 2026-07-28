@@ -1,12 +1,15 @@
 """Cleer types module."""
 
 __all__ = [
-    "CleerStage",
-    "CleerGroup",
     "CleerConfig",
-    "TokenResult",
-    "Violation",
-    "FileInspectionResult"
+    "Formatting",
+    "FormattingDocument",
+    "Group",
+    "GroupMatch",
+    "Inspection",
+    "Invalidation",
+    "Stage",
+    "Violation"
 ]
 
 
@@ -15,9 +18,10 @@ from typing import List, TypedDict
 
 from cleer.formatters.formatter import Formatter
 from cleer.tokenizers.tokenizer import Tokenizer
+from cleer.validators.validator import Validator
 
 
-class CleerStage(TypedDict):
+class Stage(TypedDict):
     """Configuration for a cleer formatting stage.
 
     Attributes
@@ -32,7 +36,7 @@ class CleerStage(TypedDict):
     formatters: List[Formatter]
 
 
-class CleerGroup(TypedDict):
+class Group(TypedDict):
     """A group in the cleer config filters files by a set of glob patterns, and runs a list of stages on them.
 
     Attributes
@@ -41,12 +45,16 @@ class CleerGroup(TypedDict):
         Unix glob patterns used to include files for this Group.
     excludes : List[str]
         Unix glob patterns used to exclude files from this Group.
-    stages : List[CleerStage]
+    validators : List[Validator]
+        List of validators to run for each document.
+        Documents that fail validation, will not be inspected or formatted.
+    stages : List[Stage]
         List of formatting stages to use for this group of files.
     """
     includes: List[str]
     excludes: List[str]
-    stages: List[CleerStage]
+    validators: List[Validator]
+    stages: List[Stage]
 
 
 class CleerConfig(TypedDict):
@@ -54,27 +62,24 @@ class CleerConfig(TypedDict):
 
     Attributes
     ----------
-    groups : List[CleerGroup]
+    groups : List[Group]
         List of groups that will be evaluated for glob matches.
     """
-    groups: List[CleerGroup]
+    groups: List[Group]
 
 
-class TokenResult(TypedDict):
-    """Token and location from a tokenizer.
+class GroupMatch(TypedDict):
+    """Response element for files matching group globs.
 
-    Attributes
+    Parameters
     ----------
-    token : str
-        Token from a tokenizer.
-    index : int
-        Index where the token starts in the source document string, inclusive.
-    length : int
-        Character length of the token.
+    group : int
+        Config group index that was matched.
+    pattern : str
+        The pattern that was matched in the config group. 
     """
-    token: str
-    index: int
-    length: int
+    group: int
+    pattern: str
 
 
 class Violation(TypedDict):
@@ -86,23 +91,98 @@ class Violation(TypedDict):
         Start index of the token in violation.
     length : str
         Length of token in violation
+    group : int
+        Config group index.
+    stage : int
+        Config stage index.
+    formatter : int
+        Config formatter index.
     message : str
         Message describing the violation.
     """
     start_index: str
     length: str
+    group: int
+    stage: int
+    formatter: int
     message: str
 
 
-class FileInspectionResult(TypedDict):
-    """Violations for a file.
+class Invalidation(TypedDict):
+    """Group the a file was invalid for. 
+
+    Parameters
+    ----------
+    group : int
+        Applicable config group index.
+    validator : int
+        Validator index that found the file invalid.
+    message : str
+        Message describing why the file was invalid.
+    """
+    group: int
+    validator: int
+    message: str
+
+
+class Inspection(TypedDict):
+    """Inspection for a file. 
 
     Attributes
     ----------
     path : pathlib.Path
         Path to the file.
+    included : List[GroupMatch]
+        Config groups the file was included in.
+    excluded : List[GroupMatch]
+        Config groups the file was explicitly excluded from.
     violations : List[Violation]
         List of violations for the file.
+    invalidations : List[Invalidation]
+        Any times the file was found to be invalid for a group.
     """
     path: pathlib.Path
+    included: List[GroupMatch]
+    excluded: List[GroupMatch]
     violations: List[Violation]
+    invalidations: List[Invalidation]
+
+
+class Formatting(TypedDict):
+    """Formatting results for a file.
+
+    Parameters
+    ----------
+    path : pathlib.Path
+        Path to the file.
+    included : List[GroupMatch]
+        Config groups the file was included in.
+    excluded : List[GroupMatch]
+        Config groups the file was explicitly excluded from.
+    invalidations : List[Invalidation]
+        Any times the file was found to be invalid for a group.
+    """
+    path: pathlib.Path
+    included: List[GroupMatch]
+    excluded: List[GroupMatch]
+    invalidations: List[Invalidation]
+
+
+
+class FormattingDocument(Formatting):
+    """Result of formatting a file string, with the formatted string.
+    
+    Parameters
+    ----------
+    path : pathlib.Path
+        Path to the file.
+    included : List[GroupMatch]
+        Config groups the file was included in.
+    excluded : List[GroupMatch]
+        Config groups the file was explicitly excluded from.
+    invalidations : List[Invalidation]
+        Any times the file was found to be invalid for a group.
+    document : str
+        Formatted Document
+    """
+    document: str

@@ -38,6 +38,7 @@ thing = [
 ]
 
 @decor("ldkfjd", "sdflkjsdfk", "ksdjfdk", "alskdjfaslkdfj")
+
 def say_hello(
     hello: str = None, 
     hello_there: int = 10, 
@@ -46,10 +47,8 @@ def say_hello(
     pass
 
 
-def say_hello(hello: str = None, hello_there: int = 10, fine_great: str = "1234232"):
+def say_hello2(hello: str = None, hello_there: int = 10, fine_great: str = "1234232"):
     pass
-
-
 say_hello("dkfj", 1000, "asdflkjasdfkj", "alsdkflksdfj", "asldkfjalskdjflsdf")
 Literal["alsdkfsdfl", "alskfjslkfdj", "aslkdfjsdfjk"]
 my_type = Dict[
@@ -72,3 +71,27 @@ my_type = Dict[
         Dict[str, Dict[str, str]]
     ]
 ]
+
+@medcor
+
+async def hello():
+    print("hello")
+    def inner():
+        pass
+    print("after")
+    
+
+    print("one more")
+    return 0
+
+
+class MyClass:
+    async def hello(self):
+        print("hello")
+        def inner():
+            pass
+        print("after")
+
+
+    print("one more")
+    return 0

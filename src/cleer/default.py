@@ -10,6 +10,7 @@ from loguru import logger
 from cleer.cleer import Cleer
 from cleer.formatters import * 
 from cleer.tokenizers import * 
+from cleer.validators import *
 from cleer.types import * 
 
 
@@ -74,6 +75,9 @@ def cleer_default_config(
             {
                 "includes": ["**/*.py"],
                 "excludes": python_excludes,
+                "validators": [
+                    PythonSyntaxValidator()
+                ],
                 "stages": [
                     {
                         "tokenizer": NonAsciiWhitespaceTokenizer(),
@@ -103,6 +107,30 @@ def cleer_default_config(
                         "tokenizer": FileEndWhitespaceTokenizer(),
                         "formatters": [
                             FileEndWhitespaceFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": PythonFunctionBoundaryTokenizer(),
+                        "formatters": [
+                            PythonFunctionBoundaryFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": PythonDecoratorBoundaryTokenizer(),
+                        "formatters": [
+                            PythonDecoratorBoundaryFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": PythonNestedFunctionBoundaryTokenizer(),
+                        "formatters": [
+                            PythonNestedFunctionBoundaryFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": PythonInnerMaxBlankLinesTokenizer(),
+                        "formatters": [
+                            PythonInnerMaxBlankLinesFormatter()
                         ]
                     }
                 ]
