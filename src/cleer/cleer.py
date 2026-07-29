@@ -97,50 +97,7 @@ class Cleer:
                 return pattern
 
         return None
-    
-    def _matches_exclude(
-        self,
-        file_path: pathlib.Path,
-        group: Group
-    ) -> str | None:
-        for pattern in group['excludes']:
-            exclude_regex = glob_to_regex(
-                pattern,
-                recursive=True,
-                include_hidden=True
-            )
-            if re.match(exclude_regex, str(file_path)) is not None:
-                logger.debug(f"Excluding '{file_path}' file for matching the '{pattern}' exclude pattern.")
 
-                return pattern
-
-        return None
-
-
-    def _include_pattern(
-        self,
-        file_path: pathlib.Path,
-        group: Group
-    ) -> Tuple[
-            Literal["no", "include", "exclude"],
-            str | None
-        ]:
-        for pattern in group['includes']:
-            include_regex = glob_to_regex(
-                pattern,
-                recursive=True,
-                include_hidden=True
-            )
-            if re.match(include_regex, str(file_path)) is not None:
-                exclude_pattern = self._matches_exclude(file_path, group)
-                if exclude_pattern is not None:
-                    return "exclude", exclude_pattern
-
-                logger.info(f"Including '{file_path.resolve()}' file for matching the '{pattern}' include pattern.")
-
-                return "include", pattern
-
-        return "no", None
 
     def _validate_str_group(
         self,
@@ -159,50 +116,27 @@ class Cleer:
         return None
 
 
-    def _inspect_str_group(
+    def _inspect_one(
         self,
-        document: str,
-        group: Group
-    ) -> List[Violation]:
-        violations: List[Violation] = []
-        for stage in group['stages']:
-            tokens = stage['tokenizer'].tokenize(document)
-            for tr in tokens:
-                for formatter in stage['formatters']:
-                    message = formatter.inspect(tr['token'])
-                    if message is not None:
-                        violations.append(
-                            {
-                                "start_index": tr['index'],
-                                "length": tr['length'],
-                                "message": message
-                            }
-                        )
-
-        return violations
-
-
-    def inspect_str(
-        self,
-        document: str,
-        file_path: str | pathlib.Path
-    ) -> Inspection:
-        """Inspect a document string for violations.
+        file_path: str | pathlib.Path,
+        document: str | None
+    ) -> Inspection | None:
+        """Inspect a file or document string for violations.
 
         Parameters
         ----------
-        document : str
-            Document to inspect for violations
         file_path : str | pathlib.Path
-            File path that is only used for glob matching of formatting groups.
+            File path.
+            If document is not `None` then this is only used for glob matching
+        document : str | None
+            String document to inspect.
 
         Returns
         -------
         Inspection
-            Inspection details for the file. 
+            Inspection details of `None` if the file didn't match any groups. 
         """
-        file_path = pathlib.Path(file_path)
-        insp: Inspection = {
+        inspection: Inspection = {
             "path": file_path,
             "included": [],
             "excluded": [],
@@ -216,7 +150,7 @@ class Cleer:
                 exclude_pattern = self._get_file_pattern_match(file_path, group['excludes'])
                 if exclude_pattern is not None:
                     logger.debug(f"Excluding '{file_path}' from groups[{gi}] for matching the '{exclude_pattern}' exclude pattern.")
-                    insp['excluded'].append(
+                    inspection['excluded'].append(
                         {
                             "group": gi,
                             "pattern": exclude_pattern
@@ -225,16 +159,20 @@ class Cleer:
                     continue
 
                 logger.info(f"Including '{file_path.resolve()}' in groups[{gi}] for matching the '{include_pattern}' include pattern.")
-                insp['included'].append(
+                inspection['included'].append(
                     {
                         "group": gi,
                         "pattern": include_pattern
                     }
                 )
+                if document is None:
+                    with open(file_path, "r") as fp:
+                        document = fp.read()
+
                 inval = self._validate_str_group(document, group)
                 if inval is not None:
                     logger.error(f"File '{file_path}' did not pass validation is groups[{gi}] from validators[{inval['validator']}]: {inval['message']}")
-                    insp['invalidations'].append(
+                    inspection['invalidations'].append(
                         {
                             "group": gi,
                             "validator": inval['validator'],
@@ -249,7 +187,7 @@ class Cleer:
                         for fi, formatter in enumerate(stage['formatters']):
                             message = formatter.inspect(tr['token'])
                             if message is not None:
-                                insp['violations'].append(
+                                inspection['violations'].append(
                                     {
                                         "start_index": tr['index'],
                                         "length": tr['length'],
@@ -259,152 +197,156 @@ class Cleer:
                                         "message": message
                                     }
                                 )
-        
-        return insp
+
+        if len(inspection['included']) == 0:
+            return None
+
+        return inspection
 
 
-    def inspect_fp(
+    def inspect(
         self,
-        fp: io.TextIOBase,
-        file_path: str | pathlib.Path
-    ) -> Inspection:
-        """Inspect a document file pointer for violations.
-
-        **Does not close the file pointer upon return.**
-
-        **Requires a file pointer in at least read mode: `r`.**
-
-        Parameters
-        ----------
-        fp : io.TextIOBase
-            File pointer of document.
-        file_path : str | pathlib.Path
-            File path that is only used for glob matching of formatting groups.
-
-        Returns
-        -------
-        Inspection
-            Inspection details for the file. 
-        """
-        file_path = pathlib.Path(file_path)
-
-        return self.inspect_str(fp.read(), file_path)
-
-
-    def inspect_file(
-        self,
-        file_path: str | pathlib.Path
-    ) -> Inspection:
-        """Inspect a document at the given path for violations.
-
-        Parameters
-        ----------
-        file_path : str | pathlib.Path
-            Path to document that will be read. Also used for glob matching of formatting groups.
-
-        Returns
-        -------
-        Inspection
-            Inspection details for the file. 
-        """
-        file_path = pathlib.Path(file_path)
-        document = file_path.read_text()
-
-        return self.inspect_str(document, file_path)
-
-
-    def inspect_dir(
-        self,
-        dir_path: str | pathlib.Path
+        path: str | pathlib.Path,
+        document: str | None = None
     ) -> List[Inspection]:
-        """Inspect files under a directory.
-
-        Files will be filtered for each stage by the glob for that stage.
-
-        Parameters
-        ----------
-        dir_path : str | pathlib.Path
-            Path to directory to run formatting on. Also used for glob matching of formatting groups.
-
-        Returns
-        -------
-        List[Inspection]
-            Inspection details for the file. 
-        """
-        dir_path = pathlib.Path(dir_path)
-        path_lookup: Dict[pathlib.Path, List[Violation]] = {}
-        for gi, group in enumerate(self._config['groups']):
-            logger.info(f"Evaluating config groups[{gi}].")
-            # keeps track of if a path was already run for this group
-            group_included_paths = set()
-            group_excluded_paths = set()
-            for pattern in group['includes']:
-                for file_path in dir_path.glob(pattern):
-                    if file_path in group_excluded_paths:
-                        continue
-
-                    if self._matches_exclude(file_path, group) is True:
-                        group_excluded_paths.add(file_path)
-                        continue
-
-                    if file_path.is_file() is True:
-                        file_path = file_path.resolve()
-                        if file_path not in group_included_paths:
-                            logger.info(f"Including '{file_path}' file for matching the '{pattern}' include pattern.")
-                            if file_path not in path_lookup:
-                                path_lookup[file_path] = []
-
-                            document = file_path.read_text()
-                            path_lookup[file_path] += self._inspect_str_group(
-                                document,
-                                group
-                            )
-
-        results: List[FileInspectionResult] = []
-        for path, violations in path_lookup.items():
-            results.append(
-                {
-                    "path": path,
-                    "violations": violations
-                }
-            )
-
-        return results
-
-
-    def inspect_path(
-        self,
-        path: str | pathlib.Path
-    ) -> List[Inspection]:
-        """Inspect a file or directory.
+        """Inspect a file, dir, or document string for violations.
 
         Parameters
         ----------
         path : str | pathlib.Path
-            Path to file or directory.
+            File or dir path.
+            If `document` is provided, then this is only used for glob matching. 
+            The file is not opened.
+        document : str | None, default=None
+            String document to inspect.
+            If provided, then `path` is only used for glob matching.
+            The file is not opened.
 
         Returns
         -------
         List[Inspection]
-            Inspection details for the files. 
-
+            List of inspections for files that match at least one group in the config. 
+            Includes files that would be included, but were explicitly excluded.
+            The excluded files are not inspected. 
+        
         Raises
         ------
         cleer.exceptions.BadPathError
-            If the given path is not a file or directory.
+            If the given path is not a file or directory.    
         """
         path = pathlib.Path(path)
-        if path.is_file() is True:
-            return [
-                {
-                    "path": path.resolve(),
-                    "violations": self.inspect_file(path)
-                }
-            ]
-        elif path.is_dir() is True:
-            return self.inspect_dir(path)
-        else:
-            raise exceptions.BadPathError(f"Path '{path}' must be a file or directory.")
+        if document is not None or path.is_file() is True:
+            inspection = self._inspect_one(
+                file_path=path,
+                document=document
+            )
+            if inspection is None:
+                return []
+
+            return [inspection]
+
+        if path.is_dir() is True:
+            inspections = []
+            for p in path.rglob("*"):
+                if p.is_file() is True:
+                    inspection = self._inspect_one(
+                        file_path=p,
+                        document=document
+                    )
+                    if inspection is not None:
+                        inspections.append(inspection)
+                        print(inspection)
+
+            return inspections
+
+        raise exceptions.BadPathError(f"Path '{path}' must be a file or directory.")
+
+
+    def _format_one(
+        self,
+        file_path: str | pathlib.Path,
+        document: str | None
+    ) -> FormattingDocument:
+        """Format a file or document string.
+
+        Parameters
+        ----------
+        file_path : str | pathlib.Path
+            File path.
+            If document is not `None` then this is only used for glob matching
+        document : str | None
+            String document to format.
+
+        Returns
+        -------
+        Inspection
+            Inspection details for the file. 
+        """
+        formatting: FormattingDocument = {
+            "path": file_path,
+            "included": [],
+            "excluded": [],
+            "invalidations": [],
+            "document": document
+        }
+        for gi, group in enumerate(self._config['groups']):
+            logger.info(f"Evaluating config groups[{gi}].")
+            include_pattern = self._get_file_pattern_match(file_path, group['includes'])
+            if include_pattern is not None:
+                exclude_pattern = self._get_file_pattern_match(file_path, group['excludes'])
+                if exclude_pattern is not None:
+                    logger.debug(f"Excluding '{file_path}' from groups[{gi}] for matching the '{exclude_pattern}' exclude pattern.")
+                    formatting['excluded'].append(
+                        {
+                            "group": gi,
+                            "pattern": exclude_pattern
+                        }
+                    )
+                    continue
+
+                logger.info(f"Including '{file_path.resolve()}' in groups[{gi}] for matching the '{include_pattern}' include pattern.")
+                formatting['included'].append(
+                    {
+                        "group": gi,
+                        "pattern": include_pattern
+                    }
+                )
+                if document is None:
+                    with open(file_path, "r") as fp:
+                        document = fp.read()
+
+                inval = self._validate_str_group(document, group)
+                if inval is not None:
+                    logger.error(f"File '{file_path}' did not pass validation is groups[{gi}] from validators[{inval['validator']}]: {inval['message']}")
+                    formatting['invalidations'].append(
+                        {
+                            "group": gi,
+                            "validator": inval['validator'],
+                            "message": inval['message']
+                        }
+                    )
+                    continue
+
+                for stage in group['stages']:
+                    start_difference = 0
+                    tokens = stage['tokenizer'].tokenize(document)
+                    for tr in tokens:
+                        token = tr['token']
+                        for formatter in stage['formatters']:
+                            token = formatter.format(token)
+
+                        index = tr['index'] + start_difference
+                        document = document[:index] + token + document[index + tr['length']:]
+                        start_difference += len(token) - tr['length']
+
+                if formatting['document'] is None:
+                    with open(file_path, "w") as fp:
+                        fp.write(document)
+
+                else:
+                    formatting['document'] = document
+
+        return formatting
 
 
     def _format_str_group(

@@ -8,34 +8,14 @@ I need to start filling out the tokenizers and formatters.
 ## New General Guides
 
 - Should use as granular of a tokenizer as possible in order to more easily identity tokens for violations
-- Ascii space outside of string literals is not valid python, should the tokenizer handle that? 
-- what about invalid python?? it should probably just give up on it. 
-    - need to make sure that these raise an exception if there is an error. 
-    - do we just skip that file? 
-    - Maybe we have a validator for each group that pre-validates the file? 
+- validators will check for valid files
 
-- NEXT STEP
-    - How to handle errors internally? Like bad syntax?
-        - This can happen at the file level so does the whole thing die for a dir if a file fails
-        - should we just throw an exception and exit? 
-        - Just skip that group or formatter?
-        - Should we add a validator to each group? 
-            - If validation fails, we throw an exception? 
-            - For inspect 
-                - the validator should mark a violation for each file in a group saying the syntax is incorrect, then skip it
-                - Or maybe a separate field for validation errors? 
-                - invalid files
-            - For format
-                - either quit immediately
-                - or flag for skip errors
-                - should return result for invalid files, and for files that were formatted in each group
+d
+- nest invalidations into included? 
+    - need to finish this in cleer and types docstrings
 
-- What do I need to do????
-    - be able to catch when files are incorrect syntax, and stop formatting for that group
-        - not leave that up to the tokenizers and formatters
-        - Report on those errors
-        - should still be able to keep formatting
-    - generally we should be more API friendly in the API, you can always distill it down to a sentence. 
+- formatter result, always include document as str|None??
+
 
 
 inspect verbose, condensed 
@@ -52,32 +32,70 @@ inspect verbose, condensed
                     "pattern": "**/*.py"
                 }
             ],
+            "excluded": [
+                {
+                    "group": 0,
+                    "pattern": "**/*.py"
+                }
+            ],
             "violations": [
                 {
                     "start_index": 1,
                     "length": 1,
                     "group": 0,
                     "stage": 0,
-                    "formatter": "FileEndWhiteSpaceFormatter",
+                    "formatter": 10,
                     "message": "Must do this or else."
                 }
             ],
             "invalidations": [
                 {
                     "group": 0,
-                    "validator": "PythonSyntaxValidator",
+                    "validator": 0,
                     "message": "The file has a syntax error: Bad syntax."
                 }
             ]
         }
-    ],
-    "excluded": [
+    ]
+}
+```
+
+```json
+{
+    "inspections": [
         {
             "path": "/path/to/here.py",
-            "groups": [
+            "included": [
+                {
+                    "group": 0,
+                    "pattern": "**/*.py",
+                    "invalidation": { // or null
+                        "validator": 0,
+                        "message": "bad syntax"
+                    }
+                }
+            ],
+            "excluded": [
                 {
                     "group": 0,
                     "pattern": "**/*.py"
+                }
+            ],
+            "violations": [
+                {
+                    "start_index": 1,
+                    "length": 1,
+                    "group": 0,
+                    "stage": 0,
+                    "formatter": 10,
+                    "message": "Must do this or else."
+                }
+            ],
+            "invalidations": [
+                {
+                    "group": 0,
+                    "validator": 0,
+                    "message": "The file has a syntax error: Bad syntax."
                 }
             ]
         }

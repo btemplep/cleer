@@ -10,6 +10,7 @@ _re_escape = lru_cache(maxsize=512)(re.escape)
 _re_setops_sub = re.compile(r"([&~|])").sub
 
 
+@lru_cache(maxsize=512)
 def glob_to_regex(
     pattern: str,
     recursive: bool = True,

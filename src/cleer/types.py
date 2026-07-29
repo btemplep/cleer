@@ -68,7 +68,18 @@ class CleerConfig(TypedDict):
     groups: List[Group]
 
 
-class GroupMatch(TypedDict):
+class Invalidation(TypedDict):
+    validator: int
+    message: str
+
+
+class Included(TypedDict):
+    group: int
+    pattern: str
+    invalidation: Invalidation | None
+
+
+class Excluded(TypedDict):
     """Response element for files matching group globs.
 
     Parameters
@@ -108,23 +119,6 @@ class Violation(TypedDict):
     message: str
 
 
-class Invalidation(TypedDict):
-    """Group the a file was invalid for. 
-
-    Parameters
-    ----------
-    group : int
-        Applicable config group index.
-    validator : int
-        Validator index that found the file invalid.
-    message : str
-        Message describing why the file was invalid.
-    """
-    group: int
-    validator: int
-    message: str
-
-
 class Inspection(TypedDict):
     """Inspection for a file. 
 
@@ -132,9 +126,9 @@ class Inspection(TypedDict):
     ----------
     path : pathlib.Path
         Path to the file.
-    included : List[GroupMatch]
+    included : List[Included]
         Config groups the file was included in.
-    excluded : List[GroupMatch]
+    excluded : List[Excluded]
         Config groups the file was explicitly excluded from.
     violations : List[Violation]
         List of violations for the file.
@@ -142,10 +136,9 @@ class Inspection(TypedDict):
         Any times the file was found to be invalid for a group.
     """
     path: pathlib.Path
-    included: List[GroupMatch]
-    excluded: List[GroupMatch]
+    included: List[Included]
+    excluded: List[Excluded]
     violations: List[Violation]
-    invalidations: List[Invalidation]
 
 
 class Formatting(TypedDict):
@@ -163,10 +156,9 @@ class Formatting(TypedDict):
         Any times the file was found to be invalid for a group.
     """
     path: pathlib.Path
-    included: List[GroupMatch]
-    excluded: List[GroupMatch]
+    included: List[Included]
+    excluded: List[Excluded]
     invalidations: List[Invalidation]
-
 
 
 class FormattingDocument(Formatting):
@@ -185,4 +177,4 @@ class FormattingDocument(Formatting):
     document : str
         Formatted Document
     """
-    document: str
+    document: str | None
