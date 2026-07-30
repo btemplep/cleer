@@ -20,16 +20,18 @@ from cleer import (
 # bad stuff 
 tup = (2, )   
 thing = {
-    "hello": "there" 
+    "hello": "there" ,
+    "hi": "now" ,
 }
-find = [0, 1, 3, 4, 5, "hello ther lov", "how is all of that"]
+find =  [0, 1, 3,4,5,"hello ther lov", "how is all of that",]
 
-thing = [  
+thing =[  
     {
         "hello":  [1,2, "hello", "there", "how"],
         "there":  [
             2, 
-            7
+            7,
+            - 1
         ], 
         "now": {
             "there": 103
@@ -44,10 +46,10 @@ def say_hello(hello: str = None, hello_there: int = 10, fine_great: str = "12342
     print(my_dict["thing"])
 
 
-def say_hello2(hello: str = None,  hello_there: int = 10,  fine_great: str = "1234232"):
+def say_hello2(hello: str = None,  hello_there: int = 10,  fine_great: str=   "1234232"):
   pass
 say_hello("dkfj", 1000, "asdflkjasdfkj", "alsdkflksdfj", "asldkfjalskdjflsdf")
-Literal["alsdkfsdfl", "alskfjslkfdj", "aslkdfjsdfjk"]
+Literal["alsdkfsdfl", "alskfjslkfdj", "aslkdfjsdfjk", - 1]
 my_type = Dict[
     str, 
     Dict[
@@ -74,7 +76,8 @@ my_type = Dict[
 async def hello():
     print("hello")
     def inner():
-        pass
+        thing=- 1
+        return thing
     print("after")
     
 

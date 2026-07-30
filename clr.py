@@ -29,15 +29,21 @@ clr = Cleer(
                 ],
                 "stages": [
                     {
-                        "tokenizer": NonAsciiWhitespaceTokenizer(),
+                        "tokenizer": PythonBinaryOperatorSpaceTokenizer(),
                         "formatters": [
-                            NonAsciiWhitespaceFormatter()
+                            PythonBinaryOperatorSpaceFormatter()
                         ]
                     },
                     {
-                        "tokenizer": PythonMaxOneSpaceTokenizer(),
+                        "tokenizer": PythonKwargsSpaceTokenizer(),
                         "formatters": [
-                            PythonMaxOneSpaceFormatter()
+                            PythonKwargsSpaceFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": PythonUnaryOperatorSpaceTokenizer(),
+                        "formatters": [
+                            PythonUnaryOperatorSpaceFormatter()
                         ]
                     }
                 ]

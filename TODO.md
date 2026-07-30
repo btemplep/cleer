@@ -1,12 +1,13 @@
 # TODO
 
 
+- [ ] rebuild all the things
 - [ ] slogan!  It's become cleer to me...
 - [ ] update all docstring and README examples. 
 - [ ] ClI should be default print less verbose json, flag for verbose
 - [ ] cli flags for what values to keep in the results that match the API
 - [ ] make sure tokenizers type hints for returns are correct
-- [ ] logging should only be debug for formatters, validators, and tokenizers
+- [x] logging should only be debug for formatters, validators, and tokenizers
 - [x] config default generator instead of cleer class
 
 

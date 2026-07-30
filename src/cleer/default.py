@@ -166,6 +166,24 @@ def cleer_default_config(
                         "formatters": [
                             PythonMaxOneSpaceFormatter()
                         ]
+                    },
+                    {
+                        "tokenizer": PythonBinaryOperatorSpaceTokenizer(),
+                        "formatters": [
+                            PythonBinaryOperatorSpaceFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": PythonKwargsSpaceTokenizer(),
+                        "formatters": [
+                            PythonKwargsSpaceFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": PythonUnaryOperatorSpaceTokenizer(),
+                        "formatters": [
+                            PythonUnaryOperatorSpaceFormatter()
+                        ]
                     }
                 ]
             }

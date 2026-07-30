@@ -32,9 +32,9 @@ I need to start filling out the tokenizers and formatters.
 ### Python Specific Rules
 
 - [x] one space in a row max, outside of indent and string literals.
-- [ ] Binary operators should have one space around them on each side
+- [x] Binary operators should have one space around them on each side
     - not including function default kwargs, or function call kwargs. Should be a default of 0
-- [ ] specific unary operators should not have space between them and the variable
+- [x] specific unary operators should not have space between them and the variable
     - "negative" (-)
 - [x] indent with spaces, tab size is 4 spaces
 - [x] default string quote style
@@ -42,17 +42,20 @@ I need to start filling out the tokenizers and formatters.
         - string literals
         - dict key lookup
     - multiline """ or '''
+- [ ] colons for type hints, dictionaries etc
+    - no space before
+    - one space after
 - [ ] comma separated values
     - no space before
     - one space after, or newline
     - set to have a trailing comma, or remove it
+        - default, no trailing comma
         - except for one value items like python tuples
         - for loop vars never have trailing comma
 - [x] functions/methods
     - inside of functions and methods should be a max of 1 blank line in a row
     - 2 blank lines before and after functions, except nested functions
     - 1 blank line before and after nested functions
-- [ ] no space between = for python default kwargs defs, and python function calls with kwargs
 - [ ] docstring 
     - should exist at top of all modules with one blank line following
     - No blank lines between docstring and preceding definition (class, func, var, etc)
@@ -78,7 +81,10 @@ I need to start filling out the tokenizers and formatters.
     - items in a multi import or import from statement are sorted alphabetically
     - condense imports??
 - [ ] paired punctuation
-    - excludes __all__ and type hints
+    - excludes:
+        - __all__
+        - type hints
+        - for loop variables like `x` and `y` in `for x,y in thing:`
     - first step of all paired punctuation is to flatten it. 
     - no space between paired punctuation and inner values if they are on the same line
     - dicts that have more than 0 items, are always expanded
@@ -133,17 +139,21 @@ I need to start filling out the tokenizers and formatters.
 - [ ] end of if/elif/else and try/except/finally blocks
     - always have a blank line following them
         - If multiple end it should only be one blank line total
-    - no blank lines between the inbetween statements except after a return statement
+    - no blank lines between the in-between statements
+        - except after a return statement, should be default 1 blank line
+        - Can configure this 
     
 - [ ] no blank lines between indent block (class, func, if, for etc) and inner code
 - [ ] classes
     - no blank lines between class declaration, docstring, class vars, or pass
     - 2 blank lines before and after class
 - [ ] returns
-    - returns have a blank line before them unless they are the only statement in that code block
+    - returns have a blank line before them 
+        - unless they are the only statement in that code block
+    - returns have a at least one blank line after them.
 - [ ] yields
     - have a blank like before unless they are the only statement in that code block
-    - blank line after if there is another statement in the same code block
+    - have at least one blank line after it
 - [ ] Type hints
     - no space before colon, one space after
     - First flatten
