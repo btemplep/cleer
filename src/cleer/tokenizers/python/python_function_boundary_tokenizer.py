@@ -4,7 +4,6 @@ __all__ = ["PythonFunctionBoundaryTokenizer"]
 
 
 import ast
-import re
 from typing import List
 
 from cleer.tokenizers.tokenizer import Tokenizer
@@ -66,14 +65,7 @@ class PythonFunctionBoundaryTokenizer(Tokenizer):
             ]
             ```
         """
-        try:
-            tree = ast.parse(document)
-        except SyntaxError:
-            sanitized = re.sub(r"[^\S\n\r]", " ", document)
-            try:
-                tree = ast.parse(sanitized)
-            except SyntaxError:
-                return []
+        tree = ast.parse(document)
 
         lines = document.split("\n")
         line_offsets = self._build_line_offsets(document)

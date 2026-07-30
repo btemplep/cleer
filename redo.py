@@ -40,7 +40,8 @@ thing = [
 @decor("ldkfjd", "sdflkjsdfk", "ksdjfdk", "alskdjfaslkdfj")
 
 def say_hello(hello: str = None, hello_there: int = 10, fine_great: str = "1234232"):
-    pass
+    my_dict = {"thing": 'here'}
+    print(my_dict["thing"])
 
 
 def say_hello2(hello: str = None, hello_there: int = 10, fine_great: str = "1234232"):

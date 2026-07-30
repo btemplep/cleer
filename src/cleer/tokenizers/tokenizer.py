@@ -4,7 +4,6 @@ __all__ = [
 ]
 
 
-import re
 from typing import List, TypedDict
 
 from cleer.exceptions import NotImplementedError
