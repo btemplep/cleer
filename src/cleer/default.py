@@ -143,6 +143,18 @@ def cleer_default_config(
                         "formatters": [
                             PythonInnerMaxBlankLinesFormatter()
                         ]
+                    },
+                    {
+                        "tokenizer": PythonStringQuoteTokenizer(),
+                        "formatters": [
+                            PythonStringQuoteFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": PythonDictKeyQuoteTokenizer(),
+                        "formatters": [
+                            PythonDictKeyQuoteFormatter()
+                        ]
                     }
                 ]
             }
