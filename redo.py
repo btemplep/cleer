@@ -39,11 +39,7 @@ thing = [
 
 @decor("ldkfjd", "sdflkjsdfk", "ksdjfdk", "alskdjfaslkdfj")
 
-def say_hello(
-    hello: str = None, 
-    hello_there: int = 10, 
-    fine_great: str = "1234232"
-):
+def say_hello(hello: str = None, hello_there: int = 10, fine_great: str = "1234232"):
     pass
 
 
@@ -93,5 +89,5 @@ class MyClass:
         print("after")
 
 
-    print("one more")
-    return 0
+        print("one more")
+        return 0

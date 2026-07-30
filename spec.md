@@ -224,6 +224,7 @@ Format most verbose:
             - over 100 chars including indent
             - over 4 args
             - any inner paired punct is expanded
+            - more than one arg with at least one given as a kwarg
         - if any sub items are expanded
         - never split empty args
         - if any are expanded then they all are expanded, unless empty
@@ -234,6 +235,7 @@ Format most verbose:
             - over 80 chars including indent
             - over 4 args
             - any inner paired punct is expanded
+            - 
         - never split empty args
         - if any are expanded then they all are expanded, unless empty
     - decorators
@@ -256,8 +258,11 @@ Format most verbose:
             - any inner paired punct is expanded
         - if expanded should add parenthesis around them
             - Add parenthesis to clarify order of operations
-- end of if/elif/else and try/except/finally blocks always have a blank line following them
-    - If multiple end it should only be one blank line total
+- end of if/elif/else and try/except/finally blocks
+    - always have a blank line following them
+        - If multiple end it should only be one blank line total
+    - no blank lines between the inbetween statements except after a return statement
+    
 - no blank lines between indent block (class, func, if, for etc) and inner code
 - classes
     - no blank lines between class declaration, docstring, class vars, or pass

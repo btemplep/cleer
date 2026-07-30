@@ -62,22 +62,13 @@ def cleer_default_config(
     
     return {
         "groups": [
-            # {
-            #     "includes": package_includes,
-            #     "excludes": python_excludes,
-            #     "stages": [
-            #         {
-            #             "tokenizer": FileTokenizer(),
-            #             "formatters": [PyAllModuleFormatter()]
-            #         }
-            #     ]
-            # },
             {
-                "includes": ["**/*.py"],
-                "excludes": python_excludes,
-                "validators": [
-                    PythonSyntaxValidator()
+                "includes": [
+                    "**/*.py",
+                    "**/*.json"
                 ],
+                "excludes": python_excludes,
+                "validators": [],
                 "stages": [
                     {
                         "tokenizer": NonAsciiWhitespaceTokenizer(),
@@ -108,7 +99,27 @@ def cleer_default_config(
                         "formatters": [
                             FileEndWhitespaceFormatter()
                         ]
-                    },
+                    }
+                ]
+            },
+            # {
+            #     "includes": package_includes,
+            #     "excludes": python_excludes,
+            #     "stages": [
+            #         {
+            #             "tokenizer": FileTokenizer(),
+            #             "formatters": [PyAllModuleFormatter()]
+            #         }
+            #     ]
+            # },
+            {
+                "includes": ["**/*.py"],
+                "excludes": python_excludes,
+                "validators": [
+                    PythonSyntaxValidator()
+                ],
+                "stages": [
+                    
                     {
                         "tokenizer": PythonFunctionBoundaryTokenizer(),
                         "formatters": [

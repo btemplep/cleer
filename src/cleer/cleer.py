@@ -121,21 +121,6 @@ class Cleer:
         file_path: str | pathlib.Path,
         document: str | None
     ) -> Inspection | None:
-        """Inspect a file or document string for violations.
-
-        Parameters
-        ----------
-        file_path : str | pathlib.Path
-            File path.
-            If document is not `None` then this is only used for glob matching
-        document : str | None
-            String document to inspect.
-
-        Returns
-        -------
-        Inspection
-            Inspection details of `None` if the file didn't match any groups. 
-        """
         inspection: Inspection = {
             "path": file_path,
             "included": [],
@@ -144,7 +129,7 @@ class Cleer:
             "violations": []
         }
         for gi, group in enumerate(self._config['groups']):
-            logger.info(f"Evaluating config groups[{gi}].")
+            logger.debug(f"Evaluating config groups[{gi}] for '{file_path}'.")
             include_pattern = self._get_file_pattern_match(file_path, group['includes'])
             if include_pattern is not None:
                 exclude_pattern = self._get_file_pattern_match(file_path, group['excludes'])
@@ -171,7 +156,7 @@ class Cleer:
 
                 inval = self._validate_str_group(document, group)
                 if inval is not None:
-                    logger.error(f"File '{file_path}' did not pass validation is groups[{gi}] from validators[{inval['validator']}]: {inval['message']}")
+                    logger.error(f"File '{file_path}' did not pass validation in groups[{gi}] from validators[{inval['validator']}]: {inval['message']}")
                     inspection['invalidations'].append(
                         {
                             "group": gi,
@@ -198,36 +183,76 @@ class Cleer:
                                     }
                                 )
 
-        if len(inspection['included']) == 0:
-            return None
-
         return inspection
 
 
-    def inspect(
+    def inspects(self, path: str | pathlib.Path, document: str) -> Inspection:
+        """Inspect a document string for violations.
+
+        Parameters
+        ----------
+        path : str | pathlib.Path
+            File path that is only used for glob matching. 
+            The file is not opened or checked for existence.
+        document : str | None, default=None
+            String document to inspect.
+
+        Returns
+        -------
+        Inspection
+            Inspection result.  
+        """
+        file_path = pathlib.Path(file_path)
+        
+        return self._inspect_one(
+            file_path=path, 
+            document=document
+        )
+
+
+    def _keep_result(
         self,
+        result: Inspection | Formatting | FormattingDocument,
+        keep_only_excluded: bool,
+        keep_not_included: bool
+    ) -> bool:
+        if (
+            len(result['included']) > 0 
+            or (
+                len(result['excluded']) > 0
+                and keep_only_excluded is True
+            )
+            or keep_not_included is True
+        ):
+            return True
+
+        return False
+
+
+    def inspect(
+        self, 
         path: str | pathlib.Path,
-        document: str | None = None
+        keep_only_excluded: bool = False,
+        keep_not_included: bool = False
     ) -> List[Inspection]:
-        """Inspect a file, dir, or document string for violations.
+        """Inspect a file or directory for violations.
+
 
         Parameters
         ----------
         path : str | pathlib.Path
             File or dir path.
-            If `document` is provided, then this is only used for glob matching. 
-            The file is not opened.
-        document : str | None, default=None
-            String document to inspect.
-            If provided, then `path` is only used for glob matching.
-            The file is not opened.
+        keep_excluded_only : bool, default=False
+            Keep inspections for files that matched one or more groups
+            Default is to not return these.
+        keep_not_included : bool, default=False
+            Keep inspections for files that did not match any groups.
 
         Returns
         -------
         List[Inspection]
-            List of inspections for files that match at least one group in the config. 
-            Includes files that would be included, but were explicitly excluded.
-            The excluded files are not inspected. 
+            List of inspections for the file or directory. 
+            By default, it only includes files that matched at least one group that they were not also excluded from.
         
         Raises
         ------
@@ -235,31 +260,40 @@ class Cleer:
             If the given path is not a file or directory.    
         """
         path = pathlib.Path(path)
-        if document is not None or path.is_file() is True:
+        if path.is_file() is True:
             inspection = self._inspect_one(
                 file_path=path,
-                document=document
+                document=None
             )
-            if inspection is None:
+            if self._keep_result(
+                result=inspection, 
+                keep_only_excluded=keep_only_excluded,
+                keep_not_included=keep_not_included
+            ) is False:
                 return []
 
             return [inspection]
 
-        if path.is_dir() is True:
+        elif path.is_dir() is True:
             inspections = []
             for p in path.rglob("*"):
                 if p.is_file() is True:
                     inspection = self._inspect_one(
                         file_path=p,
-                        document=document
+                        document=None
                     )
-                    if inspection is not None:
+                    if self._keep_result(
+                        result=inspection, 
+                        keep_only_excluded=keep_only_excluded,
+                        keep_not_included=keep_not_included
+                    ) is True:
                         inspections.append(inspection)
-                        print(inspection)
 
             return inspections
 
-        raise exceptions.BadPathError(f"Path '{path}' must be a file or directory.")
+        else:
+            raise exceptions.BadPathError(f"Path '{path}' must be a file or directory.")
+
 
 
     def _format_one(
@@ -267,21 +301,6 @@ class Cleer:
         file_path: str | pathlib.Path,
         document: str | None
     ) -> FormattingDocument:
-        """Format a file or document string.
-
-        Parameters
-        ----------
-        file_path : str | pathlib.Path
-            File path.
-            If document is not `None` then this is only used for glob matching
-        document : str | None
-            String document to format.
-
-        Returns
-        -------
-        Inspection
-            Inspection details for the file. 
-        """
         formatting: FormattingDocument = {
             "path": file_path,
             "included": [],
@@ -290,7 +309,7 @@ class Cleer:
             "document": document
         }
         for gi, group in enumerate(self._config['groups']):
-            logger.info(f"Evaluating config groups[{gi}].")
+            logger.debug(f"Evaluating config groups[{gi}] for '{file_path}'.")
             include_pattern = self._get_file_pattern_match(file_path, group['includes'])
             if include_pattern is not None:
                 exclude_pattern = self._get_file_pattern_match(file_path, group['excludes'])
@@ -349,169 +368,94 @@ class Cleer:
         return formatting
 
 
-    def _format_str_group(
-        self,
-        document: str,
-        group: Group
-    ) -> str:
-        for stage in group['stages']:
-            start_difference = 0
-            for tr in stage['tokenizer'].tokenize(document):
-                token = tr['token']
-                for formatter in stage['formatters']:
-                    token = formatter.format(token)
-
-                index = tr['index'] + start_difference
-                document = document[:index] + token + document[index + tr['length']:]
-                start_difference += len(token) - tr['length']
-
-        return document
-
-
-    def format_str(
-        self,
-        document: str,
-        file_path: str | pathlib.Path
-    ) -> FormatStringResult:
+    def formats(self, path: str | pathlib.Path, document: str) -> FormattingDocument:
         """Format a document string.
 
         Parameters
         ----------
-        document : str
-            Document to format.
-        file_path : str | pathlib.Path
-            File path that is only used for glob matching of formatting groups.
+        path : str | pathlib.Path
+            File path that is only used for glob matching. 
+            The file is not opened or checked for existence.
+        document : str | None, default=None
+            String document to format.
 
         Returns
         -------
-        FormatStringResult
-            Formatted document and info.
+        FormattingDocument
+            Formatting results with formatted document.
         """
         file_path = pathlib.Path(file_path)
-        for gi, group in enumerate(self._config['groups']):
-            logger.info(f"Evaluating config groups[{gi}].")
-            if self._include_group(file_path, group) is True:
-                document = self._format_str_group(document, group)
 
-        return document
-
-
-    def format_fp(
-        self,
-        fp: io.TextIOBase,
-        file_path: str | pathlib.Path
-    ) -> FormatResult:
-        """Format a document file pointer.
-
-        **Does not close the file pointer upon return.**
-
-        **Requires a file pointer that in read and write mode: `r+`.**
-
-        Parameters
-        ----------
-        fp : io.TextIOBase
-            File pointer of document.
-        file_path : str | pathlib.Path
-            File path that is only used for glob matching of formatting groups.
-
-        Returns
-        -------
-        FormatResult
-            Info about the formatted files.
-        """
-        file_path = pathlib.Path(file_path)
-        document = self.format_str(fp.read(), file_path)
-        fp.seek(0)
-        fp.write(document)
-        fp.truncate()
+        return self._format_one(
+            file_path=path, 
+            document=document
+        )
 
 
-    def format_file(
-        self,
-        file_path: str | pathlib.Path
-    ) -> FormatResult:
-        """Format a document at the given path.
+    def format(
+        self, 
+        path: str | pathlib.Path,
+        keep_only_excluded: bool = False,
+        keep_not_included: bool = False
+    ) -> List[Formatting]:
+        """Format a file or directory of files.
 
-        Parameters
-        ----------
-        file_path : str | pathlib.Path
-            Path to document.
-
-        Returns
-        -------
-        FormatResult
-            Info about the formatted files.
-        """
-        file_path = pathlib.Path(file_path)
-        document = file_path.read_text()
-        document = self.format_str(document, file_path)
-        file_path.write_text(document)
-
-
-    def format_dir(self, dir_path: str | pathlib.Path) -> FormatResult:
-        """Format files under a directory.
-
-        Files will be filtered for each stage by the glob for that stage.
-
-        Parameters
-        ----------
-        dir_path : str | pathlib.Path
-            Path to directory that the stage glob pattern will be run on.
-
-        Returns
-        -------
-        FormatResult
-            Info about the formatted files.
-        """
-        dir_path = pathlib.Path(dir_path)
-        for gi, group in enumerate(self._config['groups']):
-            logger.info(f"Evaluating config groups[{gi}].")
-            # keeps track of if a path was already run for this group
-            group_included_paths = set()
-            group_excluded_paths = set()
-            for pattern in group['includes']:
-                for file_path in dir_path.glob(pattern):
-                    if file_path in group_excluded_paths:
-                        continue
-
-                    if self._matches_exclude(file_path, group) is True:
-                        group_excluded_paths.add(file_path)
-                        continue
-
-                    if file_path.is_file() is True:
-                        file_path = file_path.resolve()
-                        if file_path not in group_included_paths:
-                            logger.info(f"Including '{file_path}' file for matching the '{pattern}' include pattern.")
-                            document = file_path.read_text()
-                            document = self._format_str_group(
-                                file_path.read_text(),
-                                group
-                            )
-                            file_path.write_text(document)
-
-
-    def format_path(self, path: str | pathlib.Path) -> FormatResult:
-        """Format a file or directory.
 
         Parameters
         ----------
         path : str | pathlib.Path
-            Path to file or directory.
+            File or dir path.
+        keep_excluded_only : bool, default=False
+            Keep results for files that matched one or more groups
+            Default is to not return these.
+        keep_not_included : bool, default=False
+            Keep results for files that did not match any groups.
 
         Returns
         -------
-        FormatResult
-            Info about the formatted files.ne
-
+        List[Formatting]
+            List of formatting results for the file or directory. 
+            By default, it only includes files that matched at least one group that they were not also excluded from.
+        
         Raises
         ------
         cleer.exceptions.BadPathError
-            If the given path is not a file or directory.
+            If the given path is not a file or directory.    
         """
         path = pathlib.Path(path)
         if path.is_file() is True:
-            self.format_file(path)
+            formatting = self._format_one(
+                file_path=path,
+                document=None
+            )
+            if self._keep_result(
+                result=formatting, 
+                keep_only_excluded=keep_only_excluded,
+                keep_not_included=keep_not_included
+            ) is False:
+                return []
+
+            formatting.pop("document")
+
+            return [formatting]
+
         elif path.is_dir() is True:
-            self.format_dir(path)
+            formattings = []
+            for p in path.rglob("*"):
+                if p.is_file() is True:
+                    formatting = self._format_one(
+                        file_path=p,
+                        document=None
+                    )
+                    if self._keep_result(
+                        result=formatting, 
+                        keep_only_excluded=keep_only_excluded,
+                        keep_not_included=keep_not_included
+                    ) is True:
+                        formatting.pop("document")
+                        formattings.append(formatting)
+
+            return formattings
+
         else:
             raise exceptions.BadPathError(f"Path '{path}' must be a file or directory.")

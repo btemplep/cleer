@@ -59,7 +59,7 @@ def main(argv: List[str]=None) -> None:
         "-l",
         "--log-level",
         type=str,
-        default="CRITICAL",
+        default="ERROR",
         choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
         help=f"{FMT.bold}[default: \"{FMT.end}{FMT.green}CRITICAL{FMT.end}{FMT.bold}\"]{FMT.end} Set logging level."
     )
@@ -116,15 +116,24 @@ def main(argv: List[str]=None) -> None:
 
     if args.command == "inspect":
         logger.info("Running inspect command...")
-        print(json.dumps(
-                clr.inspect_path(args.path),
+        print(
+            json.dumps(
+                clr.inspect(args.path),
                 indent=4,
                 default=str
-            ), flush=True)
+            ),
+            flush=True
+        )
         logger.info("Inspect command complete!")
     elif args.command == "format":
         logger.info("Running format command...")
-        clr.format_path(args.path)
+        print(
+            json.dumps(
+                clr.format(args.path),
+                indent=4,
+                default=str
+            )
+        )
         logger.info("Format command complete!")
 
     logger.info("Exiting.")

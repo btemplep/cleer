@@ -2,6 +2,8 @@
 
 
 
+- [ ] ClI should be default print less verbose json
+- [ ] cli flags for what values to keep in the results
 - [ ] make sure tokenizers type hints for returns are correct
 - [ ] logging should only be debug for formatters, validators, and tokenizers
 - [x] config default generator instead of cleer class
