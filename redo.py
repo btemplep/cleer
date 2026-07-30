@@ -45,7 +45,7 @@ def say_hello(hello: str = None, hello_there: int = 10, fine_great: str = "12342
 
 
 def say_hello2(hello: str = None, hello_there: int = 10, fine_great: str = "1234232"):
-    pass
+  pass
 say_hello("dkfj", 1000, "asdflkjasdfkj", "alsdkflksdfj", "asldkfjalskdjflsdf")
 Literal["alsdkfsdfl", "alskfjslkfdj", "aslkdfjsdfjk"]
 my_type = Dict[
@@ -86,7 +86,7 @@ class MyClass:
     async def hello(self):
         print("hello")
         def inner():
-            pass
+          pass
         print("after")
 
 

@@ -35,8 +35,8 @@ I need to start filling out the tokenizers and formatters.
 - [ ] Binary operators should have one space around them on each side
 - [ ] specific unary operators should not have space between them and the variable
     - "negative" (-)
-- [ ] indent with spaces, tab size is 4 spaces
-- [ ] default string quote style
+- [x] indent with spaces, tab size is 4 spaces
+- [x] default string quote style
     - set to " or ' separately for
         - string literals
         - dict key lookup
@@ -143,7 +143,7 @@ I need to start filling out the tokenizers and formatters.
 - [ ] yields
     - have a blank like before unless they are the only statement in that code block
     - blank line after if there is another statement in the same code block
-= [ ] Type hints
+- [ ] Type hints
     - no space before colon, one space after
     - First flatten
     - Don't expand unless one of the following happen, in this order:

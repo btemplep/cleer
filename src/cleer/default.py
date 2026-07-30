@@ -119,7 +119,12 @@ def cleer_default_config(
                     PythonSyntaxValidator()
                 ],
                 "stages": [
-                    
+                    {
+                        "tokenizer": PythonIndentTokenizer(),
+                        "formatters": [
+                            PythonIndentFormatter()
+                        ]
+                    },
                     {
                         "tokenizer": PythonFunctionBoundaryTokenizer(),
                         "formatters": [
