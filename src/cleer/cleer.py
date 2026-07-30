@@ -422,7 +422,7 @@ class Cleer:
         cleer.exceptions.BadPathError
             If the given path is not a file or directory.    
         """
-        path = pathlib.Path(path)
+        path = pathlib.Path(path).resolve()
         if path.is_file() is True:
             formatting = self._format_one(
                 file_path=path,

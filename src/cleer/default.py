@@ -160,6 +160,12 @@ def cleer_default_config(
                         "formatters": [
                             PythonDictKeyQuoteFormatter()
                         ]
+                    },
+                    {
+                        "tokenizer": PythonMaxOneSpaceTokenizer(),
+                        "formatters": [
+                            PythonMaxOneSpaceFormatter()
+                        ]
                     }
                 ]
             }

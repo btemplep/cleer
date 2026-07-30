@@ -10,32 +10,38 @@ clr = Cleer(
     )
 )
 
-# from cleer import *
+from cleer import *
 
-# clr = Cleer(
-#     config={
-#         "groups": [
-#             {
-#                 "includes": [
-#                     "**/*.py"
-#                 ],
-#                 "excludes": [
-#                     # "thing.py"
-#                     "**/venv*/**",
-#                     ".nox/**"
-#                 ],
-#                 "validators": [
-#                     PythonSyntaxValidator()
-#                 ],
-#                 "stages": [
-#                     {
-#                         "tokenizer": FileEndWhitespaceTokenizer(),
-#                         "formatters": [
-#                             FileEndWhitespaceFormatter()
-#                         ]
-#                     }
-#                 ]
-#             }
-#         ]
-#     }
-# )
+clr = Cleer(
+    config={
+        "groups": [
+            {
+                "includes": [
+                    "**/*.py"
+                ],
+                "excludes": [
+                    # "thing.py"
+                    "**/venv*/**",
+                    ".nox/**"
+                ],
+                "validators": [
+                    PythonSyntaxValidator()
+                ],
+                "stages": [
+                    {
+                        "tokenizer": NonAsciiWhitespaceTokenizer(),
+                        "formatters": [
+                            NonAsciiWhitespaceFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": PythonMaxOneSpaceTokenizer(),
+                        "formatters": [
+                            PythonMaxOneSpaceFormatter()
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+)

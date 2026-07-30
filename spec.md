@@ -31,8 +31,9 @@ I need to start filling out the tokenizers and formatters.
 
 ### Python Specific Rules
 
-- [ ] one space in a row max, outside of indent and string literals.
+- [x] one space in a row max, outside of indent and string literals.
 - [ ] Binary operators should have one space around them on each side
+    - not including function default kwargs, or function call kwargs. Should be a default of 0
 - [ ] specific unary operators should not have space between them and the variable
     - "negative" (-)
 - [x] indent with spaces, tab size is 4 spaces
