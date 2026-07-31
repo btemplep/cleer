@@ -42,10 +42,10 @@ I need to start filling out the tokenizers and formatters.
         - string literals
         - dict key lookup
     - multiline """ or '''
-- [ ] colons for type hints, dictionaries etc
+- [x] colons for type hints, dictionaries etc
     - no space before
     - one space after
-- [ ] comma separated values
+- [x] comma separated values
     - no space before
     - one space after, or newline
     - set to have a trailing comma, or remove it

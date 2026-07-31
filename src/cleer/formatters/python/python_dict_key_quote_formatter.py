@@ -59,7 +59,7 @@ class PythonDictKeyQuoteFormatter(Formatter):
         if self._quote in content:
             return None
 
-        return f"Dict key bracket lookups should use {self._quote} quotes."
+        return f"Dict key bracket notation should use {self._quote} quotes."
 
 
     def format(self, token: str) -> str:

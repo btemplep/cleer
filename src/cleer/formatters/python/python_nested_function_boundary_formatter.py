@@ -51,7 +51,7 @@ class PythonNestedFunctionBoundaryFormatter(Formatter):
             Returns `None` if there is no violation.
         """
         if token != self._expected:
-            return f"Expected {self._blank_lines} blank line(s) before/after nested function definition."
+            return f"Expected {self._blank_lines} blank line(s) before and after nested function definition."
 
         return None
 

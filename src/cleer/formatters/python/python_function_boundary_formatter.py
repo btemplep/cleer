@@ -51,7 +51,7 @@ class PythonFunctionBoundaryFormatter(Formatter):
             Returns `None` if there is no violation.
         """
         if token != self._expected:
-            return f"Expected {self._blank_lines} blank line(s) before/after function or method definition."
+            return f"Expected {self._blank_lines} blank line(s) before/after a function or method definition."
 
         return None
 

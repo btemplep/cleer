@@ -184,6 +184,24 @@ def cleer_default_config(
                         "formatters": [
                             PythonUnaryOperatorSpaceFormatter()
                         ]
+                    },
+                    {
+                        "tokenizer": PythonColonSpaceTokenizer(),
+                        "formatters": [
+                            PythonColonSpaceFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": PythonCommaSpaceTokenizer(),
+                        "formatters": [
+                            PythonCommaSpaceFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": PythonTrailingCommaTokenizer(),
+                        "formatters": [
+                            PythonTrailingCommaFormatter()
+                        ]
                     }
                 ]
             }

@@ -5,7 +5,7 @@ __all__ = ["PythonMaxOneSpaceTokenizer"]
 
 import ast
 import re
-from typing import List, Set, Tuple
+from typing import List, Tuple
 
 from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 

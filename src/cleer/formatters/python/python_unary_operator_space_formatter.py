@@ -37,7 +37,7 @@ class PythonUnaryOperatorSpaceFormatter(Formatter):
             Returns `None` if there is no violation.
         """
         if token.startswith("-") and len(token) > 1 and token[1] == " ":
-            return "No space between unary negative and its operand."
+            return "There should not be space between unary negative and its operand."
 
         return None
 

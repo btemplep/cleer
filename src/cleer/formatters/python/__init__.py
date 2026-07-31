@@ -2,6 +2,8 @@
 
 __all__ = [
     "PythonBinaryOperatorSpaceFormatter",
+    "PythonColonSpaceFormatter",
+    "PythonCommaSpaceFormatter",
     "PythonDecoratorBoundaryFormatter",
     "PythonDictKeyQuoteFormatter",
     "PythonFunctionBoundaryFormatter",
@@ -11,10 +13,13 @@ __all__ = [
     "PythonMaxOneSpaceFormatter",
     "PythonNestedFunctionBoundaryFormatter",
     "PythonStringQuoteFormatter",
+    "PythonTrailingCommaFormatter",
     "PythonUnaryOperatorSpaceFormatter"
 ]
 
 from cleer.formatters.python.python_binary_operator_space_formatter import PythonBinaryOperatorSpaceFormatter
+from cleer.formatters.python.python_colon_space_formatter import PythonColonSpaceFormatter
+from cleer.formatters.python.python_comma_space_formatter import PythonCommaSpaceFormatter
 from cleer.formatters.python.python_decorator_boundary_formatter import PythonDecoratorBoundaryFormatter
 from cleer.formatters.python.python_dict_key_quote_formatter import PythonDictKeyQuoteFormatter
 from cleer.formatters.python.python_function_boundary_formatter import PythonFunctionBoundaryFormatter
@@ -24,4 +29,5 @@ from cleer.formatters.python.python_kwargs_space_formatter import PythonKwargsSp
 from cleer.formatters.python.python_max_one_space_formatter import PythonMaxOneSpaceFormatter
 from cleer.formatters.python.python_nested_function_boundary_formatter import PythonNestedFunctionBoundaryFormatter
 from cleer.formatters.python.python_string_quote_formatter import PythonStringQuoteFormatter
+from cleer.formatters.python.python_trailing_comma_formatter import PythonTrailingCommaFormatter
 from cleer.formatters.python.python_unary_operator_space_formatter import PythonUnaryOperatorSpaceFormatter

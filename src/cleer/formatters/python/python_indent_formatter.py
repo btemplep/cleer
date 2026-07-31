@@ -64,10 +64,10 @@ class PythonIndentFormatter(Formatter):
             if not leading:
                 continue
 
-            if "\t" in leading:
-                return f"Indentation should use spaces with {self._tab_size} spaces per level."
-
-            if len(leading) % self._tab_size != 0:
+            if (
+                "\t" in leading
+                or len(leading) % self._tab_size != 0
+            ):
                 return f"Indentation should use spaces with {self._tab_size} spaces per level."
 
         return None
