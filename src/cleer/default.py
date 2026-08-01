@@ -153,6 +153,12 @@ def cleer_default_config(
                         ]
                     },
                     {
+                        "tokenizer": PythonClassBoundaryTokenizer(),
+                        "formatters": [
+                            PythonClassBoundaryFormatter()
+                        ]
+                    },
+                    {
                         "tokenizer": PythonDecoratorBoundaryTokenizer(),
                         "formatters": [
                             PythonDecoratorBoundaryFormatter()

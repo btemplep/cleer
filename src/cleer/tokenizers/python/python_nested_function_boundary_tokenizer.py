@@ -1,4 +1,4 @@
-"""Python nested function boundary tokenizer module."""
+"""Python nested definition boundary tokenizer module."""
 
 __all__ = ["PythonNestedFunctionBoundaryTokenizer"]
 
@@ -10,14 +10,14 @@ from cleer.tokenizers.tokenizer import Tokenizer
 
 
 class PythonNestedFunctionBoundaryTokenizer(Tokenizer):
-    """Tokenizes blank lines before and after nested function/method definitions.
+    """Tokenizes blank lines before and after nested definitions inside functions.
 
-    Uses Python's AST to find function definitions that are nested inside
-    other functions or methods. Emits tokens for the whitespace block
-    immediately before and after each nested function definition.
+    Uses Python's AST to find function and class definitions that are
+    nested inside other functions or methods. Emits tokens for the
+    whitespace block immediately before and after each nested definition.
 
-    Only emits a boundary token when the nested function is not the first
-    or last statement in its enclosing scope.
+    Only emits a boundary token when the nested definition is not the
+    first or last statement in its enclosing scope.
 
     Examples
     --------
@@ -107,9 +107,11 @@ class PythonNestedFunctionBoundaryTokenizer(Tokenizer):
         tokens: List[dict],
         seen_ranges: set
     ):
-        """Process a function body for nested function boundaries."""
+        """Process a function body for nested function/class boundaries."""
+        target_types = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
+
         for i, node in enumerate(body):
-            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            if not isinstance(node, target_types):
                 continue
 
             if i > 0:
@@ -133,7 +135,7 @@ class PythonNestedFunctionBoundaryTokenizer(Tokenizer):
 
             if i < len(body) - 1:
                 next_node = body[i + 1]
-                if not isinstance(next_node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                if not isinstance(next_node, target_types):
                     end_line = node.end_lineno
 
                     if end_line is not None:

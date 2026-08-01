@@ -1,4 +1,4 @@
-"""Python function boundary tokenizer module."""
+"""Python definition boundary tokenizer module."""
 
 __all__ = ["PythonFunctionBoundaryTokenizer"]
 
@@ -10,18 +10,18 @@ from cleer.tokenizers.tokenizer import Tokenizer
 
 
 class PythonFunctionBoundaryTokenizer(Tokenizer):
-    """Tokenizes blank lines before and after top-level function/method definitions.
+    """Tokenizes blank lines before and after top-level definitions.
 
-    Uses Python's AST to find function and method definitions that are
-    top-level within a module or class body. Emits tokens for the
-    whitespace block immediately before each function definition (or its
+    Uses Python's AST to find function, method, and class definitions
+    that are top-level within a module or class body. Emits tokens for
+    the whitespace block immediately before each definition (or its
     first decorator).
 
     Nested functions (functions defined inside other functions) are
     excluded. Decorator lines are not treated as the boundary — the
     whitespace before the first decorator is the boundary.
 
-    Only emits a boundary token when the function is not the first
+    Only emits a boundary token when the definition is not the first
     statement in its scope (module or class body).
 
     Examples
@@ -38,7 +38,9 @@ class PythonFunctionBoundaryTokenizer(Tokenizer):
 
 
     def tokenize(self, document: str) -> List[dict]:
-        """Tokenize blank line boundaries around top-level function/method definitions.
+        """Tokenize blank line boundaries around top-level definitions.
+
+        Handles functions, methods, and classes at module or class scope.
 
         Parameters
         ----------
@@ -128,9 +130,11 @@ class PythonFunctionBoundaryTokenizer(Tokenizer):
         tokens: List[dict],
         seen_ranges: set
     ):
-        """Process a body (module or class) for function boundaries."""
+        """Process a body (module or class) for definition boundaries."""
+        target_types = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
+
         for i, node in enumerate(body):
-            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            if not isinstance(node, target_types):
                 continue
 
             if i == 0:
@@ -157,7 +161,7 @@ class PythonFunctionBoundaryTokenizer(Tokenizer):
 
             if i < len(body) - 1:
                 next_node = body[i + 1]
-                if not isinstance(next_node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                if not isinstance(next_node, target_types):
                     end_line = node.end_lineno
 
                     if end_line is None:
@@ -180,7 +184,7 @@ class PythonFunctionBoundaryTokenizer(Tokenizer):
 
         last_func_idx = None
         for i in range(len(body) - 1, -1, -1):
-            if isinstance(body[i], (ast.FunctionDef, ast.AsyncFunctionDef)):
+            if isinstance(body[i], target_types):
                 last_func_idx = i
                 break
 
@@ -205,7 +209,7 @@ class PythonFunctionBoundaryTokenizer(Tokenizer):
 
 
     def _get_start_line(self, func) -> int:
-        """Get the effective start line of a function, including decorators.
+        """Get the effective start line of a definition, including decorators.
 
         Returns 1-indexed line number.
         """

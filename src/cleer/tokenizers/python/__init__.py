@@ -3,6 +3,7 @@
 __all__ = [
     "PythonAllTokenizer",
     "PythonBinaryOperatorSpaceTokenizer",
+    "PythonClassBoundaryTokenizer",
     "PythonColonSpaceTokenizer",
     "PythonCommaSpaceTokenizer",
     "PythonDecoratorBoundaryTokenizer",
@@ -23,6 +24,7 @@ __all__ = [
 
 from cleer.tokenizers.python.python_all_tokenizer import PythonAllTokenizer
 from cleer.tokenizers.python.python_binary_operator_space_tokenizer import PythonBinaryOperatorSpaceTokenizer
+from cleer.tokenizers.python.python_class_boundary_tokenizer import PythonClassBoundaryTokenizer
 from cleer.tokenizers.python.python_colon_space_tokenizer import PythonColonSpaceTokenizer
 from cleer.tokenizers.python.python_comma_space_tokenizer import PythonCommaSpaceTokenizer
 from cleer.tokenizers.python.python_decorator_boundary_tokenizer import PythonDecoratorBoundaryTokenizer

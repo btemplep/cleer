@@ -128,8 +128,11 @@ def type_creator():
         str, 
         List[Dict[str, Dict[str, str]]]
     ]
+    class InternalThing:
+        """_summary_
+        """
 
-
+        var: str
 class MyNewType:
     thing: Dict[
         str, 

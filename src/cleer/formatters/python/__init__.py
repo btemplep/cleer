@@ -4,6 +4,7 @@ __all__ = [
     "PythonAllFormatter",
     "PythonAllPresenceFormatter",
     "PythonBinaryOperatorSpaceFormatter",
+    "PythonClassBoundaryFormatter",
     "PythonColonSpaceFormatter",
     "PythonCommaSpaceFormatter",
     "PythonDecoratorBoundaryFormatter",
@@ -25,6 +26,7 @@ __all__ = [
 from cleer.formatters.python.python_all_formatter import PythonAllFormatter
 from cleer.formatters.python.python_all_presence_formatter import PythonAllPresenceFormatter
 from cleer.formatters.python.python_binary_operator_space_formatter import PythonBinaryOperatorSpaceFormatter
+from cleer.formatters.python.python_class_boundary_formatter import PythonClassBoundaryFormatter
 from cleer.formatters.python.python_colon_space_formatter import PythonColonSpaceFormatter
 from cleer.formatters.python.python_comma_space_formatter import PythonCommaSpaceFormatter
 from cleer.formatters.python.python_decorator_boundary_formatter import PythonDecoratorBoundaryFormatter

@@ -88,20 +88,29 @@ I need to start filling out the tokenizers and formatters.
         - A Single non-nested statement is over 40 chars, not including indent just type and brackets
         - Any non expanded section is over 2 types/brackets deep, expand that started at the most external, non-expanded section
     - if needed put this after the colon, and comma formatting in the default config generator
-
-
-
+- [x] classes
+    - no blank lines between class declaration, docstring, class vars, or pass
+    - 2 blank lines for anything else
+    - 2 blank lines before and after class for root indent classes
+- [ ] function
+    - no blank line between def and docstrings or first line of code. 
 - [ ] docstring 
     - should exist at top of all modules with one blank line following
-    - No blank lines between docstring and preceding definition (class, func, var, etc)
-    - 2 blank lines between class docstring and methods
-    - 1 indent level in for classes and functions
+    - No blank lines between docstring and preceding definition (class, func, var, etc) - handled by func and class already?
+    - 2 blank lines between class docstring and methods - already handled by class
+    - 1 indent level in for classes and functions - should already be handled by indent formatter
     - docstrings should be at same indent level for variables and modules
-- [ ] no blank lines between indent block (if, for, while, etc) and first line of inner code, excluding functions and classes
-- [ ] classes
-    - no blank lines between class declaration, docstring, class vars, or pass
-    - 2 blank lines if it is a method definition
-    - 2 blank lines before and after class, if not internal
+
+- [ ] if/elif/else, try/except/finally, with blocks etc.
+    - At end of chain of statements if/elif/else, if/else etc.
+        always have a blank line following
+        - If multiple end it should only be one blank line total, 
+        - should not remove extra blank lines at the end of the function if the block ends there
+    - no blank lines between the in-between statements, between if and elif or else, etc.
+        - except after a return statement, The return formatter should handle this if it's missing
+    - no blank lines between indent block (if, for, while, etc) and first line of inner code
+
+
 
 - [ ] paired punctuation
     - excludes:
@@ -159,10 +168,5 @@ I need to start filling out the tokenizers and formatters.
             - any inner paired punct is expanded
         - if expanded should add parenthesis around them
             - Add parenthesis to clarify order of operations
-- [ ] end of if/elif/else and try/except/finally blocks
-    - always have a blank line following them
-        - If multiple end it should only be one blank line total
-    - no blank lines between the in-between statements
-        - except after a return statement, should be default 1 blank line
-        - Can configure this 
+
 
