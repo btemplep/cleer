@@ -225,6 +225,12 @@ def cleer_default_config(
                         ]
                     },
                     {
+                        "tokenizer": PythonTypeHintTokenizer(),
+                        "formatters": [
+                            PythonTypeHintFormatter()
+                        ]
+                    },
+                    {
                         "tokenizer": PythonTrailingCommaTokenizer(),
                         "formatters": [
                             PythonTrailingCommaFormatter()

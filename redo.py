@@ -67,26 +67,20 @@ and here
 """
   pass
 say_hello("dkfj" , 1000, "asdflkjasdfkj", "alsdkflksdfj", "asldkfjalskdjflsdf")
-Literal["alsdkfsdfl" , "alskfjslkfdj", "aslkdfjsdfjk", - 1]
+Literal["alsdkfsdfl" , "alskfjslkfdj", "aslkdfjsdfjk", - 1, "evenmore hwerskjfsl"]
 my_type = Dict[
     str, 
     Dict[
-        Literal[
-            "asdf", 
-            "alsdkflsdkfj", 
-            "alskdjflskdfj"
-        ], 
+        Literal["asdf", "alsdkflsdkfj", "alskdjflskdfj"], 
         Dict[
             str, 
             List[Dict[str, int]]
         ]
     ]
 ]
-my_type = Dict[
+my_type2 = Dict[
     str, 
-    List[
-        Dict[str, Dict[str, str]]
-    ]
+    List[Dict[str, Dict[str, str]]]
 ]
 
 @medcor
@@ -127,3 +121,18 @@ async def my_agen():
    yield 1
    print("almost")
    return None
+
+
+def type_creator():
+    my_type2 = Dict[
+        str, 
+        List[Dict[str, Dict[str, str]]]
+    ]
+
+
+class MyNewType:
+    thing: Dict[
+        str, 
+        List[Dict[str, Dict[str, str]]]
+    ]
+    val: Literal["alsdkfsdfl" , "alskfjslkfdj", "aslkdfjsdfjk", - 1, "evenmore hwerskjfsl"]

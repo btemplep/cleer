@@ -82,7 +82,7 @@ I need to start filling out the tokenizers and formatters.
 - [x] yields
     - have a blank like before unless they are the only statement in that code block
     - have at least one blank line after it
-- [ ] Type hints
+- [x] Type hints
     - no space before colon, one space after, add this to the existing colon checks if it makes sense
     - First flatten, Don't expand unless one of the following happen, in this order:
         - A Single non-nested statement is over 40 chars, not including indent just type and brackets
