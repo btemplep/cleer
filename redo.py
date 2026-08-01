@@ -5,14 +5,16 @@
 
 
 import os
-from typing import Dict, List, Literal
-
 from cleer import (
     Cleer,
     CleerConfig,
     CleerError,
     CleerGroup
 )
+from typing import Dict, List, Literal
+from my_package import here, there, everywhere, now_here, now_there, and_everywhere
+import requests
+
 
 
 # bad stuff 

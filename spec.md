@@ -63,18 +63,18 @@ I need to start filling out the tokenizers and formatters.
     - one item per line if there is more than 0 items
     - sort alphabetically
     - only applies formatting to the first instance of __all__ in a module. Ignore other times it is assigned.
-- [ ] imports section
+- [x] imports section
     - Should be separated into 4 blocks, that are separated by a space, in this order
         - std lib
         - 3rd party (pypi)
         - Internal Libraries (private repo)
         - The current package
-    - an imports block is sequential lines of code that only have import statements.
+    - an imports section is sequential lines of code that only have import statements or blank lines
     - Should take a list of internal package names and current package names, by default none
     - Each block should be sorted alphabetically
-    - If more than 3 import or import from items in a line, then it should be multi-line with one per line
+    - flatten each import, if more than 80 characters then it should be multi-line with one per line
     - 1 blank line before, 2 blank lines after an imports section
-    - items in a multi import or import from statement are sorted alphabetically
+    - items in a multi import or import from statement are sorted alphabetically, as well.
 - [ ] returns
     - returns have a blank line before them 
         - unless they are the only statement in that code block

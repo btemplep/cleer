@@ -23,14 +23,14 @@ def cleer_default_config(
 
     Parameters
     ----------
-    python_packages : List[str] | None, default=["src/**/*.py"]
+    python_packages : List[str] | None, optional
         List of package names for this project/repo/dir.
         Used to classify imports as "current package" and to determine
-        which directories should enforce ``__all__``. A separate group
-        is created that only targets files under ``src/`` or directories
-        matching the package names.
+        which directories should enforce ``__all__``. File globs are
+        derived from names (e.g. ``"my_pkg"`` becomes
+        ``"my_pkg/**/*.py"``). ``src/**/*.py`` is always included.
     python_internal_packages : List[str] | None, optional
-        Identity the list of internal packages for import formatting.
+        List of internal package names for import formatting.
         Internal packages are those that are hosted on private
         repositories, not including current packages.
     python_excludes : List[str] | None, default=["**/venv*/**", "**/.venv*/**"]
@@ -38,13 +38,14 @@ def cleer_default_config(
 
     Returns
     -------
-    Cleer
-        Instance with default configs.
+    CleerConfig
+        Config dict for the ``Cleer`` class.
     """
     if python_packages is None:
         python_packages = []
 
-    python_packages.append("src/**/*.py")
+    package_includes = [f"{pkg}/**/*.py" for pkg in python_packages]
+    package_includes.append("src/**/*.py")
 
     if python_internal_packages is None:
         python_internal_packages = []
@@ -103,7 +104,7 @@ def cleer_default_config(
                 ]
             },
             {
-                "includes": python_packages,
+                "includes": package_includes,
                 "excludes": python_excludes,
                 "validators": [
                     PythonSyntaxValidator()
@@ -134,6 +135,15 @@ def cleer_default_config(
                         "tokenizer": PythonAllTokenizer(),
                         "formatters": [
                             PythonAllFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": PythonImportTokenizer(),
+                        "formatters": [
+                            PythonImportFormatter(
+                                internal_packages=python_internal_packages,
+                                current_packages=python_packages
+                            )
                         ]
                     },
                     {

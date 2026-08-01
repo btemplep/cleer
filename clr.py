@@ -18,7 +18,7 @@ clr = Cleer(
             
             {
                 "includes": [
-                    "**/redo.py"
+                    "**/*.py"
                 ],
                 "excludes": [],
                 "validators": [
@@ -26,15 +26,12 @@ clr = Cleer(
                 ],
                 "stages": [
                     {
-                        "tokenizer": PythonAllTokenizer(),
+                        "tokenizer": PythonImportTokenizer(),
                         "formatters": [
-                            PythonAllFormatter()
-                        ]
-                    },
-                    {
-                        "tokenizer": FileTokenizer(),
-                        "formatters": [
-                            PythonAllPresenceFormatter()
+                            PythonImportFormatter(
+                                internal_packages=["my_package"],
+                                current_packages=["cleer"]
+                            )
                         ]
                     }
                 ]
