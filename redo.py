@@ -39,13 +39,33 @@ thing =[
     }
 ]
 
+if thing == "this" or hello_there == "that" or fine_great != thing:
+
+    print(0)
+elif hello == "that" or True != False and fine_great == "1234":
+
+    thing = "that"
+    print(10)
+else:
+
+    print(8)
+
 @decor("ldkfjd  ", "sdflkjsdfk   ", "ksdjfdk", "alskdjfaslkdfj")
 
-def say_hello(hello: str = None, hello_there: int = 10, fine_great: str = "1234232"):
-    my_dict = {"thing" :'here'}
-    print(my_dict["thing"])
 
+def say_hello(hello: str=None, hello_there: int=10, fine_great: str="1234232"):
+    my_dict = {"thing": "here"}
+    print(my_dict['thing'])
+    if thing == "this" or hello_there == "that" or fine_great != thing:
 
+        return 0
+    elif hello == "that" or True != False and fine_great == "1234":
+
+        thing = "that"
+        return 10
+    else:
+
+        return 8
 def say_hello2(hello : str = None,  hello_there: int = 10,  fine_great: str=   "1234232"):
 
   """_summary_ 
@@ -65,6 +85,7 @@ def say_hello2(hello : str = None,  hello_there: int = 10,  fine_great: str=   "
      and here
 and here
 """
+
   pass
 say_hello("dkfj" , 1000, "asdflkjasdfkj", "alsdkflksdfj", "asldkfjalskdjflsdf")
 Literal["alsdkfsdfl" , "alskfjslkfdj", "aslkdfjsdfjk", - 1, "evenmore hwerskjfsl"]
@@ -88,6 +109,7 @@ my_type2 = Dict[
 async def hello():
     print("hello")
     def inner():
+
         thing=- 1
         return thing
     print("after")

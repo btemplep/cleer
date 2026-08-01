@@ -92,7 +92,7 @@ I need to start filling out the tokenizers and formatters.
     - no blank lines between class declaration, docstring, class vars, or pass
     - 2 blank lines for anything else
     - 2 blank lines before and after class for root indent classes
-- [ ] function
+- [x] function
     - no blank line between def and docstrings or first line of code. 
 - [ ] docstring 
     - should exist at top of all modules with one blank line following

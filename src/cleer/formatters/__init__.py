@@ -1,4 +1,5 @@
 __all__ =[
+    "BlankLineFormatter",
     "FileEndWhitespaceFormatter",
     "FileStartWhitespaceFormatter",
     "MaxBlankLinesFormatter",
@@ -7,6 +8,7 @@ __all__ =[
     "Formatter"
 ]
 
+from cleer.formatters.blank_line_formatter import BlankLineFormatter
 from cleer.formatters.file_end_whitespace_formatter import FileEndWhitespaceFormatter
 from cleer.formatters.file_start_whitespace_formatter import FileStartWhitespaceFormatter
 from cleer.formatters.max_blank_lines_formatter import MaxBlankLinesFormatter

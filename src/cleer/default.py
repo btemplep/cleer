@@ -149,7 +149,10 @@ def cleer_default_config(
                     {
                         "tokenizer": PythonFunctionBoundaryTokenizer(),
                         "formatters": [
-                            PythonFunctionBoundaryFormatter()
+                            BlankLineFormatter(
+                                num_blank_lines=2,
+                                message="Expected 2 blank lines before/after definition."
+                            )
                         ]
                     },
                     {
@@ -159,15 +162,30 @@ def cleer_default_config(
                         ]
                     },
                     {
+                        "tokenizer": PythonFunctionStartTokenizer(),
+                        "formatters": [
+                            BlankLineFormatter(
+                                num_blank_lines=0,
+                                message="No blank lines between function definition and first line of body."
+                            )
+                        ]
+                    },
+                    {
                         "tokenizer": PythonDecoratorBoundaryTokenizer(),
                         "formatters": [
-                            PythonDecoratorBoundaryFormatter()
+                            BlankLineFormatter(
+                                num_blank_lines=0,
+                                message="No blank lines between decorators and definitions."
+                            )
                         ]
                     },
                     {
                         "tokenizer": PythonNestedFunctionBoundaryTokenizer(),
                         "formatters": [
-                            PythonNestedFunctionBoundaryFormatter()
+                            BlankLineFormatter(
+                                num_blank_lines=1,
+                                message="Expected 1 blank line before/after nested definition."
+                            )
                         ]
                     },
                     {
@@ -179,7 +197,10 @@ def cleer_default_config(
                     {
                         "tokenizer": PythonInnerMaxBlankLinesTokenizer(),
                         "formatters": [
-                            PythonInnerMaxBlankLinesFormatter()
+                            BlankLineFormatter(
+                                num_blank_lines=1,
+                                message="No more than 1 consecutive blank line inside function bodies."
+                            )
                         ]
                     },
                     {

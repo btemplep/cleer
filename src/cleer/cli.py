@@ -106,10 +106,24 @@ def main(argv: List[str]=None) -> None:
         logger.info(f"Imported Cleer instance from '{clr_path}'.")
     except Exception as exc:
         if args.cleer is not None:
-            logger.critical(f"Could not import Cleer instance from '{clr_path}': {exc}")
+            logger.critical(f"Could not import Cleer instance from custom path: '{clr_path}'. [{type(exc).__name__}]: {exc}")
             exit(1)
+
+        if isinstance(exc, ModuleNotFoundError) is True:
+            logger.debug(
+                (
+                    f"Cleer instance path was not given, and the default path was not found. "
+                    f"[{type(exc).__name__}]: {exc}"
+                )
+            )
         else:
-            logger.debug(f"Cleer instance from default path, 'clr:clr', could not be imported: {exc}")
+            logger.error(
+                (
+                    f"Found the default module, 'clr.py', "
+                    f"but failed to import the Cleer instance from it. "
+                    f"[{type(exc).__name__}]: {exc}"
+                )
+            )
 
         clr = Cleer(cleer_default_config())
         logger.info("Default Cleer instance generated.")

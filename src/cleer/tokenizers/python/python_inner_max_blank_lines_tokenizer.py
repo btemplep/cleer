@@ -4,7 +4,6 @@ __all__ = ["PythonInnerMaxBlankLinesTokenizer"]
 
 
 import ast
-import re
 from typing import List, Set, Tuple
 
 from cleer.tokenizers.tokenizer import Tokenizer
@@ -14,15 +13,16 @@ class PythonInnerMaxBlankLinesTokenizer(Tokenizer):
     """Tokenizes consecutive blank lines inside function/method bodies.
 
     Uses Python's AST to find function and method definitions, then
-    finds whitespace blocks within their bodies that contain more than
-    a configurable number of consecutive blank lines.
+    finds runs of blank lines within their bodies that exceed a
+    configurable maximum. Emits tokens containing only the blank line
+    characters (no trailing newline from the previous statement).
 
     Parameters
     ----------
     max_blank_lines : int, default=1
         Maximum number of consecutive blank lines allowed inside
-        function/method bodies. Only emits tokens for whitespace blocks
-        exceeding this limit.
+        function/method bodies. Only emits tokens for runs exceeding
+        this limit.
 
     Examples
     --------
@@ -31,7 +31,7 @@ class PythonInnerMaxBlankLinesTokenizer(Tokenizer):
     from cleer import PythonInnerMaxBlankLinesTokenizer
 
     tokenizer = PythonInnerMaxBlankLinesTokenizer()
-    doc = "def foo():\n    x = 1\n\n\n\n    y = 2\n"
+    doc = "def foo():\\n    x = 1\\n\\n\\n\\n    y = 2\\n"
     tokens = tokenizer.tokenize(doc)
     ```
     """
@@ -40,9 +40,6 @@ class PythonInnerMaxBlankLinesTokenizer(Tokenizer):
 
     def __init__(self, max_blank_lines: int = 1):
         self._max_blank_lines = max_blank_lines
-        self._pattern = re.compile(
-            r"\n{" + str(max_blank_lines + 2) + r",}"
-        )
 
 
     def tokenize(self, document: str) -> List[dict]:
@@ -56,19 +53,24 @@ class PythonInnerMaxBlankLinesTokenizer(Tokenizer):
         Returns
         -------
         List[dict]
-            List of token results for whitespace blocks inside functions
-            that exceed the max blank lines, or an empty list if none exist.
+            List of token results for blank line runs inside functions
+            that exceed the max, or an empty list if none exist.
 
             ```python
             [
-                {"token": "\n\n\n\n", "index": 18, "length": 4}
+                {"token": "\\n\\n\\n", "index": 19, "length": 3}
             ]
             ```
         """
         tree = ast.parse(document)
 
+        lines = document.split("\n")
         line_offsets = self._build_line_offsets(document)
-        function_ranges = self._collect_function_body_ranges(tree, line_offsets, document)
+        function_ranges = self._collect_function_body_ranges(
+            tree,
+            line_offsets,
+            document
+        )
 
         if not function_ranges:
             return []
@@ -76,21 +78,42 @@ class PythonInnerMaxBlankLinesTokenizer(Tokenizer):
         tokens = []
         seen_ranges: Set[Tuple[int, int]] = set()
 
-        for match in self._pattern.finditer(document):
-            start = match.start()
-            end = match.end()
+        i = 0
 
-            if self._is_inside_function(start, end, function_ranges):
-                token_range = (start, end - start)
-                if token_range not in seen_ranges:
-                    seen_ranges.add(token_range)
-                    tokens.append(
-                        {
-                            "token": document[start:end],
-                            "index": start,
-                            "length": end - start
-                        }
-                    )
+        while i < len(lines):
+            if lines[i].strip() != "":
+                i += 1
+                continue
+
+            run_start = i
+
+            while i < len(lines) and lines[i].strip() == "":
+                i += 1
+
+            run_length = i - run_start
+
+            if run_length <= self._max_blank_lines:
+                continue
+
+            start = line_offsets[run_start]
+            end = line_offsets[i] if i < len(line_offsets) else len(document)
+
+            if not self._is_inside_function(start, end, function_ranges):
+                continue
+
+            token_range = (start, end - start)
+
+            if token_range in seen_ranges:
+                continue
+
+            seen_ranges.add(token_range)
+            tokens.append(
+                {
+                    "token": document[start:end],
+                    "index": start,
+                    "length": end - start
+                }
+            )
 
         tokens.sort(key=lambda t: t["index"])
 
