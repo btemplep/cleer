@@ -1,6 +1,7 @@
 __all__ = [
     "FileEndWhitespaceTokenizer",
     "FileStartWhitespaceTokenizer",
+    "FileTokenizer",
     "LineTokenizer",
     "NonAsciiWhitespaceTokenizer",
     "Tokenizer",
@@ -10,6 +11,7 @@ __all__ = [
 
 from cleer.tokenizers.file_end_whitespace_tokenizer import FileEndWhitespaceTokenizer
 from cleer.tokenizers.file_start_whitespace_tokenizer import FileStartWhitespaceTokenizer
+from cleer.tokenizers.file_tokenizer import FileTokenizer
 from cleer.tokenizers.line_tokenizer import LineTokenizer
 from cleer.tokenizers.non_ascii_whitespace_tokenizer import NonAsciiWhitespaceTokenizer
 from cleer.tokenizers.python import *

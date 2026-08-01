@@ -1,9 +1,7 @@
 
 
 
-""""""
 
-___all__ = ["hello"]
 
 
 import os
@@ -47,6 +45,19 @@ def say_hello(hello: str = None, hello_there: int = 10, fine_great: str = "12342
 
 
 def say_hello2(hello : str = None,  hello_there: int = 10,  fine_great: str=   "1234232"):
+
+  """_summary_ 
+
+  Parameters
+  ----------
+  hello : str, optional
+      _description_, by default None
+  hello_there : int, optional
+      _description_, by default 10
+  fine_great : str, optional
+      _description_, by default "1234232"
+  """
+
   pass
 say_hello("dkfj" , 1000, "asdflkjasdfkj", "alsdkflksdfj", "asldkfjalskdjflsdf")
 Literal["alsdkfsdfl" , "alskfjslkfdj", "aslkdfjsdfjk", - 1]
@@ -85,7 +96,14 @@ async def hello():
     return 0
 
 
+@some_class_decor(first_val="this_thing", second_value="other_thing")
 class MyClass:
+
+
+    """_summary_
+    """
+
+    my_int: int
     async def hello(self):
         print("hello")
         def inner():
@@ -95,3 +113,10 @@ class MyClass:
 
         print("one more")
         return 0
+
+
+async def my_agen():
+   print("hello")
+   yield 1
+   print("almost")
+   return None

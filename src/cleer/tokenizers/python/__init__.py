@@ -1,6 +1,7 @@
 """Python specific tokenizers."""
 
 __all__ = [
+    "PythonAllTokenizer",
     "PythonBinaryOperatorSpaceTokenizer",
     "PythonColonSpaceTokenizer",
     "PythonCommaSpaceTokenizer",
@@ -17,6 +18,7 @@ __all__ = [
     "PythonUnaryOperatorSpaceTokenizer"
 ]
 
+from cleer.tokenizers.python.python_all_tokenizer import PythonAllTokenizer
 from cleer.tokenizers.python.python_binary_operator_space_tokenizer import PythonBinaryOperatorSpaceTokenizer
 from cleer.tokenizers.python.python_colon_space_tokenizer import PythonColonSpaceTokenizer
 from cleer.tokenizers.python.python_comma_space_tokenizer import PythonCommaSpaceTokenizer

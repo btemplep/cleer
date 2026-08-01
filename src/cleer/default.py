@@ -102,16 +102,21 @@ def cleer_default_config(
                     }
                 ]
             },
-            # {
-            #     "includes": package_includes,
-            #     "excludes": python_excludes,
-            #     "stages": [
-            #         {
-            #             "tokenizer": FileTokenizer(),
-            #             "formatters": [PyAllModuleFormatter()]
-            #         }
-            #     ]
-            # },
+            {
+                "includes": python_packages,
+                "excludes": python_excludes,
+                "validators": [
+                    PythonSyntaxValidator()
+                ],
+                "stages": [
+                    {
+                        "tokenizer": FileTokenizer(),
+                        "formatters": [
+                            PythonAllPresenceFormatter()
+                        ]
+                    }
+                ]
+            },
             {
                 "includes": ["**/*.py"],
                 "excludes": python_excludes,
@@ -123,6 +128,12 @@ def cleer_default_config(
                         "tokenizer": PythonIndentTokenizer(),
                         "formatters": [
                             PythonIndentFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": PythonAllTokenizer(),
+                        "formatters": [
+                            PythonAllFormatter()
                         ]
                     },
                     {

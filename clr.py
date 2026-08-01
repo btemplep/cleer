@@ -15,35 +15,26 @@ from cleer import *
 clr = Cleer(
     config={
         "groups": [
+            
             {
                 "includes": [
-                    "**/*.py"
+                    "**/redo.py"
                 ],
-                "excludes": [
-                    # "thing.py"
-                    "**/venv*/**",
-                    ".nox/**"
-                ],
+                "excludes": [],
                 "validators": [
                     PythonSyntaxValidator()
                 ],
                 "stages": [
                     {
-                        "tokenizer": PythonColonSpaceTokenizer(),
+                        "tokenizer": PythonAllTokenizer(),
                         "formatters": [
-                            PythonColonSpaceFormatter()
+                            PythonAllFormatter()
                         ]
                     },
                     {
-                        "tokenizer": PythonCommaSpaceTokenizer(),
+                        "tokenizer": FileTokenizer(),
                         "formatters": [
-                            PythonCommaSpaceFormatter()
-                        ]
-                    },
-                    {
-                        "tokenizer": PythonTrailingCommaTokenizer(),
-                        "formatters": [
-                            PythonTrailingCommaFormatter()
+                            PythonAllPresenceFormatter()
                         ]
                     }
                 ]

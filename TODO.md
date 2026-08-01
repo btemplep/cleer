@@ -2,6 +2,7 @@
 
 
 - [ ] rebuild all the things
+- [ ] look at what formatters can be generalized
 - [ ] slogan!  It's become cleer to me...
 - [ ] update all docstring and README examples. 
 - [ ] ClI should be default print less verbose json, flag for verbose
