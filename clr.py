@@ -28,9 +28,12 @@ clr = Cleer(
                     {
                         "tokenizer": PythonFunctionStartTokenizer(),
                         "formatters": [
-                            PythonFunctionStartFormatter()
+                            BlankLineFormatter(
+                                num_blank_lines=0,
+                                message="No blank lines between function definition and first line of body."
+                            )
                         ]
-                    },
+                    }
                 ]
             }
         ]
