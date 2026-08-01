@@ -15,6 +15,7 @@ __all__ = [
     "PythonKwargsSpaceFormatter",
     "PythonMaxOneSpaceFormatter",
     "PythonNestedFunctionBoundaryFormatter",
+    "PythonReturnYieldFormatter",
     "PythonStringQuoteFormatter",
     "PythonTrailingCommaFormatter",
     "PythonUnaryOperatorSpaceFormatter"
@@ -34,6 +35,7 @@ from cleer.formatters.python.python_inner_max_blank_lines_formatter import Pytho
 from cleer.formatters.python.python_kwargs_space_formatter import PythonKwargsSpaceFormatter
 from cleer.formatters.python.python_max_one_space_formatter import PythonMaxOneSpaceFormatter
 from cleer.formatters.python.python_nested_function_boundary_formatter import PythonNestedFunctionBoundaryFormatter
+from cleer.formatters.python.python_return_yield_formatter import PythonReturnYieldFormatter
 from cleer.formatters.python.python_string_quote_formatter import PythonStringQuoteFormatter
 from cleer.formatters.python.python_trailing_comma_formatter import PythonTrailingCommaFormatter
 from cleer.formatters.python.python_unary_operator_space_formatter import PythonUnaryOperatorSpaceFormatter

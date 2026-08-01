@@ -116,6 +116,10 @@ class PythonImportTokenizer(Tokenizer):
         for node in tree.body:
             if node is first_node:
                 found_first = True
+
+                if node is last_node:
+                    found_last = True
+
                 continue
 
             if node is last_node:

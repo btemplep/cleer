@@ -165,6 +165,12 @@ def cleer_default_config(
                         ]
                     },
                     {
+                        "tokenizer": PythonReturnYieldTokenizer(),
+                        "formatters": [
+                            PythonReturnYieldFormatter()
+                        ]
+                    },
+                    {
                         "tokenizer": PythonInnerMaxBlankLinesTokenizer(),
                         "formatters": [
                             PythonInnerMaxBlankLinesFormatter()

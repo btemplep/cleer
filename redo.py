@@ -60,6 +60,11 @@ def say_hello2(hello : str = None,  hello_there: int = 10,  fine_great: str=   "
       _description_, by default "1234232"
   """
 
+  string_to_keep_formatting = """Thing here
+  and here
+     and here
+and here
+"""
   pass
 say_hello("dkfj" , 1000, "asdflkjasdfkj", "alsdkflksdfj", "asldkfjalskdjflsdf")
 Literal["alsdkfsdfl" , "alskfjslkfdj", "aslkdfjsdfjk", - 1]

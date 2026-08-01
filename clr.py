@@ -12,30 +12,27 @@ clr = Cleer(
 
 from cleer import *
 
-clr = Cleer(
-    config={
-        "groups": [
+# clr = Cleer(
+#     config={
+#         "groups": [
             
-            {
-                "includes": [
-                    "**/*.py"
-                ],
-                "excludes": [],
-                "validators": [
-                    PythonSyntaxValidator()
-                ],
-                "stages": [
-                    {
-                        "tokenizer": PythonImportTokenizer(),
-                        "formatters": [
-                            PythonImportFormatter(
-                                internal_packages=["my_package"],
-                                current_packages=["cleer"]
-                            )
-                        ]
-                    }
-                ]
-            }
-        ]
-    }
-)
+#             {
+#                 "includes": [
+#                     "**/*.py"
+#                 ],
+#                 "excludes": [],
+#                 "validators": [
+#                     PythonSyntaxValidator()
+#                 ],
+#                 "stages": [
+#                     {
+#                         "tokenizer": PythonReturnYieldTokenizer(),
+#                         "formatters": [
+#                             PythonReturnYieldFormatter()
+#                         ]
+#                     },
+#                 ]
+#             }
+#         ]
+#     }
+# )

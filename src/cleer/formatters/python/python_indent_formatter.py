@@ -89,7 +89,7 @@ class PythonIndentFormatter(Formatter):
         str
             Code block with corrected indentation.
         """
-        indent_map = self._build_indent_map(token)
+        indent_map, frozen_lines = self._build_indent_map(token)
 
         if not indent_map:
             if "\t" in token:
@@ -99,29 +99,35 @@ class PythonIndentFormatter(Formatter):
 
         lines = token.split("\n")
         result_lines = []
+        current_shift = 0
 
         for i, line in enumerate(lines):
             if not line.strip():
                 result_lines.append("")
                 continue
 
+            if i in frozen_lines:
+                result_lines.append(line)
+                continue
+
             if i in indent_map:
                 indent_level = indent_map[i]
+                new_indent = indent_level * self._tab_size
+                old_indent = len(self._get_leading_whitespace(line).replace("\t", " " * self._tab_size))
+                current_shift = new_indent - old_indent
                 content = line.lstrip()
-                result_lines.append(" " * (indent_level * self._tab_size) + content)
+                result_lines.append(" " * new_indent + content)
             else:
                 leading = self._get_leading_whitespace(line)
-                if "\t" in leading:
-                    expanded = leading.replace("\t", " " * self._tab_size)
-                    content = line.lstrip()
-                    result_lines.append(expanded + content)
-                else:
-                    result_lines.append(line)
+                old_indent = len(leading.replace("\t", " " * self._tab_size))
+                new_indent = max(0, old_indent + current_shift)
+                content = line.lstrip()
+                result_lines.append(" " * new_indent + content)
 
         return "\n".join(result_lines)
 
 
-    def _build_indent_map(self, token: str) -> Dict[int, int]:
+    def _build_indent_map(self, token: str):
         """Build a mapping of line index to indent level using the AST.
 
         Parameters
@@ -131,21 +137,30 @@ class PythonIndentFormatter(Formatter):
 
         Returns
         -------
-        dict
-            Mapping of line index (0-based) to indent level.
+        tuple[dict, set]
+            Mapping of line index (0-based) to indent level, and a set
+            of line indices that should not be modified (inside non-docstring
+            multiline strings).
         """
         try:
             tree = ast.parse(token)
         except SyntaxError:
-            return {}
+            return {}, set()
 
         indent_map: Dict[int, int] = {}
-        self._walk_node(tree, 0, indent_map)
+        frozen_lines: set = set()
+        self._walk_node(tree, 0, indent_map, frozen_lines)
 
-        return indent_map
+        return indent_map, frozen_lines
 
 
-    def _walk_node(self, node, depth: int, indent_map: Dict[int, int]):
+    def _walk_node(
+        self,
+        node,
+        depth: int,
+        indent_map: Dict[int, int],
+        frozen_lines: set
+    ):
         """Walk an AST node, recording indent levels for each line."""
         if hasattr(node, "lineno"):
             line_idx = node.lineno - 1
@@ -158,14 +173,25 @@ class PythonIndentFormatter(Formatter):
         child_depth = depth if isinstance(node, ast.Module) else depth + 1
 
         if hasattr(node, "body") and isinstance(node.body, list):
-            for child in node.body:
-                self._walk_node(child, child_depth, indent_map)
+            for i, child in enumerate(node.body):
+                is_docstring = (
+                    i == 0
+                    and isinstance(child, ast.Expr)
+                    and isinstance(child.value, ast.Constant)
+                    and isinstance(child.value.value, str)
+                )
+
+                if not is_docstring:
+                    self._freeze_multiline_strings(child, frozen_lines)
+
+                self._walk_node(child, child_depth, indent_map, frozen_lines)
 
         if isinstance(node, ast.Try):
             for handler in node.handlers:
                 indent_map[handler.lineno - 1] = depth
                 for child in handler.body:
-                    self._walk_node(child, child_depth, indent_map)
+                    self._freeze_multiline_strings(child, frozen_lines)
+                    self._walk_node(child, child_depth, indent_map, frozen_lines)
 
             if node.orelse:
                 first_else = node.orelse[0]
@@ -174,7 +200,8 @@ class PythonIndentFormatter(Formatter):
                 if else_line > 0:
                     indent_map[else_line - 1] = depth
                 for child in node.orelse:
-                    self._walk_node(child, child_depth, indent_map)
+                    self._freeze_multiline_strings(child, frozen_lines)
+                    self._walk_node(child, child_depth, indent_map, frozen_lines)
 
             if node.finalbody:
                 first_finally = node.finalbody[0]
@@ -182,26 +209,66 @@ class PythonIndentFormatter(Formatter):
                 if finally_line > 0:
                     indent_map[finally_line - 1] = depth
                 for child in node.finalbody:
-                    self._walk_node(child, child_depth, indent_map)
+                    self._freeze_multiline_strings(child, frozen_lines)
+                    self._walk_node(child, child_depth, indent_map, frozen_lines)
 
         elif isinstance(node, (ast.If, ast.For, ast.While)):
             if node.orelse:
                 first_else = node.orelse[0]
 
                 if isinstance(first_else, ast.If):
-                    self._walk_node(first_else, depth, indent_map)
+                    self._walk_node(first_else, depth, indent_map, frozen_lines)
                 else:
                     else_keyword_line = first_else.lineno - 2
                     if else_keyword_line >= 0:
                         indent_map[else_keyword_line] = depth
 
                     for child in node.orelse:
-                        self._walk_node(child, child_depth, indent_map)
+                        self._freeze_multiline_strings(child, frozen_lines)
+                        self._walk_node(child, child_depth, indent_map, frozen_lines)
 
         elif hasattr(node, "orelse") and isinstance(node.orelse, list):
             if node.orelse:
                 for child in node.orelse:
-                    self._walk_node(child, child_depth, indent_map)
+                    self._freeze_multiline_strings(child, frozen_lines)
+                    self._walk_node(child, child_depth, indent_map, frozen_lines)
+
+
+    def _freeze_multiline_strings(self, node, frozen_lines: set):
+        """Mark lines inside non-docstring multiline strings as frozen."""
+        for child in ast.walk(node):
+            if not (
+                isinstance(child, ast.Constant)
+                and isinstance(child.value, str)
+                and child.end_lineno > child.lineno
+            ):
+                continue
+
+            if self._is_docstring(child, node):
+                continue
+
+            for line_idx in range(child.lineno, child.end_lineno):
+                frozen_lines.add(line_idx)
+
+
+    def _is_docstring(self, string_node, root_node) -> bool:
+        """Check if a string constant is a docstring in any body."""
+        for node in ast.walk(root_node):
+            body = getattr(node, "body", None)
+
+            if not isinstance(body, list) or not body:
+                continue
+
+            first = body[0]
+
+            if (
+                isinstance(first, ast.Expr)
+                and isinstance(first.value, ast.Constant)
+                and first.value is string_node
+            ):
+                return True
+
+        return False
 
 
     def _get_leading_whitespace(self, line: str) -> str:

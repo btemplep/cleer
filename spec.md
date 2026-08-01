@@ -75,19 +75,19 @@ I need to start filling out the tokenizers and formatters.
     - flatten each import, if more than 80 characters then it should be multi-line with one per line
     - 1 blank line before, 2 blank lines after an imports section
     - items in a multi import or import from statement are sorted alphabetically, as well.
-- [ ] returns
+- [x] returns
     - returns have a blank line before them 
         - unless they are the only statement in that code block
     - returns have a at least one blank line after them.
-- [ ] yields
+- [x] yields
     - have a blank like before unless they are the only statement in that code block
     - have at least one blank line after it
 - [ ] Type hints
     - no space before colon, one space after, add this to the existing colon checks if it makes sense
-    - First flatten
-    - Don't expand unless one of the following happen, in this order:
+    - First flatten, Don't expand unless one of the following happen, in this order:
         - A Single non-nested statement is over 40 chars, not including indent just type and brackets
         - Any non expanded section is over 2 types/brackets deep, expand that started at the most external, non-expanded section
+    - if needed put this after the colon, and comma formatting in the default config generator
 
 
 
@@ -97,7 +97,7 @@ I need to start filling out the tokenizers and formatters.
     - 2 blank lines between class docstring and methods
     - 1 indent level in for classes and functions
     - docstrings should be at same indent level for variables and modules
-- [ ] no blank lines between indent block (if, for, while, etc) and inner code, excluding functions and classes
+- [ ] no blank lines between indent block (if, for, while, etc) and first line of inner code, excluding functions and classes
 - [ ] classes
     - no blank lines between class declaration, docstring, class vars, or pass
     - 2 blank lines if it is a method definition
