@@ -166,3 +166,11 @@ class MyNewType:
         List[Dict[str, Dict[str, str]]]
     ]
     val: Literal["alsdkfsdfl" , "alskfjslkfdj", "aslkdfjsdfjk", - 1, "evenmore hwerskjfsl"]
+
+
+for thing in ["hello", "there", "how", "are"]:
+    print(thing)
+
+
+if hello in ("thing", "there", "how"):
+    print(hello)

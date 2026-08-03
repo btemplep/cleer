@@ -113,7 +113,6 @@ def cleer_default_config(
                     {
                         "tokenizer": FileTokenizer(),
                         "formatters": [
-                            PythonModuleDocstringPresenceFormatter(),
                             PythonAllPresenceFormatter()
                         ]
                     }
@@ -150,6 +149,7 @@ def cleer_default_config(
                     {
                         "tokenizer": FileTokenizer(),
                         "formatters": [
+                            PythonModuleDocstringPresenceFormatter(),
                             PythonModuleHeaderFormatter()
                         ]
                     },
@@ -179,7 +179,7 @@ def cleer_default_config(
                         "formatters": [
                             BlankLineFormatter(
                                 num_blank_lines=0,
-                                message="No blank lines between function definition and first line of body."
+                                message="No blank lines between start of code blocks and first line of body."
                             )
                         ]
                     },

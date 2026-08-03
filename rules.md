@@ -1,19 +1,7 @@
-# cleer
-
-This project is cleer.  A file formatter that primarily uses tokenizers, whose tokens are passed to formatters, then the Cleer class collects these all.  The Cleer class is the primary API for cleer. 
-
-I need to start filling out the tokenizers and formatters. 
+# cleer Default Rules
 
 
-## New General Guides
-
-- Should use as granular of a tokenizer as possible in order to more easily identity tokens for violations
-- validators will check for valid files
-
-
-## Formatting Rules
-
-### General Rules
+## General Rules
 
 - [x] End of file space formatter
     - set number of spaces
@@ -29,7 +17,7 @@ I need to start filling out the tokenizers and formatters.
 
 
 
-### Python Specific Rules
+## Python Specific Rules
 
 - [x] one space in a row max, outside of indent and string literals.
 - [x] Binary operators should have one space around them on each side
@@ -117,10 +105,7 @@ I need to start filling out the tokenizers and formatters.
         - except after a return or yield statement, or exit() call
             - The return formatter should handle this if it's missing, just need to not remove it.
     - no blank lines between indent block (if, for, while, with, etc) and first line of inner code
-
-
-
-- [ ] paired punctuation
+- [x] paired punctuation
     - excludes:
         - __all__
         - type hints

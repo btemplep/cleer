@@ -162,17 +162,16 @@ class PythonBlockStartTokenizer(Tokenizer):
             return
 
         first_stmt = body[0]
-        parent_line = parent_node.lineno
-
-        if isinstance(parent_node, ast.ExceptHandler):
-            parent_line = parent_node.lineno
-
         first_body_line = first_stmt.lineno
 
-        if first_body_line <= parent_line + 1:
+        colon_line = self._find_colon_line(
+            parent_node.lineno, first_body_line, line_offsets, document
+        )
+
+        if first_body_line <= colon_line + 1:
             return
 
-        start = line_offsets[parent_line]
+        start = line_offsets[colon_line]
         end = line_offsets[first_body_line - 1]
         token = document[start:end]
 
@@ -188,6 +187,31 @@ class PythonBlockStartTokenizer(Tokenizer):
                         "length": len(token)
                     }
                 )
+
+
+    def _find_colon_line(
+        self,
+        start_lineno: int,
+        body_lineno: int,
+        line_offsets: List[int],
+        document: str
+    ) -> int:
+        """Find the line number (1-indexed) of the colon ending the block header.
+
+        Scans backwards from the body start to find the last non-blank
+        line before the body, which is the line ending with ':'.
+        """
+        for line_num in range(body_lineno - 1, start_lineno - 1, -1):
+            line_start = line_offsets[line_num - 1]
+            if line_num < len(line_offsets):
+                line_end = line_offsets[line_num]
+            else:
+                line_end = len(document)
+            line_text = document[line_start:line_end]
+            if line_text.strip():
+                return line_num
+
+        return start_lineno
 
 
     def _check_after_docstring(

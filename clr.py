@@ -9,29 +9,29 @@ clr = Cleer(
     )
 )
 
-from cleer import *
+# from cleer import *
 
-clr = Cleer(
-    config={
-        "groups": [
+# clr = Cleer(
+#     config={
+#         "groups": [
             
-            {
-                "includes": [
-                    "**/*.py"
-                ],
-                "excludes": [],
-                "validators": [
-                    PythonSyntaxValidator()
-                ],
-                "stages": [
-                    {
-                        "tokenizer": PythonPairedPunctuationTokenizer(),
-                        "formatters": [
-                            PythonPairedPunctuationFormatter()
-                        ]
-                    },
-                ]
-            }
-        ]
-    }
-)
+#             {
+#                 "includes": [
+#                     "**/*.py"
+#                 ],
+#                 "excludes": [],
+#                 "validators": [
+#                     PythonSyntaxValidator()
+#                 ],
+#                 "stages": [
+#                     {
+#                         "tokenizer": PythonPairedPunctuationTokenizer(),
+#                         "formatters": [
+#                             PythonPairedPunctuationFormatter()
+#                         ]
+#                     },
+#                 ]
+#             }
+#         ]
+#     }
+# )
