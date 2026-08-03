@@ -108,7 +108,7 @@ I need to start filling out the tokenizers and formatters.
     - but at the top there should only be 1 blank space between the module docstring, first __all__ assignment, and/or an import block
     -I think the existing formatters for those items that are have the item formatting and the blank space formatting should just set the ending of them to be one blank line
     - A separate tokenizer/formatter needs to be made to handle that block holistically with the rules I gave above
-- [ ] if/elif/else, try/except/finally, with blocks etc.
+- [x] if/elif/else, try/except/finally, with blocks etc.
     - At end of chain of statements if/elif/else, if/else, try/except etc.
         - always have at least one blank line following
         - should not remove extra blank lines

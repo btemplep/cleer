@@ -14,6 +14,7 @@ __all__ = [
     "PythonMaxOneSpaceFormatter",
     "PythonModuleDocstringPresenceFormatter",
     "PythonModuleHeaderFormatter",
+    "PythonPairedPunctuationFormatter",
     "PythonReturnYieldFormatter",
     "PythonStringQuoteFormatter",
     "PythonTrailingCommaFormatter",
@@ -34,6 +35,7 @@ from cleer.formatters.python.python_kwargs_space_formatter import PythonKwargsSp
 from cleer.formatters.python.python_max_one_space_formatter import PythonMaxOneSpaceFormatter
 from cleer.formatters.python.python_module_docstring_presence_formatter import PythonModuleDocstringPresenceFormatter
 from cleer.formatters.python.python_module_header_formatter import PythonModuleHeaderFormatter
+from cleer.formatters.python.python_paired_punctuation_formatter import PythonPairedPunctuationFormatter
 from cleer.formatters.python.python_return_yield_formatter import PythonReturnYieldFormatter
 from cleer.formatters.python.python_string_quote_formatter import PythonStringQuoteFormatter
 from cleer.formatters.python.python_trailing_comma_formatter import PythonTrailingCommaFormatter

@@ -154,6 +154,12 @@ def cleer_default_config(
                         ]
                     },
                     {
+                        "tokenizer": PythonPairedPunctuationTokenizer(),
+                        "formatters": [
+                            PythonPairedPunctuationFormatter()
+                        ]
+                    },
+                    {
                         "tokenizer": PythonFunctionBoundaryTokenizer(),
                         "formatters": [
                             BlankLineFormatter(

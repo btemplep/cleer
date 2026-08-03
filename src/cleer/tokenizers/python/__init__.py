@@ -18,6 +18,7 @@ __all__ = [
     "PythonKwargsSpaceTokenizer",
     "PythonMaxOneSpaceTokenizer",
     "PythonNestedFunctionBoundaryTokenizer",
+    "PythonPairedPunctuationTokenizer",
     "PythonReturnYieldTokenizer",
     "PythonStringQuoteTokenizer",
     "PythonTrailingCommaTokenizer",
@@ -42,6 +43,7 @@ from cleer.tokenizers.python.python_inner_max_blank_lines_tokenizer import Pytho
 from cleer.tokenizers.python.python_kwargs_space_tokenizer import PythonKwargsSpaceTokenizer
 from cleer.tokenizers.python.python_max_one_space_tokenizer import PythonMaxOneSpaceTokenizer
 from cleer.tokenizers.python.python_nested_function_boundary_tokenizer import PythonNestedFunctionBoundaryTokenizer
+from cleer.tokenizers.python.python_paired_punctuation_tokenizer import PythonPairedPunctuationTokenizer
 from cleer.tokenizers.python.python_return_yield_tokenizer import PythonReturnYieldTokenizer
 from cleer.tokenizers.python.python_string_quote_tokenizer import PythonStringQuoteTokenizer
 from cleer.tokenizers.python.python_trailing_comma_tokenizer import PythonTrailingCommaTokenizer

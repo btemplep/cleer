@@ -1,0 +1,1008 @@
+"""Python paired punctuation formatter module."""
+
+__all__ = ["PythonPairedPunctuationFormatter"]
+
+
+import re
+from typing import List, Tuple
+
+from cleer.formatters.formatter import Formatter
+
+
+class PythonPairedPunctuationFormatter(Formatter):
+    """Formats paired punctuation by flattening and conditionally expanding.
+
+    Handles function definitions, function calls, decorators, dict/list/set/
+    tuple literals, and logic blocks (if/elif/while with and/or).
+
+    Rules:
+    - Flatten first, then expand based on context-specific thresholds
+    - Dicts with >0 items always expand
+    - Lists/sets/tuples: flatten if not nested; expand if >30 chars
+    - Nested containers expand if >0 items; if any sibling expands, all expand
+    - Function defs: expand if >80 chars (no indent), >100 (with indent),
+      >4 args, any kwarg with >1 arg, or inner expanded
+    - Function calls: expand if >60 chars (no indent), >80 (with indent),
+      >4 args, any kwarg with >1 arg, or inner expanded
+    - Decorators: same as function calls
+    - Logic blocks: expand if >2 statements, >60 (no indent), >80 (with
+      indent), or inner expanded; add parentheses when expanded
+
+    Examples
+    --------
+
+    ```python
+    from cleer import PythonPairedPunctuationFormatter
+
+    formatter = PythonPairedPunctuationFormatter()
+    result = formatter.format("my_func(a, b, c, d, e)")
+    ```
+    """
+    accepts_token_types = ["python_paired_punctuation"]
+
+    _OPEN_BRACKETS = "([{"
+    _CLOSE_BRACKETS = ")]}"
+    _BRACKET_PAIRS = {"(": ")", "[": "]", "{": "}"}
+    _CLOSE_TO_OPEN = {")": "(", "]": "[", "}": "{"}
+
+
+    def inspect(self, token: str) -> str | None:
+        """Inspect a token for paired punctuation violations.
+
+        Parameters
+        ----------
+        token : str
+            Token string to inspect.
+
+        Returns
+        -------
+        str | None
+            Error message if the token has a paired punctuation
+            violation. Returns ``None`` if there is no violation.
+        """
+        formatted = self.format(token)
+
+        if formatted != token:
+            return "Paired punctuation formatting violation."
+
+        return None
+
+
+    def format(self, token: str) -> str:
+        """Format paired punctuation in the token.
+
+        Parameters
+        ----------
+        token : str
+            Token string to format.
+
+        Returns
+        -------
+        str
+            Formatted token.
+        """
+        indent = self._get_indent(token)
+        context = self._detect_context(token)
+
+        if context == "logic":
+            return self._format_logic(token, indent)
+
+        return self._format_punctuation(token, indent, context)
+
+
+    def _get_indent(self, token: str) -> str:
+        """Get the leading whitespace of the token."""
+        for i, ch in enumerate(token):
+            if ch != " " and ch != "\t":
+                return token[:i]
+
+        return ""
+
+
+    def _detect_context(self, token: str) -> str:
+        """Detect what kind of paired punctuation context this is."""
+        stripped = token.strip()
+
+        if stripped.startswith("@"):
+            return "decorator"
+
+        if stripped.startswith(("def ", "async def ")):
+            return "funcdef"
+
+        if (
+            stripped.startswith(("if ", "elif ", "while "))
+            and stripped.endswith(":")
+            and (
+                " or " in stripped
+                or " and " in stripped
+                or " or\n" in stripped
+                or " and\n" in stripped
+            )
+        ):
+            return "logic"
+
+        if "=" in stripped and not stripped.startswith("return"):
+            eq_idx = stripped.find("=")
+            if eq_idx > 0 and stripped[eq_idx - 1] not in "!<>":
+                after_eq = stripped[eq_idx + 1:].lstrip()
+                if after_eq.startswith(("{", "[", "(")):
+                    return "assignment"
+
+        return "call"
+
+
+    def _format_logic(self, token: str, indent: str) -> str:
+        """Format a logic condition (if/elif/while with and/or)."""
+        stripped = token.strip()
+
+        keyword_match = re.match(r"^(if|elif|while)\s+", stripped)
+        if not keyword_match:
+            return token
+
+        keyword = keyword_match.group(0)
+        rest = stripped[len(keyword):]
+
+        if rest.endswith(":"):
+            rest = rest[:-1].rstrip()
+
+        condition = self._flatten_string(rest)
+
+        if condition.startswith("(") and condition.endswith(")"):
+            inner = condition[1:-1]
+            if self._brackets_balanced(inner):
+                condition = inner
+
+        statements = self._split_logic_statements(condition)
+        condition_count = len([s for s in statements if s not in ("or", "and")])
+        indent_len = len(indent)
+
+        flat_line = f"{indent}{keyword}{condition}:"
+        needs_expand = (
+            condition_count > 2
+            or len(flat_line) - indent_len > 60
+            or len(flat_line) > 80
+            or self._has_expanded_inner(condition, indent)
+        )
+
+        if not needs_expand:
+            return flat_line
+
+        return self._expand_logic(keyword, statements, indent)
+
+
+    def _split_logic_statements(self, condition: str) -> List[str]:
+        """Split a logic condition by top-level operators.
+
+        Splits by 'or' first. If there are no 'or' operators, splits by 'and'.
+        Groups 'and' expressions together when mixed with 'or', adding
+        parentheses to clarify precedence.
+        """
+        or_parts = self._split_by_operator(condition, " or ")
+
+        if len(or_parts) > 1:
+            result = []
+            for i, part in enumerate(or_parts):
+                if " and " in part:
+                    if not (part.startswith("(") and part.endswith(")") and self._brackets_balanced(part[1:-1])):
+                        part = f"({part})"
+                result.append(part)
+                if i < len(or_parts) - 1:
+                    result.append("or")
+            return result
+
+        and_parts = self._split_by_operator(condition, " and ")
+        if len(and_parts) > 1:
+            result = []
+            for i, part in enumerate(and_parts):
+                result.append(part)
+                if i < len(and_parts) - 1:
+                    result.append("and")
+            return result
+
+        return [condition]
+
+
+    def _split_by_operator(self, s: str, operator: str) -> List[str]:
+        """Split string by an operator at depth 0, respecting strings and brackets."""
+        parts = []
+        current = ""
+        depth = 0
+        in_string = False
+        string_char = ""
+        triple_quote = False
+        i = 0
+        op_len = len(operator)
+
+        while i < len(s):
+            ch = s[i]
+
+            if not in_string:
+                if s[i:i + 3] in ('"""', "'''"):
+                    in_string = True
+                    string_char = s[i:i + 3]
+                    triple_quote = True
+                    current += s[i:i + 3]
+                    i += 3
+                    continue
+                elif ch in ('"', "'"):
+                    in_string = True
+                    string_char = ch
+                    triple_quote = False
+                    current += ch
+                    i += 1
+                    continue
+
+                if ch in self._OPEN_BRACKETS:
+                    depth += 1
+                    current += ch
+                    i += 1
+                elif ch in self._CLOSE_BRACKETS:
+                    depth -= 1
+                    current += ch
+                    i += 1
+                elif depth == 0 and s[i:i + op_len] == operator:
+                    parts.append(current.strip())
+                    current = ""
+                    i += op_len
+                else:
+                    current += ch
+                    i += 1
+            else:
+                if triple_quote and s[i:i + 3] == string_char:
+                    in_string = False
+                    current += s[i:i + 3]
+                    i += 3
+                    continue
+                elif not triple_quote and ch == string_char and (i == 0 or s[i - 1] != "\\"):
+                    in_string = False
+                    current += ch
+                    i += 1
+                else:
+                    current += ch
+                    i += 1
+
+        if current.strip():
+            parts.append(current.strip())
+
+        return parts
+
+
+    def _expand_logic(
+        self,
+        keyword: str,
+        statements: List[str],
+        indent: str
+    ) -> str:
+        """Expand a logic condition across multiple lines with parens."""
+        inner_indent = indent + "    "
+        lines = [f"{indent}{keyword}("]
+
+        for i, part in enumerate(statements):
+            if part in ("or", "and"):
+                continue
+
+            operator = ""
+            if i + 1 < len(statements) and statements[i + 1] in ("or", "and"):
+                operator = f" {statements[i + 1]}"
+
+            lines.append(f"{inner_indent}{part}{operator}")
+
+        lines.append(f"{indent}):")
+
+        return "\n".join(lines)
+
+
+    def _format_punctuation(self, token: str, indent: str, context: str) -> str:
+        """Format paired punctuation (non-logic contexts)."""
+        flat = self._flatten_token(token, indent, context)
+
+        parsed = self._parse_regions(flat, indent, context)
+
+        if parsed is None:
+            return flat
+
+        result = self._rebuild(parsed, indent, context)
+
+        return result
+
+
+    def _flatten_token(self, token: str, indent: str, context: str) -> str:
+        """Flatten a multiline token into a single line."""
+        stripped = token.strip()
+        flat = self._flatten_string(stripped)
+
+        if context == "funcdef":
+            flat = re.sub(r"\s*:\s*", ": ", flat)
+            flat = re.sub(r"\s*=\s*", "=", flat)
+            flat = re.sub(r":\s*=", ":=", flat)
+            flat = re.sub(r":\s+", ": ", flat)
+
+        return indent + flat
+
+
+    def _flatten_string(self, s: str) -> str:
+        """Collapse internal whitespace/newlines into single spaces."""
+        result = []
+        i = 0
+        in_string = False
+        string_char = ""
+        triple_quote = False
+
+        while i < len(s):
+            if not in_string:
+                if s[i:i + 3] in ('"""', "'''"):
+                    in_string = True
+                    string_char = s[i:i + 3]
+                    triple_quote = True
+                    result.append(s[i:i + 3])
+                    i += 3
+                elif s[i] in ('"', "'"):
+                    in_string = True
+                    string_char = s[i]
+                    triple_quote = False
+                    result.append(s[i])
+                    i += 1
+                elif s[i] in (" ", "\t", "\n", "\r"):
+                    if result and result[-1] != " ":
+                        result.append(" ")
+                    i += 1
+                else:
+                    result.append(s[i])
+                    i += 1
+            else:
+                if triple_quote and s[i:i + 3] == string_char:
+                    in_string = False
+                    result.append(s[i:i + 3])
+                    i += 3
+                elif not triple_quote and s[i] == string_char and (i == 0 or s[i - 1] != "\\"):
+                    in_string = False
+                    result.append(s[i])
+                    i += 1
+                else:
+                    result.append(s[i])
+                    i += 1
+
+        return "".join(result)
+
+
+    def _parse_regions(self, flat: str, indent: str, context: str):
+        """Parse a flattened token into a tree of regions.
+
+        Returns a dict with:
+        - type: 'root'
+        - content: the full flat string
+        - regions: list of nested region dicts
+        - context: the detected context
+
+        Each region dict has:
+        - open_char, close_char
+        - start, end: indices in the flat string
+        - items: list of item strings (split by commas at depth 0)
+        - sub_regions: nested regions within items
+        - region_context: what this specific region represents
+        """
+        stripped = flat.strip()
+        regions = self._find_top_regions(stripped)
+
+        if not regions:
+            return None
+
+        return {
+            "type": "root",
+            "content": flat,
+            "stripped": stripped,
+            "indent": indent,
+            "context": context,
+            "regions": regions
+        }
+
+
+    def _find_top_regions(self, s: str) -> list:
+        """Find all top-level paired punctuation regions in a string."""
+        regions = []
+        i = 0
+        in_string = False
+        string_char = ""
+        triple_quote = False
+
+        while i < len(s):
+            if not in_string:
+                if s[i:i + 3] in ('"""', "'''"):
+                    in_string = True
+                    string_char = s[i:i + 3]
+                    triple_quote = True
+                    i += 3
+                elif s[i] in ('"', "'"):
+                    in_string = True
+                    string_char = s[i]
+                    triple_quote = False
+                    i += 1
+                elif s[i] in self._OPEN_BRACKETS:
+                    end = self._find_matching_close(s, i)
+                    if end is not None:
+                        regions.append(
+                            {
+                                "open_char": s[i],
+                                "close_char": s[end],
+                                "start": i,
+                                "end": end,
+                                "content": s[i + 1:end]
+                            }
+                        )
+                        i = end + 1
+                    else:
+                        i += 1
+                else:
+                    i += 1
+            else:
+                if triple_quote and s[i:i + 3] == string_char:
+                    in_string = False
+                    i += 3
+                elif not triple_quote and s[i] == string_char and (i == 0 or s[i - 1] != "\\"):
+                    in_string = False
+                    i += 1
+                else:
+                    i += 1
+
+        return regions
+
+
+    def _find_matching_close(self, s: str, start: int) -> int | None:
+        """Find matching closing bracket."""
+        open_ch = s[start]
+        close_ch = self._BRACKET_PAIRS[open_ch]
+        depth = 0
+        i = start
+        in_string = False
+        string_char = ""
+        triple_quote = False
+
+        while i < len(s):
+            if not in_string:
+                if s[i:i + 3] in ('"""', "'''"):
+                    in_string = True
+                    string_char = s[i:i + 3]
+                    triple_quote = True
+                    i += 3
+                    continue
+                elif s[i] in ('"', "'") and i != start:
+                    in_string = True
+                    string_char = s[i]
+                    triple_quote = False
+                    i += 1
+                    continue
+
+                if s[i] == open_ch:
+                    depth += 1
+                elif s[i] == close_ch:
+                    depth -= 1
+                    if depth == 0:
+                        return i
+            else:
+                if triple_quote and s[i:i + 3] == string_char:
+                    in_string = False
+                    i += 3
+                    continue
+                elif not triple_quote and s[i] == string_char and (i == 0 or s[i - 1] != "\\"):
+                    in_string = False
+
+            i += 1
+
+        return None
+
+
+    def _split_items(self, content: str) -> List[str]:
+        """Split content by top-level commas."""
+        items = []
+        current = ""
+        depth = 0
+        in_string = False
+        string_char = ""
+        triple_quote = False
+        i = 0
+
+        while i < len(content):
+            ch = content[i]
+
+            if not in_string:
+                if content[i:i + 3] in ('"""', "'''"):
+                    in_string = True
+                    string_char = content[i:i + 3]
+                    triple_quote = True
+                    current += content[i:i + 3]
+                    i += 3
+                    continue
+                elif ch in ('"', "'"):
+                    in_string = True
+                    string_char = ch
+                    triple_quote = False
+                    current += ch
+                    i += 1
+                    continue
+
+                if ch in self._OPEN_BRACKETS:
+                    depth += 1
+                    current += ch
+                elif ch in self._CLOSE_BRACKETS:
+                    depth -= 1
+                    current += ch
+                elif ch == "," and depth == 0:
+                    items.append(current.strip())
+                    current = ""
+                else:
+                    current += ch
+            else:
+                if triple_quote and content[i:i + 3] == string_char:
+                    in_string = False
+                    current += content[i:i + 3]
+                    i += 3
+                    continue
+                elif not triple_quote and ch == string_char and (i == 0 or content[i - 1] != "\\"):
+                    in_string = False
+                    current += ch
+                else:
+                    current += ch
+
+            i += 1
+
+        if current.strip():
+            items.append(current.strip())
+
+        return items
+
+
+    def _brackets_balanced(self, s: str) -> bool:
+        """Check if brackets are balanced in a string (ignoring strings)."""
+        depth = 0
+        in_string = False
+        string_char = ""
+        triple_quote = False
+        i = 0
+
+        while i < len(s):
+            if not in_string:
+                if s[i:i + 3] in ('"""', "'''"):
+                    in_string = True
+                    string_char = s[i:i + 3]
+                    triple_quote = True
+                    i += 3
+                    continue
+                elif s[i] in ('"', "'"):
+                    in_string = True
+                    string_char = s[i]
+                    triple_quote = False
+                    i += 1
+                    continue
+
+                if s[i] in self._OPEN_BRACKETS:
+                    depth += 1
+                elif s[i] in self._CLOSE_BRACKETS:
+                    depth -= 1
+                    if depth < 0:
+                        return False
+            else:
+                if triple_quote and s[i:i + 3] == string_char:
+                    in_string = False
+                    i += 3
+                    continue
+                elif not triple_quote and s[i] == string_char and (i == 0 or s[i - 1] != "\\"):
+                    in_string = False
+
+            i += 1
+
+        return depth == 0
+
+
+    def _has_expanded_inner(self, content: str, indent: str) -> bool:
+        """Check if any inner region would need to be expanded."""
+        regions = self._find_top_regions(content)
+
+        for region in regions:
+            items = self._split_items(region["content"])
+            rc = self._region_context(region, content)
+
+            if self._should_expand(items, region, rc, indent + "    "):
+                return True
+
+        return False
+
+
+    def _region_context(self, region: dict, full_str: str) -> str:
+        """Determine the context of a specific region."""
+        start = region["start"]
+        before = full_str[:start].rstrip()
+
+        if region["open_char"] == "{":
+            items = self._split_items(region["content"])
+            if items and ":" in items[0]:
+                return "dict"
+            return "set"
+
+        if region["open_char"] == "[":
+            if before and (before[-1].isalnum() or before[-1] in ("_", "'", '"', ")")):
+                return "subscript"
+            return "list"
+
+        if region["open_char"] == "(":
+            if before.endswith("@") or re.search(r"@[\w.]+$", before):
+                return "decorator"
+
+            if re.search(r"(def|async\s+def)\s+\w+$", before):
+                return "funcdef"
+
+            if before and (before[-1].isalnum() or before[-1] in ("_", ".", ")")):
+                return "call"
+
+            return "tuple"
+
+        return "unknown"
+
+
+    def _should_expand(
+        self,
+        items: List[str],
+        region: dict,
+        region_context: str,
+        indent: str,
+        is_nested: bool = False
+    ) -> bool:
+        """Determine if a region should be expanded."""
+        if not items:
+            return False
+
+        if region_context == "subscript":
+            return False
+
+        indent_len = len(indent)
+        content_len = len(region["open_char"]) + len(", ".join(items)) + len(region["close_char"])
+
+        if region_context == "dict":
+            return len(items) > 0
+
+        if region_context in ("list", "set", "tuple"):
+            if is_nested:
+                return len(items) > 0
+
+            has_nested = any(
+                self._item_has_container(item) for item in items
+            )
+            if has_nested:
+                return len(items) > 0
+            return content_len > 30
+
+        has_kwarg = any("=" in item and not self._eq_in_string(item) for item in items)
+        more_than_one = len(items) > 1
+
+        if region_context == "funcdef":
+            if content_len > 80:
+                return True
+            if content_len + indent_len > 100:
+                return True
+            if len(items) > 4:
+                return True
+            if has_kwarg and more_than_one:
+                return True
+            if self._any_inner_expanded(items, indent + "    "):
+                return True
+            return False
+
+        if region_context in ("call", "decorator"):
+            if content_len > 60:
+                return True
+            if content_len + indent_len > 80:
+                return True
+            if len(items) > 4:
+                return True
+            if has_kwarg and more_than_one:
+                return True
+            if self._any_inner_expanded(items, indent + "    "):
+                return True
+            return False
+
+        return False
+
+
+    def _item_has_container(self, item: str) -> bool:
+        """Check if an item contains a nested container."""
+        in_string = False
+        string_char = ""
+        triple_quote = False
+        i = 0
+
+        while i < len(item):
+            if not in_string:
+                if item[i:i + 3] in ('"""', "'''"):
+                    in_string = True
+                    string_char = item[i:i + 3]
+                    triple_quote = True
+                    i += 3
+                    continue
+                elif item[i] in ('"', "'"):
+                    in_string = True
+                    string_char = item[i]
+                    triple_quote = False
+                    i += 1
+                    continue
+
+                if item[i] in self._OPEN_BRACKETS:
+                    return True
+            else:
+                if triple_quote and item[i:i + 3] == string_char:
+                    in_string = False
+                    i += 3
+                    continue
+                elif not triple_quote and item[i] == string_char and (i == 0 or item[i - 1] != "\\"):
+                    in_string = False
+
+            i += 1
+
+        return False
+
+
+    def _eq_in_string(self, item: str) -> bool:
+        """Check if the '=' in an item is inside a string (not a kwarg)."""
+        in_string = False
+        string_char = ""
+        triple_quote = False
+        depth = 0
+        i = 0
+
+        while i < len(item):
+            if not in_string:
+                if item[i:i + 3] in ('"""', "'''"):
+                    in_string = True
+                    string_char = item[i:i + 3]
+                    triple_quote = True
+                    i += 3
+                    continue
+                elif item[i] in ('"', "'"):
+                    in_string = True
+                    string_char = item[i]
+                    triple_quote = False
+                    i += 1
+                    continue
+
+                if item[i] in self._OPEN_BRACKETS:
+                    depth += 1
+                elif item[i] in self._CLOSE_BRACKETS:
+                    depth -= 1
+                elif item[i] == "=" and depth == 0:
+                    if i > 0 and item[i - 1] not in "!<>":
+                        if i + 1 < len(item) and item[i + 1] != "=":
+                            return False
+            else:
+                if triple_quote and item[i:i + 3] == string_char:
+                    in_string = False
+                    i += 3
+                    continue
+                elif not triple_quote and item[i] == string_char and (i == 0 or item[i - 1] != "\\"):
+                    in_string = False
+
+            i += 1
+
+        return True
+
+
+    def _any_inner_expanded(self, items: List[str], indent: str) -> bool:
+        """Check if any item contains an inner region that would expand."""
+        for item in items:
+            regions = self._find_top_regions(item)
+            for region in regions:
+                inner_items = self._split_items(region["content"])
+                rc = self._region_context(region, item)
+                if self._should_expand(
+                    inner_items, region, rc, indent, is_nested=False
+                ):
+                    return True
+
+        return False
+
+
+    def _rebuild(self, parsed: dict, indent: str, context: str) -> str:
+        """Rebuild the token with proper expansion/flattening."""
+        stripped = parsed["stripped"]
+        regions = parsed["regions"]
+
+        if not regions:
+            return parsed["content"]
+
+        if context == "funcdef":
+            return self._rebuild_funcdef(stripped, regions, indent)
+        elif context == "decorator":
+            return self._rebuild_decorator(stripped, regions, indent)
+        elif context == "call":
+            return self._rebuild_call(stripped, regions, indent)
+        elif context == "assignment":
+            return self._rebuild_assignment(stripped, regions, indent)
+
+        return indent + stripped
+
+
+    def _rebuild_funcdef(self, stripped: str, regions: list, indent: str) -> str:
+        """Rebuild a function definition."""
+        if not regions:
+            return indent + stripped
+
+        region = regions[0]
+        items = self._split_items(region["content"])
+        rc = "funcdef"
+
+        if not items:
+            return indent + stripped
+
+        if not self._should_expand(items, region, rc, indent):
+            flat = self._format_items_flat(items, region, stripped)
+            return indent + flat
+
+        return self._expand_region_in_context(
+            stripped, region, items, indent, rc
+        )
+
+
+    def _rebuild_decorator(self, stripped: str, regions: list, indent: str) -> str:
+        """Rebuild a decorator."""
+        if not regions:
+            return indent + stripped
+
+        region = regions[0]
+        items = self._split_items(region["content"])
+        rc = "decorator"
+
+        if not items:
+            return indent + stripped
+
+        if not self._should_expand(items, region, rc, indent):
+            flat = self._format_items_flat(items, region, stripped)
+            return indent + flat
+
+        return self._expand_region_in_context(
+            stripped, region, items, indent, rc
+        )
+
+
+    def _rebuild_call(self, stripped: str, regions: list, indent: str) -> str:
+        """Rebuild a function call."""
+        if not regions:
+            return indent + stripped
+
+        region = regions[0]
+        items = self._split_items(region["content"])
+        rc = "call"
+
+        if not items:
+            return indent + stripped
+
+        if not self._should_expand(items, region, rc, indent):
+            flat = self._format_items_flat(items, region, stripped)
+            return indent + flat
+
+        return self._expand_region_in_context(
+            stripped, region, items, indent, rc
+        )
+
+
+    def _rebuild_assignment(self, stripped: str, regions: list, indent: str) -> str:
+        """Rebuild an assignment with paired punctuation value."""
+        if not regions:
+            return indent + stripped
+
+        region = regions[0]
+        items = self._split_items(region["content"])
+        rc = self._region_context(region, stripped)
+
+        if not items:
+            return indent + stripped
+
+        if not self._should_expand(items, region, rc, indent):
+            flat = self._format_items_flat(items, region, stripped)
+            return indent + flat
+
+        return self._expand_region_in_context(
+            stripped, region, items, indent, rc
+        )
+
+
+    def _format_items_flat(self, items: List[str], region: dict, stripped: str) -> str:
+        """Format items as a flat single line."""
+        before = stripped[:region["start"]]
+        after = stripped[region["end"] + 1:]
+        inner = ", ".join(items)
+
+        if (
+            region["open_char"] == "("
+            and len(items) == 1
+            and self._region_context(region, stripped) == "tuple"
+        ):
+            inner += ","
+
+        return f"{before}{region['open_char']}{inner}{region['close_char']}{after}"
+
+
+    def _expand_region_in_context(
+        self,
+        stripped: str,
+        region: dict,
+        items: List[str],
+        indent: str,
+        region_context: str
+    ) -> str:
+        """Expand a region with proper indentation."""
+        before = stripped[:region["start"]]
+        after = stripped[region["end"] + 1:]
+        inner_indent = indent + "    "
+
+        lines = [f"{indent}{before}{region['open_char']}"]
+
+        for i, item in enumerate(items):
+            formatted_item = self._format_item(item, inner_indent, region_context)
+            trailing = "," if i < len(items) - 1 else ""
+            lines.append(f"{inner_indent}{formatted_item}{trailing}")
+
+        lines.append(f"{indent}{region['close_char']}{after}")
+
+        return "\n".join(lines)
+
+
+    def _format_item(self, item: str, indent: str, parent_context: str) -> str:
+        """Format a single item, potentially expanding its inner regions."""
+        regions = self._find_top_regions(item)
+
+        if not regions:
+            return item
+
+        result = item
+        offset = 0
+
+        any_expanded = False
+        expansion_decisions = []
+        is_nested = parent_context in ("dict", "list", "set", "tuple")
+
+        for region in regions:
+            inner_items = self._split_items(region["content"])
+            rc = self._region_context(region, item)
+            should_exp = self._should_expand(
+                inner_items, region, rc, indent, is_nested=is_nested
+            )
+            expansion_decisions.append(should_exp)
+            if should_exp:
+                any_expanded = True
+
+        if any_expanded:
+            for i, region in enumerate(regions):
+                inner_items = self._split_items(region["content"])
+                rc = self._region_context(region, item)
+
+                if not inner_items:
+                    continue
+
+                if expansion_decisions[i] or (any_expanded and inner_items and rc != "subscript"):
+                    expanded = self._expand_inner(
+                        inner_items, region, indent, rc
+                    )
+                    start = region["start"] + offset
+                    end = region["end"] + offset + 1
+                    result = result[:start] + expanded + result[end:]
+                    offset += len(expanded) - (region["end"] - region["start"] + 1)
+
+        return result
+
+
+    def _expand_inner(
+        self,
+        items: List[str],
+        region: dict,
+        indent: str,
+        region_context: str
+    ) -> str:
+        """Expand an inner region."""
+        inner_indent = indent + "    "
+        lines = [region["open_char"]]
+
+        for i, item in enumerate(items):
+            formatted = self._format_item(item, inner_indent, region_context)
+            trailing = "," if i < len(items) - 1 else ""
+            lines.append(f"{inner_indent}{formatted}{trailing}")
+
+        lines.append(f"{indent}{region['close_char']}")
+
+        return "\n".join(lines)
