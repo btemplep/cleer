@@ -108,8 +108,6 @@ I need to start filling out the tokenizers and formatters.
     - but at the top there should only be 1 blank space between the module docstring, first __all__ assignment, and/or an import block
     -I think the existing formatters for those items that are have the item formatting and the blank space formatting should just set the ending of them to be one blank line
     - A separate tokenizer/formatter needs to be made to handle that block holistically with the rules I gave above
-
-
 - [ ] if/elif/else, try/except/finally, with blocks etc.
     - At end of chain of statements if/elif/else, if/else, try/except etc.
         - always have at least one blank line following
@@ -130,13 +128,11 @@ I need to start filling out the tokenizers and formatters.
     - first step of all paired punctuation is to flatten it. 
     - no space between paired punctuation and inner values if they are on the same line
     - dicts that have more than 0 items, are always expanded
-    - dict colons have no space before, and one space after
     - Lists, sets, or tuples that are not nested, 
         - should be flattened
-        - if the list, set, or tuple itself is over 30 chars, then expand.
+        - if the list, set, or tuple itself is over 30 chars, then expand. Only count length of list/set/tuple literal.
     - nested lists, sets, or tuples (inside of another list, dict, set, tuple) are expanded if more than 0 items
-        - if any are expanded then they all are expanded, unless empty
-    - for loop vars are never expanded
+        - if any are nested are expanded then they all are expanded, unless empty
     - function definitions
         - first flatten
         - expand if any of the following
@@ -146,7 +142,7 @@ I need to start filling out the tokenizers and formatters.
             - any inner paired punct is expanded
             - more than one arg with at least one given as a kwarg
         - if any sub items are expanded
-        - never split empty args
+        - never split empty args, ie don't split the function def parenthesis to a new line
         - if any are expanded then they all are expanded, unless empty
     - function calls
         - first flatten
@@ -155,8 +151,8 @@ I need to start filling out the tokenizers and formatters.
             - over 80 chars including indent
             - over 4 args
             - any inner paired punct is expanded
-            - 
-        - never split empty args
+            - more than one arg with at least one given as a kwarg
+        - never split empty args, ie don't split the function call parenthesis to a new line
         - if any are expanded then they all are expanded, unless empty
     - decorators
         - flatten first
@@ -165,8 +161,8 @@ I need to start filling out the tokenizers and formatters.
             - more than 60 chars not including indent
             - over 80 chars including indent
             - any inner paired punct is expanded
-        - no blank lines between decorator and following code (class, func, etc)
-        - never split empty args
+            - more than one arg with at least one given as a kwarg
+        - never split empty args, ie don't split the decorator parenthesis to a new line
         - if any are expanded then they all are expanded, unless empty
     - logic blocks
         - statements are separated by `or` and `and`
@@ -177,6 +173,6 @@ I need to start filling out the tokenizers and formatters.
             - length is over 80 with indent
             - any inner paired punct is expanded
         - if expanded should add parenthesis around them
-            - Add parenthesis to clarify order of operations
+            - Add parenthesis to clarify order of operations as well.
 
 

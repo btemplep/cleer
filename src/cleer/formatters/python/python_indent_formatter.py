@@ -220,7 +220,11 @@ class PythonIndentFormatter(Formatter):
             if node.orelse:
                 first_else = node.orelse[0]
 
-                if isinstance(first_else, ast.If):
+                if (
+                    isinstance(first_else, ast.If)
+                    and len(node.orelse) == 1
+                    and first_else.col_offset == node.col_offset
+                ):
                     self._walk_node(first_else, depth, indent_map, frozen_lines, token_lines)
                 else:
                     else_keyword_line = first_else.lineno - 2

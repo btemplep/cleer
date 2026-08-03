@@ -59,10 +59,15 @@ def say_hello(hello: str=None, hello_there: int=10, fine_great: str="1234232"):
     if thing == "this" or hello_there == "that" or fine_great != thing:
 
         return 0
+
     elif hello == "that" or True != False and fine_great == "1234":
 
         thing = "that"
         return 10
+    elif True:
+
+        my_thing = "another"
+
     else:
 
         return 8

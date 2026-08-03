@@ -169,7 +169,7 @@ def cleer_default_config(
                         ]
                     },
                     {
-                        "tokenizer": PythonFunctionStartTokenizer(),
+                        "tokenizer": PythonBlockStartTokenizer(),
                         "formatters": [
                             BlankLineFormatter(
                                 num_blank_lines=0,
@@ -199,6 +199,33 @@ def cleer_default_config(
                         "tokenizer": PythonReturnYieldTokenizer(),
                         "formatters": [
                             PythonReturnYieldFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": PythonChainBoundaryTokenizer(),
+                        "formatters": [
+                            BlankLineFormatter(
+                                num_blank_lines=0,
+                                message="No blank lines between chain connectors."
+                            )
+                        ]
+                    },
+                    {
+                        "tokenizer": PythonChainBoundaryTokenizer(after_return=True),
+                        "formatters": [
+                            BlankLineFormatter(
+                                num_blank_lines=1,
+                                message="Expected 1 blank line after return/yield before chain connector."
+                            )
+                        ]
+                    },
+                    {
+                        "tokenizer": PythonCompoundEndTokenizer(),
+                        "formatters": [
+                            BlankLineFormatter(
+                                num_blank_lines=1,
+                                message="Expected at least 1 blank line after compound statement."
+                            )
                         ]
                     },
                     {

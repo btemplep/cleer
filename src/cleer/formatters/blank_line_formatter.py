@@ -35,11 +35,14 @@ class BlankLineFormatter(Formatter):
     ```
     """
     accepts_token_types = [
+        "python_chain_boundary",
+        "python_chain_boundary_after_return",
+        "python_compound_end",
         "python_function_boundary",
         "python_nested_function_boundary",
         "python_decorator_boundary",
         "python_inner_max_blank_lines",
-        "python_function_start"
+        "python_block_start"
     ]
 
 
