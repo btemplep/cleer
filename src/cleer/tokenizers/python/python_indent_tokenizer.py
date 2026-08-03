@@ -113,7 +113,96 @@ class PythonIndentTokenizer(Tokenizer):
             if len(leading) % self._tab_size != 0:
                 return True
 
+        if self._has_bad_docstring_indent(block):
+            return True
+
         return False
+
+
+    def _has_bad_docstring_indent(self, block: str) -> bool:
+        """Check if any docstring lines are at the wrong indent level."""
+        try:
+            tree = ast.parse(block)
+        except SyntaxError:
+            return False
+
+        for node in ast.walk(tree):
+            body = getattr(node, "body", None)
+
+            if not isinstance(body, list) or not body:
+                continue
+
+            depth = self._get_body_depth(node, tree)
+
+            for i, child in enumerate(body):
+                if not (
+                    isinstance(child, ast.Expr)
+                    and isinstance(child.value, ast.Constant)
+                    and isinstance(child.value.value, str)
+                ):
+                    continue
+
+                is_docstring = (
+                    i == 0
+                    or isinstance(body[i - 1], (ast.Assign, ast.AnnAssign))
+                )
+
+                if not is_docstring:
+                    continue
+
+                if child.end_lineno <= child.lineno:
+                    continue
+
+                expected_indent = depth * self._tab_size
+                lines = block.split("\n")
+
+                for line_num in range(child.lineno - 1, child.end_lineno):
+                    if line_num >= len(lines):
+                        break
+
+                    line = lines[line_num]
+
+                    if not line.strip():
+                        continue
+
+                    actual = len(self._get_leading_whitespace(line))
+
+                    if actual != expected_indent:
+                        return True
+
+        return False
+
+
+    def _get_body_depth(self, node, tree) -> int:
+        """Get the indent depth for statements in a node's body."""
+        if isinstance(node, ast.Module):
+            return 0
+
+        depth = 0
+
+        for parent in ast.walk(tree):
+            if parent is node:
+                break
+
+            body = getattr(parent, "body", None)
+
+            if isinstance(body, list) and node in body:
+                if not isinstance(parent, ast.Module):
+                    depth += 1
+                break
+
+            for attr in ("handlers", "orelse", "finalbody"):
+                items = getattr(parent, attr, None)
+
+                if isinstance(items, list) and node in items:
+                    if not isinstance(parent, ast.Module):
+                        depth += 1
+                    break
+
+        if not isinstance(node, ast.Module):
+            depth += 1
+
+        return depth
 
 
     def _get_leading_whitespace(self, line: str) -> str:

@@ -1,10 +1,9 @@
 __all__ = ["Cleer"]
 
 
-import io
 import pathlib
 import re
-from typing import Dict, List, Literal, Tuple
+from typing import List
 
 from loguru import logger
 
@@ -120,7 +119,7 @@ class Cleer:
         self,
         file_path: str | pathlib.Path,
         document: str | None
-    ) -> Inspection | None:
+    ) -> Inspection:
         inspection: Inspection = {
             "path": file_path,
             "included": [],
@@ -236,7 +235,6 @@ class Cleer:
         keep_not_included: bool = False
     ) -> List[Inspection]:
         """Inspect a file or directory for violations.
-
 
         Parameters
         ----------

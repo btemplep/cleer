@@ -2,7 +2,6 @@
 
 __all__ = ["PythonAllPresenceFormatter"]
 
-
 import ast
 
 from cleer.formatters.formatter import Formatter
@@ -47,7 +46,7 @@ class PythonAllPresenceFormatter(Formatter):
         if self._has_all(token):
             return None
 
-        return "Module should define __all__."
+        return "Modules should define __all__."
 
 
     def format(self, token: str) -> str:

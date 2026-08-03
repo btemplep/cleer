@@ -94,21 +94,31 @@ I need to start filling out the tokenizers and formatters.
     - 2 blank lines before and after class for root indent classes
 - [x] function
     - no blank line between def and docstrings or first line of code. 
-- [ ] docstring 
+- [x] docstring 
     - should exist at top of all modules with one blank line following
-    - No blank lines between docstring and preceding definition (class, func, var, etc) - handled by func and class already?
-    - 2 blank lines between class docstring and methods - already handled by class
-    - 1 indent level in for classes and functions - should already be handled by indent formatter
+        - Can be a separate tokenizer of formatter. 
     - docstrings should be at same indent level for variables and modules
+        - Can probably add this to the indent level checker? 
+    - tell me what you are doing before you do it. 
+- [x] handling blank space at beginning of a file. There is some inconsistency. 
+    - 2 spaces between module code and any of the following:
+        - module docstring
+        - any __all__ assignments
+        - import block
+    - but at the top there should only be 1 blank space between the module docstring, first __all__ assignment, and/or an import block
+    -I think the existing formatters for those items that are have the item formatting and the blank space formatting should just set the ending of them to be one blank line
+    - A separate tokenizer/formatter needs to be made to handle that block holistically with the rules I gave above
+
 
 - [ ] if/elif/else, try/except/finally, with blocks etc.
-    - At end of chain of statements if/elif/else, if/else etc.
-        always have a blank line following
-        - If multiple end it should only be one blank line total, 
-        - should not remove extra blank lines at the end of the function if the block ends there
+    - At end of chain of statements if/elif/else, if/else, try/except etc.
+        - always have at least one blank line following
+        - should not remove extra blank lines
+        - If multiple end at different levels, and there is no blank line, then it should only be one blank line total.
     - no blank lines between the in-between statements, between if and elif or else, etc.
-        - except after a return statement, The return formatter should handle this if it's missing
-    - no blank lines between indent block (if, for, while, etc) and first line of inner code
+        - except after a return or yield statement, or exit() call
+            - The return formatter should handle this if it's missing, just need to not remove it.
+    - no blank lines between indent block (if, for, while, with, etc) and first line of inner code
 
 
 

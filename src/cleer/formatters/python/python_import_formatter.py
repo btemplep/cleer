@@ -138,7 +138,7 @@ class PythonImportFormatter(Formatter):
         leading_newline = token.startswith("\n")
         prefix = "\n" if leading_newline else ""
 
-        return f"{prefix}{body}\n\n\n"
+        return f"{prefix}{body}\n\n"
 
 
     def _extract_imports(self, tree: ast.Module) -> list:

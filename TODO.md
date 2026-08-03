@@ -4,6 +4,7 @@
 - [ ] rebuild all the things
 - [ ] look at what formatters can be generalized
 - [ ] slogan!  It's become cleer to me...
+- [ ] update inspect strings
 - [ ] update all docstring and README examples. 
 - [ ] ClI should be default print less verbose json, flag for verbose
 - [ ] cli flags for what values to keep in the results that match the API

@@ -1,11 +1,10 @@
 from cleer import Cleer, cleer_default_config
 
 
-
 clr = Cleer(
     config=cleer_default_config(
         python_packages=["cleer"],
-        python_internal_packages=None,
+        python_internal_packages=["my_package"],
         python_excludes=["**/tests/unit/fixtures/format_*.py"]
     )
 )
@@ -26,14 +25,27 @@ clr = Cleer(
                 ],
                 "stages": [
                     {
-                        "tokenizer": PythonFunctionStartTokenizer(),
+                        "tokenizer": FileTokenizer(),
                         "formatters": [
-                            BlankLineFormatter(
-                                num_blank_lines=0,
-                                message="No blank lines between function definition and first line of body."
+                            PythonModuleDocstringPresenceFormatter(),
+                            PythonAllPresenceFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": PythonImportTokenizer(),
+                        "formatters": [
+                            PythonImportFormatter(
+                                internal_packages=[],
+                                current_packages=["cleer"]
                             )
                         ]
-                    }
+                    },
+                    {
+                        "tokenizer": FileTokenizer(),
+                        "formatters": [
+                            PythonModuleHeaderFormatter()
+                        ]
+                    },
                 ]
             }
         ]

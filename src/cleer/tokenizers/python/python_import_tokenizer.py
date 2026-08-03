@@ -139,8 +139,18 @@ class PythonImportTokenizer(Tokenizer):
             prev_end = 0
 
         if next_node is not None:
-            next_start_line = next_node.lineno - 1
-            next_start = line_offsets[next_start_line]
+            last_import_end = last_node.end_lineno
+            next_start = line_offsets[last_import_end]
+
+            for line_idx in range(last_import_end, len(line_offsets) - 1):
+                line_start = line_offsets[line_idx]
+                line_end = line_offsets[line_idx + 1] if line_idx + 1 < len(line_offsets) else len(document)
+                line_text = document[line_start:line_end]
+
+                if line_text.strip() == "":
+                    next_start = line_offsets[line_idx + 1] if line_idx + 1 < len(line_offsets) else len(document)
+                else:
+                    break
         else:
             next_start = len(document)
 

@@ -240,6 +240,9 @@ class PythonFunctionBoundaryTokenizer(Tokenizer):
     ) -> dict | None:
         """Extract the whitespace boundary between two nodes.
 
+        Only captures contiguous blank lines. Stops before any
+        non-blank content (like comments) between nodes.
+
         Parameters
         ----------
         prev_end_line : int
@@ -249,6 +252,7 @@ class PythonFunctionBoundaryTokenizer(Tokenizer):
         """
         prev_end_idx = prev_end_line
         next_start_idx = next_start_line - 1
+
         if prev_end_idx >= next_start_idx:
             return {
                 "token": "",
@@ -256,9 +260,20 @@ class PythonFunctionBoundaryTokenizer(Tokenizer):
                 "length": 0
             }
 
+        blank_end_idx = prev_end_idx
+
+        for line_idx in range(prev_end_idx, next_start_idx):
+            if lines[line_idx].strip() == "":
+                blank_end_idx = line_idx + 1
+            else:
+                break
+
         start_offset = line_offsets[prev_end_idx]
-        end_offset = line_offsets[next_start_idx]
+        end_offset = line_offsets[blank_end_idx]
         token = document[start_offset:end_offset]
+
+        if not token:
+            return None
 
         return {
             "token": token,

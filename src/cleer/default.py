@@ -113,6 +113,7 @@ def cleer_default_config(
                     {
                         "tokenizer": FileTokenizer(),
                         "formatters": [
+                            PythonModuleDocstringPresenceFormatter(),
                             PythonAllPresenceFormatter()
                         ]
                     }
@@ -144,6 +145,12 @@ def cleer_default_config(
                                 internal_packages=python_internal_packages,
                                 current_packages=python_packages
                             )
+                        ]
+                    },
+                    {
+                        "tokenizer": FileTokenizer(),
+                        "formatters": [
+                            PythonModuleHeaderFormatter()
                         ]
                     },
                     {
