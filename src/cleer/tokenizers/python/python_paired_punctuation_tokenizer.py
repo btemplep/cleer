@@ -141,6 +141,13 @@ class PythonPairedPunctuationTokenizer(Tokenizer):
                     )
                     emitted = True
 
+            elif isinstance(child, ast.AnnAssign):
+                if child.value and self._node_has_paired_punct(child.value):
+                    self._emit_statement(
+                        child, lines, line_offsets, document, tokens, seen_ranges
+                    )
+                    emitted = True
+
             elif isinstance(child, ast.Return):
                 if child.value and self._node_has_paired_punct(child.value):
                     self._emit_statement(
@@ -194,7 +201,10 @@ class PythonPairedPunctuationTokenizer(Tokenizer):
                 return True
 
         if isinstance(child, ast.AnnAssign):
-            return True
+            if child.value is None:
+                return True
+            if isinstance(child.value, ast.Subscript):
+                return True
 
         if isinstance(child, ast.Expr):
             if isinstance(child.value, ast.Subscript):

@@ -55,8 +55,28 @@ class PythonIndentFormatter(Formatter):
             Error message if indentation is incorrect.
             Returns `None` if there is no violation.
         """
+        in_triple_quote = False
+        triple_char = ""
+
         for line in token.split("\n"):
-            if not line.strip():
+            stripped = line.strip()
+
+            if not in_triple_quote:
+                count = stripped.count('"""')
+                if count == 0:
+                    count = stripped.count("'''")
+                    if count % 2 == 1:
+                        in_triple_quote = True
+                        triple_char = "'''"
+                elif count % 2 == 1:
+                    in_triple_quote = True
+                    triple_char = '"""'
+            else:
+                if triple_char in stripped:
+                    in_triple_quote = False
+                continue
+
+            if not stripped:
                 continue
 
             leading = self._get_leading_whitespace(line)

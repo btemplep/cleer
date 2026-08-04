@@ -26,3 +26,16 @@ def _keep_result(self,result: Inspection | Formatting | FormattingDocument,
     return False
 
 
+def _format_one(
+    self,
+    file_path: str | pathlib.Path,
+    document: str | None
+) -> FormattingDocument:
+    formatting: FormattingDocument = {"path": file_path,
+        "included": [
+
+        ],
+        "excluded": [],
+        "invalidations": [],
+        "document": document
+    }

@@ -731,6 +731,10 @@ class PythonPairedPunctuationFormatter(Formatter):
         stripped = token.strip()
         flat = self._flatten_string(stripped)
 
+        flat = flat.replace("[ ]", "[]")
+        flat = flat.replace("( )", "()")
+        flat = flat.replace("{ }", "{}")
+
         if context == "funcdef":
             flat = re.sub(r"\s*:\s*", ": ", flat)
             flat = re.sub(r"\s*=\s*", "=", flat)

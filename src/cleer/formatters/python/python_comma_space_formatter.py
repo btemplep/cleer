@@ -47,7 +47,10 @@ class PythonCommaSpaceFormatter(Formatter):
         before = token[:comma_idx]
         after = token[comma_idx + 1:]
 
-        if before != "" or after != " ":
+        if before != "":
+            return "There should be no space before a comma, and one space after."
+
+        if after != " " and not after.startswith("\n"):
             return "There should be no space before a comma, and one space after."
 
         return None

@@ -55,14 +55,17 @@ thing = [
 ]
 
 if (
-    thing == "this" or
-    hello_there == "that" or
-    fine_great != thing
+    thing == "this"
+    or hello_there == "that"
+    or fine_great != thing
 ):
     print(0)
 elif (
-    hello == "that" or
-    (True != False and fine_great == "1234")
+    hello == "that"
+    or (
+        True != False
+        and fine_great == "1234"
+    )
 ):
     thing = "that"
     print(10)
@@ -70,7 +73,12 @@ else:
     print(8)
 
 
-@decor("ldkfjd  ", "sdflkjsdfk   ", "ksdjfdk", "alskdjfaslkdfj")
+@decor(
+    "ldkfjd  ",
+    "sdflkjsdfk   ",
+    "ksdjfdk",
+    "alskdjfaslkdfj"
+)
 def say_hello(
     hello: str=None,
     hello_there: int=10,
@@ -81,15 +89,18 @@ def say_hello(
     }
     print(my_dict['thing'])
     if (
-        thing == "this" or
-        hello_there == "that" or
-        fine_great != thing
+        thing == "this"
+        or hello_there == "that"
+        or fine_great != thing
     ):
         return 0
 
     elif (
-        hello == "that" or
-        (True != False and fine_great == "1234")
+        hello == "that"
+        or (
+            True != False
+            and fine_great == "1234"
+        )
     ):
         thing = "that"
 
@@ -279,11 +290,11 @@ def _keep_result(
     keep_not_included: bool
 ) -> bool:
     if (
-        len(result['included']) > 0 
-        or(
+        len(result['included']) > 0
+        or (
             len(result['excluded']) > 0
             and keep_only_excluded is True
-        ) 
+        )
         or keep_not_included is True
     ):
         print(
@@ -299,8 +310,8 @@ def _keep_result(
 
 
 def _format_one(
-    self, 
-    file_path: str | pathlib.Path, 
+    self,
+    file_path: str | pathlib.Path,
     document: str | None
 ) -> FormattingDocument:
     formatting: FormattingDocument = {
@@ -310,3 +321,67 @@ def _format_one(
         "invalidations": [],
         "document": document
     }
+
+
+def _keep_result(
+    self,
+    result: Inspection | Formatting | FormattingDocument,
+    keep_only_excluded: bool,
+    keep_not_included: bool
+) -> bool:
+    inspection['excluded'].append(
+        {
+            "group": gi,
+            "pattern": exclude_pattern
+        }
+    )
+    if (
+        len(result['included']) > 0
+        or (
+            len(result['excluded']) > 0
+            and keep_only_excluded is True
+        )
+        or keep_not_included is True
+    ):
+        print(
+            (
+                "this is my string literal"
+                "this is my string literal 2"
+            )
+        )
+
+        return True
+
+    elif (
+        len(result['included']) > 0
+        or (
+            len(result['excluded']) > 0
+            and keep_only_excluded is True
+        )
+        or keep_not_included is True
+        or my_function_call(
+            here,
+            there="now",
+            over="here"
+        )
+        or my_other_call(
+            {
+                "hello": "there"
+            }
+        )
+        or last_call("here", 2, 3)
+        or thing not in [0, 1, 2, 3]
+        or (
+            (
+                1 == 2
+                or True
+            )
+            and (
+                this == "that"
+                or that == "this"
+            )
+        )
+    ):
+        return True
+
+    return False

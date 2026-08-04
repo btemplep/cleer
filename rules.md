@@ -43,7 +43,7 @@
 - [x] functions/methods
     - inside of functions and methods should be a max of 1 blank line in a row
     - 2 blank lines before and after functions, except nested functions
-    - 1 blank line before and after nested functions
+    - 1 blank line before and after nested functions or classes
 - [x] __all__ 
     - should be in all modules that belong to a packages
         - Take a var for current_packages, by default None
@@ -166,7 +166,6 @@
         - fully expand everything that it is in per usual. 
     - dictionary key notation
         - never expand
-
 - [x] header format
     - should be in this order, with one line in between each, if they exist:
         - module docstring

@@ -98,11 +98,32 @@ class PythonModuleHeaderFormatter(Formatter):
 
         result_parts = []
 
+        all_section_lines = set()
         for section in header_sections:
-            section_lines = []
             for start, end in section:
-                section_lines.extend(lines[start:end])
-            section_text = "\n".join(section_lines)
+                for line_num in range(start, end):
+                    all_section_lines.add(line_num)
+
+        for section in header_sections:
+            if len(section) > 1:
+                first_start = section[0][0]
+                last_end = section[-1][1]
+                section_lines = []
+                for line_num in range(first_start, last_end):
+                    if line_num in all_section_lines:
+                        is_this_section = any(
+                            start <= line_num < end for start, end in section
+                        )
+                        if is_this_section:
+                            section_lines.append(lines[line_num])
+                    elif lines[line_num].strip() == "":
+                        section_lines.append(lines[line_num])
+                section_text = "\n".join(section_lines)
+            else:
+                section_lines = []
+                for start, end in section:
+                    section_lines.extend(lines[start:end])
+                section_text = "\n".join(section_lines)
 
             while section_text.endswith("\n"):
                 section_text = section_text[:-1]

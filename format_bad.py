@@ -3,7 +3,7 @@
 
 
 
-
+"""My well formatted python file!"""
 import os
 from cleer import (
     Cleer,
@@ -170,6 +170,23 @@ class MyNewType:
         List[Dict[str, Dict[str, str]]]
     ]
     val: Literal["alsdkfsdfl" , "alskfjslkfdj", "aslkdfjsdfjk", - 1, "evenmore hwerskjfsl"]
+    def format(
+            self, token: str) -> str:
+        
+        """Replace the token with the configured number of blank lines.
+
+        Parameters
+        ----------
+        token : str
+            Whitespace token to format.
+
+        Returns
+        -------
+        str
+            The configured number of newline characters.
+        """
+
+        return self._replacement
 
 
 for thing in ["hello", "there", "how", "are"]:
@@ -207,3 +224,31 @@ def _format_one(
         "invalidations": [],
         "document": document
     }
+def _keep_result(self,result: Inspection | Formatting | FormattingDocument,
+    keep_only_excluded: bool,
+    keep_not_included: bool
+) -> bool:
+    inspection['excluded'].append( {"group": gi,"pattern": exclude_pattern})
+    if (
+        len(result['included']) > 0 or(
+            len(result['excluded']) > 0 and keep_only_excluded is True
+        ) or keep_not_included is True
+    ):
+        print(("this is my string literal"
+                "this is my string literal 2"
+            )
+        )
+        return True
+    elif (
+        len(result['included']) > 0 or
+        ( len(result['excluded']) > 0 and keep_only_excluded is True ) or
+        keep_not_included is True or
+        my_function_call(here, there="now", over="here") or my_other_call({"hello": "there"}) or
+        last_call("here", 2, 3) or thing not in [0, 1, 2, 3] or ((1==2 or True)and(this=="that" or that =="this"))
+    ):
+        return True
+
+    return False
+
+
+

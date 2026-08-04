@@ -138,7 +138,13 @@ class PythonImportFormatter(Formatter):
         leading_newline = token.startswith("\n")
         prefix = "\n" if leading_newline else ""
 
-        return f"{prefix}{body}\n\n"
+        trailing = "\n\n"
+        stripped_end = token.rstrip(" \t")
+        trailing_newlines = len(stripped_end) - len(stripped_end.rstrip("\n"))
+        if trailing_newlines > 2:
+            trailing = "\n" * trailing_newlines
+
+        return f"{prefix}{body}{trailing}"
 
 
     def _extract_imports(self, tree: ast.Module) -> list:

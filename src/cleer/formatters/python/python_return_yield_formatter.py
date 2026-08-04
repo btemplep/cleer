@@ -151,7 +151,7 @@ class PythonReturnYieldFormatter(Formatter):
             is_ry = self._is_return_yield(node)
 
             if is_ry:
-                is_only = len(body) == 1
+                is_only = self._is_only_statement(body, i)
                 line_idx = node.lineno - 1
 
                 if not is_only:
@@ -176,6 +176,23 @@ class PythonReturnYieldFormatter(Formatter):
                 for handler in handlers:
                     if handler.body:
                         self._find_edits(handler.body, lines, edits)
+
+
+    def _is_only_statement(self, body: list, index: int) -> bool:
+        """Check if a return/yield is the only non-docstring statement in its block."""
+        if len(body) == 1:
+            return True
+
+        if len(body) == 2 and index == 1:
+            first = body[0]
+            if (
+                isinstance(first, ast.Expr)
+                and isinstance(first.value, ast.Constant)
+                and isinstance(first.value.value, str)
+            ):
+                return True
+
+        return False
 
 
     def _is_return_yield(self, node: ast.stmt) -> bool:
