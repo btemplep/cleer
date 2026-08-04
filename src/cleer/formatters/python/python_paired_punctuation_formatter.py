@@ -278,12 +278,7 @@ class PythonPairedPunctuationFormatter(Formatter):
         if (
             stripped.startswith(("if ", "elif ", "while "))
             and stripped.endswith(":")
-            and (
-                " or " in stripped
-                or " and " in stripped
-                or " or\n" in stripped
-                or " and\n" in stripped
-            )
+            and self._has_logic_operator(stripped)
         ):
             return "logic"
 
@@ -295,6 +290,16 @@ class PythonPairedPunctuationFormatter(Formatter):
                     return "assignment"
 
         return "call"
+
+
+    def _has_logic_operator(self, s: str) -> bool:
+        """Check if a string contains a top-level 'or' or 'and' operator.
+
+        Recognizes operators with or without surrounding spaces,
+        including adjacent to parentheses (e.g., ``or(``, ``)and``).
+        """
+        import re
+        return bool(re.search(r"(?<=[ )\n])or(?=[ (\n])|(?<=[ )\n])and(?=[ (\n])", s))
 
 
     def _format_logic(self, token: str, indent: str) -> str:
@@ -316,24 +321,269 @@ class PythonPairedPunctuationFormatter(Formatter):
         if condition.startswith("(") and condition.endswith(")"):
             inner = condition[1:-1]
             if self._brackets_balanced(inner):
-                condition = inner
+                condition = inner.strip()
 
         statements = self._split_logic_statements(condition)
-        condition_count = len([s for s in statements if s not in ("or", "and")])
-        indent_len = len(indent)
+        inner_indent = indent + "    "
 
-        flat_line = f"{indent}{keyword}{condition}:"
-        needs_expand = (
-            condition_count > 2
-            or len(flat_line) - indent_len > 60
-            or len(flat_line) > 80
-            or self._has_expanded_inner(condition, indent)
+        formatted_parts = self._format_logic_parts(statements, inner_indent)
+
+        needs_expand = self._logic_needs_expand(
+            keyword, formatted_parts, indent, inner_indent
         )
 
         if not needs_expand:
-            return flat_line
+            flat_condition = self._join_logic_flat(formatted_parts)
+            return f"{indent}{keyword}{flat_condition}:"
 
-        return self._expand_logic(keyword, statements, indent)
+        return self._expand_logic(keyword, formatted_parts, indent, inner_indent)
+
+
+    def _format_logic_parts(self, statements: list, indent: str) -> list:
+        """Extract logic parts with their operators.
+
+        Returns a list of dicts with:
+        - operator: "or", "and", or "" (first item)
+        - content: the raw expression (not yet formatted for inner punctuation)
+        """
+        parts = []
+
+        for i, item in enumerate(statements):
+            if item in ("or", "and"):
+                continue
+
+            operator = ""
+            if i > 0:
+                prev_idx = i - 1
+                if prev_idx >= 0 and statements[prev_idx] in ("or", "and"):
+                    operator = statements[prev_idx]
+
+            parts.append(
+                {
+                    "operator": operator,
+                    "content": item
+                }
+            )
+
+        return parts
+
+
+    def _format_logic_item(self, item: str, indent: str) -> str:
+        """Format inner paired punctuation within a logic item.
+
+        Applies normal expansion rules to any paired punctuation
+        found in the item. The indent parameter is the indent level
+        where the item will be placed in the final output.
+
+        Also handles logic sub-groups: paren-wrapped and/or expressions
+        are expanded as nested logic blocks.
+        """
+        if self._is_logic_subgroup(item):
+            return self._expand_logic_subgroup(item, indent)
+
+        regions = self._find_top_regions(item)
+
+        if not regions:
+            return item
+
+        result = item
+        offset = 0
+
+        for region in regions:
+            rc = self._region_context(region, item)
+
+            if rc == "subscript":
+                continue
+
+            inner_items = self._split_items(region["content"])
+
+            if not inner_items:
+                continue
+
+            if region["open_char"] == "(" and self._is_string_concat_content(region["content"]):
+                strings = self._extract_string_literals(region["content"])
+                exp_indent = indent + "    "
+                parts = [f"{region['open_char']}"]
+                for s in strings:
+                    parts.append(f"\n{exp_indent}{s}")
+                parts.append(f"\n{indent}{region['close_char']}")
+                expanded = "".join(parts)
+                start = region["start"] + offset
+                end = region["end"] + offset + 1
+                result = result[:start] + expanded + result[end:]
+                offset += len(expanded) - (region["end"] - region["start"] + 1)
+                continue
+
+            before = item[:region["start"]]
+            after = item[region["end"] + 1:]
+            full_line_len = len(before) + 1 + len(", ".join(inner_items)) + 1 + len(after)
+
+            should_exp = self._should_expand(
+                inner_items, region, rc, indent, full_line_len=full_line_len
+            )
+
+            if should_exp:
+                expanded = self._expand_inner(inner_items, region, indent, rc)
+                start = region["start"] + offset
+                end = region["end"] + offset + 1
+                result = result[:start] + expanded + result[end:]
+                offset += len(expanded) - (region["end"] - region["start"] + 1)
+
+        return result
+
+
+    def _is_logic_subgroup(self, item: str) -> bool:
+        """Check if an item is a paren-wrapped logic sub-expression."""
+        stripped = item.strip()
+        if not (stripped.startswith("(") and stripped.endswith(")")):
+            return False
+
+        inner = stripped[1:-1]
+        if not self._brackets_balanced(inner):
+            return False
+
+        return " and " in inner or " or " in inner
+
+
+    def _expand_logic_subgroup(self, item: str, indent: str) -> str:
+        """Expand a paren-wrapped logic sub-group."""
+        stripped = item.strip()
+        inner = stripped[1:-1].strip()
+        inner_indent = indent + "    "
+
+        statements = self._split_logic_statements(inner)
+        parts = self._format_logic_parts(statements, inner_indent)
+
+        lines = ["("]
+        for part in parts:
+            raw_content = part["content"]
+            operator = part["operator"]
+
+            formatted = self._format_logic_item(raw_content, inner_indent)
+
+            if "\n" in formatted:
+                content_lines = formatted.split("\n")
+                first_line = content_lines[0]
+                if operator:
+                    lines.append(f"{inner_indent}{operator} {first_line}")
+                else:
+                    lines.append(f"{inner_indent}{first_line}")
+                for cl in content_lines[1:]:
+                    lines.append(cl)
+            else:
+                if operator:
+                    lines.append(f"{inner_indent}{operator} {formatted}")
+                else:
+                    lines.append(f"{inner_indent}{formatted}")
+
+        lines.append(f"{indent})")
+        return "\n".join(lines)
+
+
+    def _logic_needs_expand(
+        self,
+        keyword: str,
+        parts: list,
+        indent: str,
+        inner_indent: str
+    ) -> bool:
+        """Determine if logic should be expanded."""
+        condition_count = len(parts)
+        indent_len = len(indent)
+
+        if condition_count > 2:
+            return True
+
+        any_inner_expands = any(
+            self._logic_item_has_expansion(p["content"], inner_indent)
+            for p in parts
+        )
+        if any_inner_expands:
+            return True
+
+        flat_condition = self._join_logic_flat(parts)
+        flat_len = len(keyword) + len(flat_condition) + 1
+
+        if flat_len > 60:
+            return True
+        if flat_len + indent_len > 80:
+            return True
+
+        return False
+
+
+    def _logic_item_has_expansion(self, item: str, indent: str) -> bool:
+        """Check if a logic item has inner paired punctuation that would expand."""
+        regions = self._find_top_regions(item)
+
+        for region in regions:
+            rc = self._region_context(region, item)
+            if rc == "subscript":
+                continue
+
+            if region["open_char"] == "(" and self._is_string_concat_content(region["content"]):
+                return True
+
+            inner_items = self._split_items(region["content"])
+            if not inner_items:
+                continue
+
+            before = item[:region["start"]]
+            after = item[region["end"] + 1:]
+            full_line_len = len(before) + 1 + len(", ".join(inner_items)) + 1 + len(after)
+
+            if self._should_expand(inner_items, region, rc, indent, full_line_len=full_line_len):
+                return True
+
+        return False
+
+
+    def _join_logic_flat(self, parts: list) -> str:
+        """Join logic parts into a single flat condition string."""
+        pieces = []
+        for p in parts:
+            if p["operator"]:
+                pieces.append(f" {p['operator']} {p['content']}")
+            else:
+                pieces.append(p["content"])
+        return "".join(pieces)
+
+
+    def _expand_logic(
+        self,
+        keyword: str,
+        parts: list,
+        indent: str,
+        inner_indent: str
+    ) -> str:
+        """Expand a logic condition across multiple lines with parens."""
+        lines = [f"{indent}{keyword}("]
+
+        for part in parts:
+            raw_content = part["content"]
+            operator = part["operator"]
+
+            formatted = self._format_logic_item(raw_content, inner_indent)
+
+            if "\n" in formatted:
+                content_lines = formatted.split("\n")
+                first_line = content_lines[0]
+                if operator:
+                    lines.append(f"{inner_indent}{operator} {first_line}")
+                else:
+                    lines.append(f"{inner_indent}{first_line}")
+
+                for cl in content_lines[1:]:
+                    lines.append(cl)
+            else:
+                if operator:
+                    lines.append(f"{inner_indent}{operator} {formatted}")
+                else:
+                    lines.append(f"{inner_indent}{formatted}")
+
+        lines.append(f"{indent}):")
+
+        return "\n".join(lines)
 
 
     def _split_logic_statements(self, condition: str) -> List[str]:
@@ -348,7 +598,7 @@ class PythonPairedPunctuationFormatter(Formatter):
         if len(or_parts) > 1:
             result = []
             for i, part in enumerate(or_parts):
-                if " and " in part:
+                if self._has_logic_operator_word(part, "and"):
                     if not (part.startswith("(") and part.endswith(")") and self._brackets_balanced(part[1:-1])):
                         part = f"({part})"
                 result.append(part)
@@ -368,8 +618,19 @@ class PythonPairedPunctuationFormatter(Formatter):
         return [condition]
 
 
+    def _has_logic_operator_word(self, s: str, keyword: str) -> bool:
+        """Check if string contains the given operator keyword at top level."""
+        import re
+        pattern = rf"(?<=[ )\n]){keyword}(?=[ (\n])"
+        return bool(re.search(pattern, s))
+
+
     def _split_by_operator(self, s: str, operator: str) -> List[str]:
-        """Split string by an operator at depth 0, respecting strings and brackets."""
+        """Split string by an operator at depth 0, respecting strings and brackets.
+
+        Handles operators adjacent to parentheses (e.g., ``or(``, ``)and(``).
+        The operator keyword is extracted from the padded operator string.
+        """
         parts = []
         current = ""
         depth = 0
@@ -377,7 +638,8 @@ class PythonPairedPunctuationFormatter(Formatter):
         string_char = ""
         triple_quote = False
         i = 0
-        op_len = len(operator)
+        keyword = operator.strip()
+        kw_len = len(keyword)
 
         while i < len(s):
             ch = s[i]
@@ -406,10 +668,24 @@ class PythonPairedPunctuationFormatter(Formatter):
                     depth -= 1
                     current += ch
                     i += 1
-                elif depth == 0 and s[i:i + op_len] == operator:
-                    parts.append(current.strip())
-                    current = ""
-                    i += op_len
+                elif depth == 0 and s[i:i + kw_len] == keyword:
+                    before_ok = (
+                        i == 0
+                        or s[i - 1] in (" ", "\t", ")")
+                    )
+                    after_ok = (
+                        i + kw_len >= len(s)
+                        or s[i + kw_len] in (" ", "\t", "(")
+                    )
+                    if before_ok and after_ok:
+                        parts.append(current.strip())
+                        current = ""
+                        i += kw_len
+                        if i < len(s) and s[i] == " ":
+                            i += 1
+                    else:
+                        current += ch
+                        i += 1
                 else:
                     current += ch
                     i += 1
@@ -431,31 +707,6 @@ class PythonPairedPunctuationFormatter(Formatter):
             parts.append(current.strip())
 
         return parts
-
-
-    def _expand_logic(
-        self,
-        keyword: str,
-        statements: List[str],
-        indent: str
-    ) -> str:
-        """Expand a logic condition across multiple lines with parens."""
-        inner_indent = indent + "    "
-        lines = [f"{indent}{keyword}("]
-
-        for i, part in enumerate(statements):
-            if part in ("or", "and"):
-                continue
-
-            operator = ""
-            if i + 1 < len(statements) and statements[i + 1] in ("or", "and"):
-                operator = f" {statements[i + 1]}"
-
-            lines.append(f"{inner_indent}{part}{operator}")
-
-        lines.append(f"{indent}):")
-
-        return "\n".join(lines)
 
 
     def _format_punctuation(self, token: str, indent: str, context: str) -> str:
@@ -967,6 +1218,11 @@ class PythonPairedPunctuationFormatter(Formatter):
                 ):
                     return True
 
+                if region["open_char"] == "(" and self._is_logic_subgroup(
+                    item[region["start"]:region["end"] + 1]
+                ):
+                    return True
+
                 inner_items = self._split_items(region["content"])
                 rc = self._region_context(region, item)
                 if self._should_expand(
@@ -1170,6 +1426,13 @@ class PythonPairedPunctuationFormatter(Formatter):
                 any_expanded = True
                 continue
 
+            if region["open_char"] == "(" and self._is_logic_subgroup(
+                item[region["start"]:region["end"] + 1]
+            ):
+                expansion_decisions.append("logic_subgroup")
+                any_expanded = True
+                continue
+
             inner_items = self._split_items(region["content"])
             rc = self._region_context(region, item)
             should_exp = self._should_expand(
@@ -1189,6 +1452,15 @@ class PythonPairedPunctuationFormatter(Formatter):
                         parts.append(f"\n{inner_indent}{s}")
                     parts.append(f"\n{indent}{region['close_char']}")
                     expanded = "".join(parts)
+                    start = region["start"] + offset
+                    end = region["end"] + offset + 1
+                    result = result[:start] + expanded + result[end:]
+                    offset += len(expanded) - (region["end"] - region["start"] + 1)
+                    continue
+
+                if expansion_decisions[i] == "logic_subgroup":
+                    subgroup_text = item[region["start"]:region["end"] + 1]
+                    expanded = self._expand_logic_subgroup(subgroup_text, indent)
                     start = region["start"] + offset
                     end = region["end"] + offset + 1
                     result = result[:start] + expanded + result[end:]

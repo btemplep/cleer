@@ -267,7 +267,7 @@ class PythonImportFormatter(Formatter):
 
         single_line = f"from {full_module} import {', '.join(name_parts)}"
 
-        if len(single_line) <= 80:
+        if len(name_parts) <= 1 or len(single_line) <= 80:
             return [single_line]
 
         import_lines = [f"from {full_module} import ("]
