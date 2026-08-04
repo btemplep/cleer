@@ -112,7 +112,10 @@ my_type2 = Dict[
 
 @medcor
 
-async def hello():
+async def hello(
+    thing,
+    over="here"
+):
     print("hello")
     def inner():
 
@@ -185,6 +188,10 @@ def _keep_result(self,result: Inspection | Formatting | FormattingDocument,
             len(result['excluded']) > 0 and keep_only_excluded is True
         ) or keep_not_included is True
     ):
+        print(("this is my string literal"
+                "this is my string literal 2"
+            )
+        )
         return True
 
     return False

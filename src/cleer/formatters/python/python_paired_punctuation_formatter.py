@@ -99,6 +99,172 @@ class PythonPairedPunctuationFormatter(Formatter):
         return ""
 
 
+    def _is_string_parens(self, token: str) -> bool:
+        """Check if the token is parentheses containing concatenated string literals.
+
+        Matches implicit string concatenation in parens like:
+        ``x = ("part one" "part two")`` or multiline variants. These
+        should not be flattened or expanded. A single string in parens
+        is NOT string concatenation and is handled normally.
+
+        Only matches when the outermost paired punctuation after the
+        assignment is ``(``.
+        """
+        stripped = token.strip()
+
+        eq_pos = stripped.find("=")
+        if eq_pos == -1:
+            return False
+
+        after_eq = stripped[eq_pos + 1:].lstrip()
+
+        if not after_eq.startswith("("):
+            return False
+
+        depth = 0
+        i = 0
+        paren_end = -1
+        while i < len(after_eq):
+            if after_eq[i] == "(":
+                depth += 1
+            elif after_eq[i] == ")":
+                depth -= 1
+                if depth == 0:
+                    paren_end = i
+                    break
+            i += 1
+
+        if paren_end == -1:
+            return False
+
+        content = after_eq[1:paren_end].strip()
+
+        if not content:
+            return False
+
+        return self._is_string_concat_content(content)
+
+
+    def _format_string_concat(self, token: str, indent: str) -> str:
+        """Format parenthesized string concatenation.
+
+        Flattens the content, extracts individual string literals, and
+        expands with one string per line.
+        """
+        stripped = token.strip()
+        paren_start = stripped.find("(")
+        paren_end = stripped.rfind(")")
+        before = stripped[:paren_start + 1]
+        content = stripped[paren_start + 1:paren_end]
+        inner_indent = indent + "    "
+
+        strings = self._extract_string_literals(content)
+
+        if not strings:
+            return token
+
+        lines = [f"{indent}{before}"]
+        for s in strings:
+            lines.append(f"{inner_indent}{s}")
+        lines.append(f"{indent})")
+
+        return "\n".join(lines)
+
+
+    def _is_string_concat_content(self, content: str) -> bool:
+        """Check if content contains only concatenated string literals.
+
+        Returns True only when there are 2+ adjacent string literals
+        with no other content (commas, expressions, etc).
+        """
+        s = content.strip()
+
+        if not s:
+            return False
+
+        i = 0
+        string_count = 0
+
+        while i < len(s):
+            ch = s[i]
+
+            if ch in (" ", "\t", "\n", "\r"):
+                i += 1
+                continue
+
+            if s[i:i + 3] in ('"""', "'''"):
+                string_count += 1
+                quote = s[i:i + 3]
+                i += 3
+                while i < len(s) - 2:
+                    if s[i:i + 3] == quote:
+                        i += 3
+                        break
+                    i += 1
+                else:
+                    i = len(s)
+                continue
+
+            if ch in ('"', "'"):
+                string_count += 1
+                quote = ch
+                i += 1
+                while i < len(s):
+                    if s[i] == quote and s[i - 1] != "\\":
+                        i += 1
+                        break
+                    i += 1
+                continue
+
+            return False
+
+        return string_count > 1
+
+
+    def _extract_string_literals(self, content: str) -> list:
+        """Extract individual string literals from concatenated content."""
+        strings = []
+        i = 0
+        s = content.strip()
+
+        while i < len(s):
+            ch = s[i]
+
+            if ch in (" ", "\t", "\n", "\r"):
+                i += 1
+                continue
+
+            if s[i:i + 3] in ('"""', "'''"):
+                quote = s[i:i + 3]
+                start = i
+                i += 3
+                while i < len(s) - 2:
+                    if s[i:i + 3] == quote:
+                        i += 3
+                        break
+                    i += 1
+                else:
+                    i = len(s)
+                strings.append(s[start:i])
+                continue
+
+            if ch in ('"', "'"):
+                quote = ch
+                start = i
+                i += 1
+                while i < len(s):
+                    if s[i] == quote and s[i - 1] != "\\":
+                        i += 1
+                        break
+                    i += 1
+                strings.append(s[start:i])
+                continue
+
+            break
+
+        return strings
+
+
     def _detect_context(self, token: str) -> str:
         """Detect what kind of paired punctuation context this is."""
         stripped = token.strip()
@@ -294,6 +460,9 @@ class PythonPairedPunctuationFormatter(Formatter):
 
     def _format_punctuation(self, token: str, indent: str, context: str) -> str:
         """Format paired punctuation (non-logic contexts)."""
+        if context == "assignment" and self._is_string_parens(token):
+            return self._format_string_concat(token, indent)
+
         flat = self._flatten_token(token, indent, context)
 
         parsed = self._parse_regions(flat, indent, context)
@@ -644,7 +813,8 @@ class PythonPairedPunctuationFormatter(Formatter):
         region: dict,
         region_context: str,
         indent: str,
-        is_nested: bool = False
+        is_nested: bool = False,
+        full_line_len: int = 0
     ) -> bool:
         """Determine if a region should be expanded."""
         if not items:
@@ -671,29 +841,32 @@ class PythonPairedPunctuationFormatter(Formatter):
             return content_len > 30
 
         has_kwarg = any("=" in item and not self._eq_in_string(item) for item in items)
-        more_than_one = len(items) > 1
+        more_than_two = len(items) > 2
+
+        if full_line_len == 0:
+            full_line_len = content_len
 
         if region_context == "funcdef":
-            if content_len > 80:
+            if full_line_len > 80:
                 return True
-            if content_len + indent_len > 100:
+            if full_line_len + indent_len > 100:
                 return True
             if len(items) > 4:
                 return True
-            if has_kwarg and more_than_one:
+            if has_kwarg and more_than_two:
                 return True
             if self._any_inner_expanded(items, indent + "    "):
                 return True
             return False
 
         if region_context in ("call", "decorator"):
-            if content_len > 60:
+            if full_line_len > 60:
                 return True
-            if content_len + indent_len > 80:
+            if full_line_len + indent_len > 80:
                 return True
             if len(items) > 4:
                 return True
-            if has_kwarg and more_than_one:
+            if has_kwarg and more_than_two:
                 return True
             if self._any_inner_expanded(items, indent + "    "):
                 return True
@@ -788,6 +961,12 @@ class PythonPairedPunctuationFormatter(Formatter):
         for item in items:
             regions = self._find_top_regions(item)
             for region in regions:
+                if (
+                    region["open_char"] == "("
+                    and self._is_string_concat_content(region["content"])
+                ):
+                    return True
+
                 inner_items = self._split_items(region["content"])
                 rc = self._region_context(region, item)
                 if self._should_expand(
@@ -830,7 +1009,11 @@ class PythonPairedPunctuationFormatter(Formatter):
         if not items:
             return indent + stripped
 
-        if not self._should_expand(items, region, rc, indent):
+        before = stripped[:region["start"]]
+        after = stripped[region["end"] + 1:]
+        full_line_len = len(before) + 1 + len(", ".join(items)) + 1 + len(after)
+
+        if not self._should_expand(items, region, rc, indent, full_line_len=full_line_len):
             flat = self._format_items_flat(items, region, stripped)
             return indent + flat
 
@@ -851,7 +1034,11 @@ class PythonPairedPunctuationFormatter(Formatter):
         if not items:
             return indent + stripped
 
-        if not self._should_expand(items, region, rc, indent):
+        before = stripped[:region["start"]]
+        after = stripped[region["end"] + 1:]
+        full_line_len = len(before) + 1 + len(", ".join(items)) + 1 + len(after)
+
+        if not self._should_expand(items, region, rc, indent, full_line_len=full_line_len):
             flat = self._format_items_flat(items, region, stripped)
             return indent + flat
 
@@ -865,14 +1052,34 @@ class PythonPairedPunctuationFormatter(Formatter):
         if not regions:
             return indent + stripped
 
-        region = regions[0]
+        last_call_region = None
+        for region in regions:
+            rc = self._region_context(region, stripped)
+            if rc != "subscript":
+                last_call_region = region
+                break
+
+        if last_call_region is None:
+            region = regions[0]
+            items = self._split_items(region["content"])
+            formatted_items = []
+            for item in items:
+                formatted_items.append(self._format_item(item, indent, "subscript"))
+            flat = self._format_items_flat(formatted_items, region, stripped)
+            return indent + flat
+
+        region = last_call_region
         items = self._split_items(region["content"])
-        rc = "call"
+        rc = self._region_context(region, stripped)
 
         if not items:
             return indent + stripped
 
-        if not self._should_expand(items, region, rc, indent):
+        before = stripped[:region["start"]]
+        after = stripped[region["end"] + 1:]
+        full_line_len = len(before) + 1 + len(", ".join(items)) + 1 + len(after)
+
+        if not self._should_expand(items, region, rc, indent, full_line_len=full_line_len):
             flat = self._format_items_flat(items, region, stripped)
             return indent + flat
 
@@ -958,6 +1165,11 @@ class PythonPairedPunctuationFormatter(Formatter):
         is_nested = parent_context in ("dict", "list", "set", "tuple")
 
         for region in regions:
+            if region["open_char"] == "(" and self._is_string_concat_content(region["content"]):
+                expansion_decisions.append("string_concat")
+                any_expanded = True
+                continue
+
             inner_items = self._split_items(region["content"])
             rc = self._region_context(region, item)
             should_exp = self._should_expand(
@@ -969,6 +1181,20 @@ class PythonPairedPunctuationFormatter(Formatter):
 
         if any_expanded:
             for i, region in enumerate(regions):
+                if expansion_decisions[i] == "string_concat":
+                    strings = self._extract_string_literals(region["content"])
+                    inner_indent = indent + "    "
+                    parts = [f"{region['open_char']}"]
+                    for s in strings:
+                        parts.append(f"\n{inner_indent}{s}")
+                    parts.append(f"\n{indent}{region['close_char']}")
+                    expanded = "".join(parts)
+                    start = region["start"] + offset
+                    end = region["end"] + offset + 1
+                    result = result[:start] + expanded + result[end:]
+                    offset += len(expanded) - (region["end"] - region["start"] + 1)
+                    continue
+
                 inner_items = self._split_items(region["content"])
                 rc = self._region_context(region, item)
 

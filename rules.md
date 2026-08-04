@@ -161,8 +161,11 @@
             - any inner paired punct is expanded
             - any other logic block is expanded.
         - if expanded should add parenthesis around them
-    - strings with ()
-        - If they have parenthesis, Should always 
+    - strings concatenation with ()
+        - if more than one string literal, fully expand.
+        - fully expand everything that it is in per usual. 
+    - dictionary key notation
+        - never expand
 
 - [x] header format
     - should be in this order, with one line in between each, if they exist:
