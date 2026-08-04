@@ -3,6 +3,7 @@ __all__ = [
 ]
 
 
+import json
 from typing import List
 
 from loguru import logger
@@ -17,7 +18,7 @@ from cleer.types import *
 def cleer_default_config(
     python_packages: List[str] | None=None,
     python_internal_packages: List[str] | None=None,
-    python_excludes: List[str] | None=None
+    excludes: List[str] | None=None
 ) -> CleerConfig:
     """Generate a new instance of cleer with the default configs.
 
@@ -33,8 +34,8 @@ def cleer_default_config(
         List of internal package names for import formatting.
         Internal packages are those that are hosted on private
         repositories, not including current packages.
-    python_excludes : List[str] | None, default=["**/venv*/**", "**/.venv*/**"]
-        File patterns to exclude from formatting python files.
+    excludes : List[str] | None, default=["**/venv*/**", "**/.venv*/**"]
+        File patterns to exclude from formatting files.
 
     Returns
     -------
@@ -50,25 +51,23 @@ def cleer_default_config(
     if python_internal_packages is None:
         python_internal_packages = []
 
-    if python_excludes is None:
-        python_excludes = []
+    if excludes is None:
+        excludes = []
 
-    python_excludes += ["**/.venv*/**", "**/venv*/**"]
+    excludes += ["**/.venv*/**", "**/venv*/**"]
     logger.debug(
         f"Python Packages: {python_packages}\n"
         f"Internal Python Packages: {python_internal_packages}\n"
-        f"Python Excludes: {python_excludes}"
+        f" Excludes: {json.dumps(excludes, indent=4)}"
     )
 
-    
     return {
         "groups": [
             {
                 "includes": [
-                    "**/*.py",
-                    "**/*.json"
+                    "**/*.py"
                 ],
-                "excludes": python_excludes,
+                "excludes": excludes,
                 "validators": [],
                 "stages": [
                     {
@@ -105,7 +104,7 @@ def cleer_default_config(
             },
             {
                 "includes": package_includes,
-                "excludes": python_excludes,
+                "excludes": excludes,
                 "validators": [
                     PythonSyntaxValidator()
                 ],
@@ -120,7 +119,7 @@ def cleer_default_config(
             },
             {
                 "includes": ["**/*.py"],
-                "excludes": python_excludes,
+                "excludes": excludes,
                 "validators": [
                     PythonSyntaxValidator()
                 ],

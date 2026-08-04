@@ -117,13 +117,14 @@ def main(argv: List[str]=None) -> None:
                 )
             )
         else:
-            logger.error(
+            logger.critical(
                 (
                     f"Found the default module, 'clr.py', "
                     f"but failed to import the Cleer instance from it. "
                     f"[{type(exc).__name__}]: {exc}"
                 )
             )
+            exit(1)
 
         clr = Cleer(cleer_default_config())
         logger.info("Default Cleer instance generated.")
