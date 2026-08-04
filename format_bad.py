@@ -11,6 +11,7 @@ from cleer import (
     CleerError,
     CleerGroup
 )
+__version__ = "0.1.0"
 from typing import Dict, List, Literal
 from my_package import here, there, everywhere, now_here, now_there, and_everywhere
 import requests
@@ -174,3 +175,28 @@ for thing in ["hello", "there", "how", "are"]:
 
 if hello in ("thing", "there", "how"):
     print(hello)
+inspection['excluded'].append( {"group": gi,"pattern": exclude_pattern})
+def _keep_result(self,result: Inspection | Formatting | FormattingDocument,
+    keep_only_excluded: bool,
+    keep_not_included: bool
+) -> bool:
+    if (
+        len(result['included']) > 0 or(
+            len(result['excluded']) > 0 and keep_only_excluded is True
+        ) or keep_not_included is True
+    ):
+        return True
+
+    return False
+
+def _format_one(
+    self,file_path: str | pathlib.Path, document: str | None
+) -> FormattingDocument:
+    formatting: FormattingDocument = {"path": file_path,
+        "included": [
+
+        ],
+        "excluded": [],
+        "invalidations": [],
+        "document": document
+    }

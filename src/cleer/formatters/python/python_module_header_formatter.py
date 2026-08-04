@@ -13,6 +13,7 @@ class PythonModuleHeaderFormatter(Formatter):
 
     The header block consists of (in order, each optional):
     - Module docstring
+    - ``__version__`` assignment
     - ``__all__`` assignment
     - Import statements
 
@@ -88,13 +89,19 @@ class PythonModuleHeaderFormatter(Formatter):
         if not header_sections:
             return document
 
-        last_header_end = header_sections[-1][1]
-        first_code_line = self._find_first_code_line(tree, header_sections)
+        all_ranges = []
+        for section in header_sections:
+            all_ranges.extend(section)
+
+        last_header_end = max(end for _, end in all_ranges)
+        first_code_line = self._find_first_code_line(tree, last_header_end)
 
         result_parts = []
 
-        for i, (start, end) in enumerate(header_sections):
-            section_lines = lines[start:end]
+        for section in header_sections:
+            section_lines = []
+            for start, end in section:
+                section_lines.extend(lines[start:end])
             section_text = "\n".join(section_lines)
 
             while section_text.endswith("\n"):
@@ -117,70 +124,67 @@ class PythonModuleHeaderFormatter(Formatter):
     def _identify_header_sections(self, tree: ast.Module) -> list:
         """Identify header sections as (start_line, end_line) 0-indexed tuples.
 
-        Header items are (in order):
-        - Module docstring (first Expr with string constant)
-        - __all__ assignments
-        - Import/ImportFrom statements
+        Scans from the top of the module collecting header items in any
+        order. Stops at the first non-header node. Returns sections in
+        canonical order:
 
-        Stops at the first non-header node.
+        - Module docstring (first Expr with string constant)
+        - ``__version__`` assignment
+        - ``__all__`` assignment
+        - Import/ImportFrom statements (grouped as one section)
+
+        Each section is a list of (start_line, end_line) tuples for the
+        individual statements in that section.
         """
-        sections = []
-        i = 0
         body = tree.body
 
         if not body:
-            return sections
+            return []
 
-        first = body[0]
+        docstring_ranges = []
+        version_ranges = []
+        all_ranges = []
+        import_ranges = []
 
-        if (
-            isinstance(first, ast.Expr)
-            and isinstance(first.value, ast.Constant)
-            and isinstance(first.value.value, str)
-        ):
-            sections.append((first.lineno - 1, first.end_lineno))
-            i = 1
-
-        while i < len(body):
-            node = body[i]
-
-            if self._is_all_assignment(node):
-                sections.append((node.lineno - 1, node.end_lineno))
-                i += 1
+        for i, node in enumerate(body):
+            if (
+                i == 0
+                and isinstance(node, ast.Expr)
+                and isinstance(node.value, ast.Constant)
+                and isinstance(node.value.value, str)
+            ):
+                docstring_ranges.append((node.lineno - 1, node.end_lineno))
+            elif self._is_version_assignment(node):
+                version_ranges.append((node.lineno - 1, node.end_lineno))
+            elif self._is_all_assignment(node):
+                all_ranges.append((node.lineno - 1, node.end_lineno))
+            elif isinstance(node, (ast.Import, ast.ImportFrom)):
+                import_ranges.append((node.lineno - 1, node.end_lineno))
             else:
                 break
 
-        import_start = None
-        import_end = None
+        sections = []
 
-        while i < len(body):
-            node = body[i]
+        if docstring_ranges:
+            sections.append(docstring_ranges)
 
-            if isinstance(node, (ast.Import, ast.ImportFrom)):
-                if import_start is None:
-                    import_start = node.lineno - 1
+        if version_ranges:
+            sections.append(version_ranges)
 
-                import_end = node.end_lineno
-                i += 1
-            else:
-                break
+        if all_ranges:
+            sections.append(all_ranges)
 
-        if import_start is not None:
-            sections.append((import_start, import_end))
+        if import_ranges:
+            sections.append(import_ranges)
 
         return sections
 
 
-    def _find_first_code_line(self, tree: ast.Module, header_sections: list) -> int | None:
+    def _find_first_code_line(self, tree: ast.Module, last_header_end: int) -> int | None:
         """Find the first line of module code after the header.
 
         Returns 0-indexed line number, or None if no code follows.
         """
-        if not header_sections:
-            return None
-
-        last_header_end = header_sections[-1][1]
-
         for node in tree.body:
             line = node.lineno - 1
 
@@ -215,6 +219,18 @@ class PythonModuleHeaderFormatter(Formatter):
 
         for target in node.targets:
             if isinstance(target, ast.Name) and target.id == "__all__":
+                return True
+
+        return False
+
+
+    def _is_version_assignment(self, node) -> bool:
+        """Check if a node is a __version__ assignment."""
+        if not isinstance(node, ast.Assign):
+            return False
+
+        for target in node.targets:
+            if isinstance(target, ast.Name) and target.id == "__version__":
                 return True
 
         return False

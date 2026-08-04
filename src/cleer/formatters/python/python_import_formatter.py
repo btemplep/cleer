@@ -219,9 +219,27 @@ class PythonImportFormatter(Formatter):
         for imp in imports:
             lines.extend(self._format_import(imp))
 
-        lines.sort(key=lambda line: line.lstrip("."))
+        lines.sort(key=self._sort_key_line)
 
         return lines
+
+
+    def _sort_key_line(self, line: str) -> str:
+        """Generate a sort key for a formatted import line.
+
+        Strips the ``from`` or ``import`` keyword so sorting is by
+        module name only.
+        """
+        stripped = line.lstrip(".")
+        leading_dots = line[:len(line) - len(stripped)]
+
+        if stripped.startswith("from "):
+            return leading_dots + stripped[5:]
+
+        if stripped.startswith("import "):
+            return leading_dots + stripped[7:]
+
+        return line
 
 
     def _format_import(self, imp: dict) -> List[str]:

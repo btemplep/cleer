@@ -3,9 +3,12 @@ from cleer import Cleer, cleer_default_config
 
 clr = Cleer(
     config=cleer_default_config(
-        python_packages=["cleer"],
-        python_internal_packages=["my_package"],
-        python_excludes=["**/tests/unit/fixtures/format_*.py"]
+        python_packages=[
+            "cleer"
+        ],
+        python_internal_packages=[],
+        python_excludes=[
+            "**/tests/unit/fixtures/format_*.py"]
     )
 )
 

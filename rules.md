@@ -59,7 +59,7 @@
         - The current package
     - an imports section is sequential lines of code that only have import statements or blank lines
     - Should take a list of internal package names and current package names, by default none
-    - Each block should be sorted alphabetically
+    - Each block should be sorted alphabetically, not including the preceding import or from keyword
     - flatten each import, if more than 80 characters then it should be multi-line with one per line
     - 1 blank line before, 2 blank lines after an imports section
     - items in a multi import or import from statement are sorted alphabetically, as well.
@@ -125,7 +125,7 @@
             - over 100 chars including indent
             - over 4 args
             - any inner paired punct is expanded
-            - more than one arg with at least one given as a kwarg
+            - more than 2 args with at least one given as a kwarg
         - if any sub items are expanded
         - never split empty args, ie don't split the function def parenthesis to a new line
         - if any are expanded then they all are expanded, unless empty
@@ -134,9 +134,9 @@
         - expand if any of the following
             - over 60 characters not including indent
             - over 80 chars including indent
-            - over 4 args
+            - over 4 args, now kwargs
             - any inner paired punct is expanded
-            - more than one arg with at least one given as a kwarg
+            - more than 2 args with at least one given as a kwarg
         - never split empty args, ie don't split the function call parenthesis to a new line
         - if any are expanded then they all are expanded, unless empty
     - decorators
@@ -150,14 +150,24 @@
         - never split empty args, ie don't split the decorator parenthesis to a new line
         - if any are expanded then they all are expanded, unless empty
     - logic blocks
-        - statements are separated by `or` and `and`
+        - statements are separated by the logic operators `or` and `and`
+        - When a logic block is expanded, the operators should proceed the following token on a line.
         - First flatten
+        - Add parenthesis to clarify order of operations as well
         - expand if any of the following
             - more than 2 statements
             - length is over 60 without indent
             - length is over 80 with indent
             - any inner paired punct is expanded
+            - any other logic block is expanded.
         - if expanded should add parenthesis around them
-            - Add parenthesis to clarify order of operations as well.
+    - strings with ()
+        - If they have parenthesis, Should always 
 
-
+- [x] header format
+    - should be in this order, with one line in between each, if they exist:
+        - module docstring
+        - __version__
+        - __all__
+        - imports
+    Then 2 blank lines
