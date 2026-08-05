@@ -170,6 +170,33 @@ class PythonPairedPunctuationFormatter(Formatter):
         return "\n".join(lines)
 
 
+    def _wrap_string_concat(self, item: str, indent: str) -> str:
+        """Wrap bare string concatenation in parentheses and expand.
+
+        Takes a bare string concat item like ``"str1" "str2"`` and
+        returns it wrapped in its own parentheses, multiline:
+
+        ```
+        (
+            "str1"
+            "str2"
+        )
+        ```
+        """
+        strings = self._extract_string_literals(item)
+
+        if not strings:
+            return item
+
+        inner_indent = indent + "    "
+        lines = ["("]
+        for s in strings:
+            lines.append(f"{inner_indent}{s}")
+        lines.append(f"{indent})")
+
+        return "\n".join(lines)
+
+
     def _is_string_concat_content(self, content: str) -> bool:
         """Check if content contains only concatenated string literals.
 
@@ -191,6 +218,15 @@ class PythonPairedPunctuationFormatter(Formatter):
                 i += 1
                 continue
 
+            prefix_start = i
+            while i < len(s) and s[i].lower() in ("f", "r", "b", "u"):
+                i += 1
+
+            if i >= len(s):
+                if i > prefix_start:
+                    return False
+                break
+
             if s[i:i + 3] in ('"""', "'''"):
                 string_count += 1
                 quote = s[i:i + 3]
@@ -204,9 +240,9 @@ class PythonPairedPunctuationFormatter(Formatter):
                     i = len(s)
                 continue
 
-            if ch in ('"', "'"):
+            if s[i] in ('"', "'"):
                 string_count += 1
-                quote = ch
+                quote = s[i]
                 i += 1
                 while i < len(s):
                     if s[i] == quote and s[i - 1] != "\\":
@@ -214,6 +250,9 @@ class PythonPairedPunctuationFormatter(Formatter):
                         break
                     i += 1
                 continue
+
+            if i > prefix_start:
+                return False
 
             return False
 
@@ -233,9 +272,16 @@ class PythonPairedPunctuationFormatter(Formatter):
                 i += 1
                 continue
 
+            prefix_start = i
+            while i < len(s) and s[i].lower() in ("f", "r", "b", "u"):
+                i += 1
+
+            if i >= len(s):
+                break
+
             if s[i:i + 3] in ('"""', "'''"):
                 quote = s[i:i + 3]
-                start = i
+                start = prefix_start
                 i += 3
                 while i < len(s) - 2:
                     if s[i:i + 3] == quote:
@@ -247,9 +293,9 @@ class PythonPairedPunctuationFormatter(Formatter):
                 strings.append(s[start:i])
                 continue
 
-            if ch in ('"', "'"):
-                quote = ch
-                start = i
+            if s[i] in ('"', "'"):
+                quote = s[i]
+                start = prefix_start
                 i += 1
                 while i < len(s):
                     if s[i] == quote and s[i - 1] != "\\":
@@ -298,10 +344,11 @@ class PythonPairedPunctuationFormatter(Formatter):
         """Check if a string contains a top-level 'or' or 'and' operator.
 
         Recognizes operators with or without surrounding spaces,
-        including adjacent to parentheses (e.g., `or(`, `)and`).
+        including adjacent to parentheses (e.g., ``or(``, ``)and``).
         """
         import re
-        return bool(re.search(r"(?<=[ )\n])or(?=[ (\n])|(?<=[ )\n])and(?=[ (\n])", s))
+        safe = self._strip_string_contents(s)
+        return bool(re.search(r"(?<=[ )\n])or(?=[ (\n])|(?<=[ )\n])and(?=[ (\n])", safe))
 
 
     def _is_chained_call(self, stripped: str) -> bool:
@@ -479,7 +526,52 @@ class PythonPairedPunctuationFormatter(Formatter):
         if not self._brackets_balanced(inner):
             return False
 
-        return " and " in inner or " or " in inner
+        safe = self._strip_string_contents(inner)
+        return " and " in safe or " or " in safe
+
+
+    def _strip_string_contents(self, s: str) -> str:
+        """Replace string literal contents with underscores.
+
+        Preserves string boundaries (quotes) but replaces inner content
+        so that keywords like ``and``/``or`` inside strings are not
+        detected as logic operators.
+        """
+        result = []
+        i = 0
+
+        while i < len(s):
+            if s[i:i + 3] in ('"""', "'''"):
+                quote = s[i:i + 3]
+                result.append(quote)
+                i += 3
+                while i < len(s):
+                    if s[i:i + 3] == quote:
+                        result.append(quote)
+                        i += 3
+                        break
+                    result.append("_")
+                    i += 1
+            elif s[i] in ('"', "'"):
+                quote = s[i]
+                result.append(quote)
+                i += 1
+                while i < len(s):
+                    if s[i] == "\\" and i + 1 < len(s):
+                        result.append("__")
+                        i += 2
+                    elif s[i] == quote:
+                        result.append(quote)
+                        i += 1
+                        break
+                    else:
+                        result.append("_")
+                        i += 1
+            else:
+                result.append(s[i])
+                i += 1
+
+        return "".join(result)
 
 
     def _expand_logic_subgroup(self, item: str, indent: str) -> str:
@@ -1303,6 +1395,9 @@ class PythonPairedPunctuationFormatter(Formatter):
     def _any_inner_expanded(self, items: list[str], indent: str) -> bool:
         """Check if any item contains an inner region that would expand."""
         for item in items:
+            if self._is_string_concat_content(item):
+                return True
+
             regions = self._find_top_regions(item)
             for region in regions:
                 if (
@@ -1690,6 +1785,9 @@ class PythonPairedPunctuationFormatter(Formatter):
 
     def _format_item(self, item: str, indent: str, parent_context: str) -> str:
         """Format a single item, potentially expanding its inner regions."""
+        if self._is_string_concat_content(item):
+            return self._wrap_string_concat(item, indent)
+
         regions = self._find_top_regions(item)
 
         if not regions:

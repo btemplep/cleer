@@ -47,7 +47,7 @@ class PythonCommaSpaceFormatter(Formatter):
         before = token[:comma_idx]
         after = token[comma_idx + 1:]
 
-        if before != "":
+        if before != before.rstrip(" \t"):
             return "There should be no space before a comma, and one space after."
 
         if after != " " and not after.startswith("\n"):
@@ -73,10 +73,13 @@ class PythonCommaSpaceFormatter(Formatter):
             return token
 
         comma_idx = token.index(",")
+        before = token[:comma_idx]
         after = token[comma_idx + 1:]
+
+        before_fixed = before.rstrip(" \t")
 
         if "\n" in after:
             newline_idx = after.index("\n")
-            return "," + after[newline_idx:]
+            return before_fixed + "," + after[newline_idx:]
 
-        return ", "
+        return before_fixed + ", "

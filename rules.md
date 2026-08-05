@@ -166,8 +166,9 @@
             - any inner paired punct is expanded
             - any other logic block is expanded.
         - if expanded should add parenthesis around them
-    - strings concatenation with ()
-        - if more than one string literal, fully expand.
+    - native strings concatenation, with () or without
+        - flatten first, as usual
+        - should always be multiline, and surrounded by parenthesis for themselves
         - fully expand everything that it is in per usual. 
     - dictionary key notation
         - never expand

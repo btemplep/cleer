@@ -260,4 +260,45 @@ my_func_call_herethere(thing="here", that="this").no_args_call().another_one("h"
 
 
 
+def config_default():
+    return {
+        "groups": [
+            {
+                "includes": [
+                    "**/*.py"
+                ],
+                "excludes": excludes,
+                "validators": [
+                    PythonSyntaxValidator()
+                ],
+                "stages": [
+                    {
+                        "tokenizer": PythonBlockStartTokenizer(),
+                        "formatters": [
+                            BlankLineFormatter(
+                                num_blank_lines=0, message="No blank lines between start of code blocks and first line of body."
+                            ),
+                            thing(hello="there", here="now", you="good")
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
 
+logger.debug(
+    f"Python Packages: {python_packages}\n"
+    f"Internal Python Packages: {python_internal_packages}\n"
+    f" Excludes: {json.dumps(excludes, indent=4)}"
+)
+logger.debug(f"Python Packages: {python_packages}\n"f"Internal Python Packages: {python_internal_packages}\n"
+    f" Excludes: {json.dumps(excludes, indent=4)}"
+)
+
+thing = (
+        f"Python Packages: {python_packages}\n"
+    f"Internal Python Packages: {python_internal_packages}\n"
+    f" Excludes: {json.dumps(excludes, indent=4)}"
+)
+other = here((f"Python Packages: {python_packages}\n"f"Internal Python Packages: {python_internal_packages}\n"f" Excludes: {json.dumps(excludes, indent=4)}"
+), 1234)

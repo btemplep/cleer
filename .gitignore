@@ -7,4 +7,4 @@ __pycache__/
 tester.py
 bak/
 TODO.md
-
+.nox/
