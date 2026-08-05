@@ -11,7 +11,7 @@ from cleer.formatters.formatter import Formatter
 class PythonModuleDocstringPresenceFormatter(Formatter):
     """Enforce that a module docstring exists at the top of the file.
 
-    Receives the entire document (from ``FileTokenizer``). If no module
+    Receives the entire document (from `FileTokenizer`). If no module
     docstring is found as the first statement, inserts a placeholder
     docstring at the top.
 

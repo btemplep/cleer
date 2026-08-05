@@ -9,7 +9,7 @@ It has a set of defaults that I have chosen for a specific and readable style.  
 
 ## Installation
 
-```console
+``console
 pip install cleer
 ```
 
@@ -21,7 +21,7 @@ Out of the box it comes with a CLI.
 
 Use `--help`on the base or any commands for all options.
 
-```console
+``onsole
 cleer --help
 ```
 
@@ -31,17 +31,17 @@ It has 2 main commands:
 
 You can use them both on a single file or a all files/dirs in a directory. 
 
-```console
+``onsole
 cleer inspect path/to/file.py
 ```
 
-```console
+``onsole
 cleer inspect path/to/dir/
 ```
 
 Output example for inspect:
 
-```json
+``son
 [
     {
         "path": "/full/path/to/file.py",
@@ -57,12 +57,12 @@ Output example for inspect:
 ```
 
 Format files in place:
-```console
+``onsole
 cleer format path/to/file.py
 ```
 
 Inspect or format with specific config and log level
-```console
+``onsole
 cleer format --log-level DEBUG --cleer python_path.to.my_file:my_cleer_instance  path/to/file.py
 ```
 
@@ -70,7 +70,7 @@ Formatters for python packages are recommended to create a `clr.py` file in the 
 
 If the package can by imported as "my_package", and you just want the default formatting:
 
-```python
+``ython
 """clr.py"""
 
 from cleer import cleer_default
@@ -92,7 +92,7 @@ The chain of configuration is as follows:
 
 Example of custom `Cleer` instance/config:
 
-```python
+``ython
 from cleer import *
 
 
@@ -138,7 +138,7 @@ clr = Cleer(
 
 You can automatically format on save in vscode by installing the (Run On Save)[https://marketplace.visualstudio.com/items?itemName=emeraldwalk.RunOnSave] extension and adding a config like this under `.vscode/settings.json`:
 
-```json
+``son
 {
     "emeraldwalk.runonsave": {
         "commands": [
@@ -159,7 +159,7 @@ The `cleer` CLI is a thin wrapper around the `Cleer` class.
 
 You can directly call different inspect and format options on the `Cleer` class instance.
 
-```python
+``ython
 import pathlib
 
 from cleer import *

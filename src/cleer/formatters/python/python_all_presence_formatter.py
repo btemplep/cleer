@@ -8,13 +8,13 @@ from cleer.formatters.formatter import Formatter
 
 
 class PythonAllPresenceFormatter(Formatter):
-    """Enforce that ``__all__`` exists in a module.
+    """Enforce that `__all__` exists in a module.
 
-    Receives the entire document (from ``FileTokenizer``). If no
-    ``__all__`` assignment is found, inserts ``__all__ = []`` after the
+    Receives the entire document (from `FileTokenizer`). If no
+    `__all__` assignment is found, inserts `__all__ = []` after the
     module docstring (if present) and before imports or other code.
 
-    If ``__all__`` already exists, the document is returned unchanged.
+    If `__all__` already exists, the document is returned unchanged.
 
     Examples
     --------
@@ -30,7 +30,7 @@ class PythonAllPresenceFormatter(Formatter):
 
 
     def inspect(self, token: str) -> str | None:
-        """Inspect whether ``__all__`` exists in the module.
+        """Inspect whether `__all__` exists in the module.
 
         Parameters
         ----------
@@ -40,7 +40,7 @@ class PythonAllPresenceFormatter(Formatter):
         Returns
         -------
         str | None
-            Error message if ``__all__`` is missing.
+            Error message if `__all__` is missing.
             Returns `None` if there is no violation.
         """
         if self._has_all(token):
@@ -50,7 +50,7 @@ class PythonAllPresenceFormatter(Formatter):
 
 
     def format(self, token: str) -> str:
-        """Insert ``__all__ = []`` if missing.
+        """Insert `__all__ = []` if missing.
 
         Parameters
         ----------
@@ -60,7 +60,7 @@ class PythonAllPresenceFormatter(Formatter):
         Returns
         -------
         str
-            Document with ``__all__ = []`` inserted if it was missing.
+            Document with `__all__ = []` inserted if it was missing.
         """
         if self._has_all(token):
             return token

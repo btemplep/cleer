@@ -31,7 +31,7 @@ class Cleer:
 
     Examples
     --------
-    ```python
+    ``ython
     import pathlib
 
     from cleer import Cleer, LineTokenizer, TrailingWhitespaceFormatter

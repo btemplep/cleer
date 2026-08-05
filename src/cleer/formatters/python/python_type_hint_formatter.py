@@ -96,7 +96,7 @@ class PythonTypeHintFormatter(Formatter):
         """Split token into prefix and type expression.
 
         The prefix is everything before the type annotation starts.
-        Handles patterns like ``x: ``, ``    a: ``, ``) -> ``, ``x = ``,
+        Handles patterns like `x: `, `    a: `, `) -> `, `x = `,
         and bare expressions.
 
         Parameters

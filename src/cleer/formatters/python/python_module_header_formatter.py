@@ -13,8 +13,8 @@ class PythonModuleHeaderFormatter(Formatter):
 
     The header block consists of (in order, each optional):
     - Module docstring
-    - ``__version__`` assignment
-    - ``__all__`` assignment
+    - `__version__` assignment
+    - `__all__` assignment
     - Import statements
 
     Rules:
@@ -150,8 +150,8 @@ class PythonModuleHeaderFormatter(Formatter):
         canonical order:
 
         - Module docstring (first Expr with string constant)
-        - ``__version__`` assignment
-        - ``__all__`` assignment
+        - `__version__` assignment
+        - `__all__` assignment
         - Import/ImportFrom statements (grouped as one section)
 
         Each section is a list of (start_line, end_line) tuples for the

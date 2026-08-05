@@ -1,6 +1,6 @@
 {
     "autoDocstring.docstringFormat": "numpy",
-    "editor.formatOnSave": true,
+    "editor.formatOnSave": false,
     "emeraldwalk.runonsave": {
         "commands": [
             {

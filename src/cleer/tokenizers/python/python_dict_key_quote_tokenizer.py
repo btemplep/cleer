@@ -13,7 +13,7 @@ class PythonDictKeyQuoteTokenizer(Tokenizer):
     """Tokenizes string literals used in dict bracket subscript lookups.
 
     Uses Python's AST to find string constants used as keys in bracket
-    subscript access (e.g., ``my_dict['key']``). Emits the full source
+    subscript access (e.g., `my_dict['key']`). Emits the full source
     text of each such string including its quote characters.
 
     Examples

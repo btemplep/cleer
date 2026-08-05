@@ -7,7 +7,6 @@ import json
 
 from loguru import logger
 
-from cleer.cleer import Cleer
 from cleer.formatters import * 
 from cleer.tokenizers import * 
 from cleer.validators import *
@@ -26,9 +25,9 @@ def cleer_default_config(
     python_packages : list[str] | None, optional
         List of package names for this project/repo/dir.
         Used to classify imports as "current package" and to determine
-        which directories should enforce ``__all__``. File globs are
-        derived from names (e.g. ``"my_pkg"`` becomes
-        ``"my_pkg/**/*.py"``). ``src/**/*.py`` is always included.
+        which directories should enforce `__all__`. File globs are
+        derived from names (e.g. `"my_pkg"` becomes
+        `"my_pkg/**/*.py"`). `src/**/*.py` is always included.
     python_internal_packages : list[str] | None, optional
         List of internal package names for import formatting.
         Internal packages are those that are hosted on private
@@ -39,7 +38,7 @@ def cleer_default_config(
     Returns
     -------
     CleerConfig
-        Config dict for the ``Cleer`` class.
+        Config dict for the `Cleer` class.
     """
     if python_packages is None:
         python_packages = []
@@ -62,6 +61,23 @@ def cleer_default_config(
 
     return {
         "groups": [
+            {
+                "includes": [
+                    "**/*.json"
+                ],
+                "excludes": excludes,
+                "validators": [
+                    JSONValidator()
+                ],
+                "stages": [
+                    {
+                        "tokenizer": FileTokenizer(),
+                        "formatters": [
+                            JSONFormatter()
+                        ]
+                    }
+                ]
+            },
             {
                 "includes": [
                     "**/*.py"

@@ -14,11 +14,11 @@ class PythonChainBoundaryTokenizer(Tokenizer):
     Finds whitespace between the end of one block and the start of the
     next connector in a chain (if/elif/else, try/except/else/finally).
 
-    When ``after_return=False`` (default), emits tokens for boundaries
+    When `after_return=False` (default), emits tokens for boundaries
     where the previous statement is NOT a return/yield/exit. These
     blank lines should be removed.
 
-    When ``after_return=True``, emits tokens for boundaries where the
+    When `after_return=True`, emits tokens for boundaries where the
     previous statement IS a return/yield/exit and the blank lines are
     not exactly 1. These should be normalized to 1 blank.
 

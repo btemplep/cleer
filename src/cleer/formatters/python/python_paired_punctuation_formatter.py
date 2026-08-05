@@ -57,7 +57,7 @@ class PythonPairedPunctuationFormatter(Formatter):
         -------
         str | None
             Error message if the token has a paired punctuation
-            violation. Returns ``None`` if there is no violation.
+            violation. Returns `None` if there is no violation.
         """
         formatted = self.format(token)
 
@@ -102,12 +102,12 @@ class PythonPairedPunctuationFormatter(Formatter):
         """Check if the token is parentheses containing concatenated string literals.
 
         Matches implicit string concatenation in parens like:
-        ``x = ("part one" "part two")`` or multiline variants. These
+        `x = ("part one" "part two")` or multiline variants. These
         should not be flattened or expanded. A single string in parens
         is NOT string concatenation and is handled normally.
 
         Only matches when the outermost paired punctuation after the
-        assignment is ``(``.
+        assignment is `(`.
         """
         stripped = token.strip()
 
@@ -298,7 +298,7 @@ class PythonPairedPunctuationFormatter(Formatter):
         """Check if a string contains a top-level 'or' or 'and' operator.
 
         Recognizes operators with or without surrounding spaces,
-        including adjacent to parentheses (e.g., ``or(``, ``)and``).
+        including adjacent to parentheses (e.g., `or(`, `)and`).
         """
         import re
         return bool(re.search(r"(?<=[ )\n])or(?=[ (\n])|(?<=[ )\n])and(?=[ (\n])", s))
@@ -308,7 +308,7 @@ class PythonPairedPunctuationFormatter(Formatter):
         """Check if the token is a chained function call.
 
         A chained call has `).method(` — a closing paren followed by
-        ``.method_name(`` at the top level.
+        `.method_name(` at the top level.
         """
         depth = 0
         i = 0
@@ -665,7 +665,7 @@ class PythonPairedPunctuationFormatter(Formatter):
     def _split_by_operator(self, s: str, operator: str) -> list[str]:
         """Split string by an operator at depth 0, respecting strings and brackets.
 
-        Handles operators adjacent to parentheses (e.g., ``or(``, ``)and(``).
+        Handles operators adjacent to parentheses (e.g., `or(`, `)and(`).
         The operator keyword is extracted from the padded operator string.
         """
         parts = []
@@ -1463,9 +1463,9 @@ class PythonPairedPunctuationFormatter(Formatter):
         """Split a chained call into segments.
 
         Each segment is a dict with:
-        - ``prefix``: the function/method name including leading dot
-        - ``args``: the content inside the parentheses
-        - ``has_args``: whether there are any arguments
+        - `prefix`: the function/method name including leading dot
+        - `args`: the content inside the parentheses
+        - `has_args`: whether there are any arguments
 
         Returns
         -------

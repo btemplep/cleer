@@ -10,13 +10,13 @@ from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
 
 class PythonAllTokenizer(Tokenizer):
-    """Tokenizes the first ``__all__`` assignment in a module.
+    """Tokenizes the first `__all__` assignment in a module.
 
-    Emits a token spanning the ``__all__`` assignment along with
+    Emits a token spanning the `__all__` assignment along with
     surrounding blank lines so the formatter can enforce correct spacing
     and formatting.
 
-    Only the first ``__all__`` assignment is tokenized. Subsequent
+    Only the first `__all__` assignment is tokenized. Subsequent
     assignments are ignored.
 
     Examples
@@ -33,7 +33,7 @@ class PythonAllTokenizer(Tokenizer):
 
 
     def tokenize(self, document: str) -> list[TokenResult]:
-        """Tokenize the first ``__all__`` assignment with surrounding context.
+        """Tokenize the first `__all__` assignment with surrounding context.
 
         Parameters
         ----------
@@ -43,7 +43,7 @@ class PythonAllTokenizer(Tokenizer):
         Returns
         -------
         list[TokenResult]
-            List with at most one token result for the ``__all__`` block.
+            List with at most one token result for the `__all__` block.
 
             ```python
             [

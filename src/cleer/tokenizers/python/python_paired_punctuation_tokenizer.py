@@ -13,9 +13,9 @@ class PythonPairedPunctuationTokenizer(Tokenizer):
     """Tokenizes statements containing paired punctuation or logic conditions.
 
     Finds and emits full statement lines that contain paired punctuation
-    (parentheses, brackets, braces) or logic conditions with ``and``/``or``.
+    (parentheses, brackets, braces) or logic conditions with `and`/`or`.
 
-    Excludes ``__all__`` assignments, type hint annotations, and ``for``
+    Excludes `__all__` assignments, type hint annotations, and `for`
     loop unpacking variables.
 
     Examples

@@ -9,7 +9,7 @@ from cleer.formatters.formatter import Formatter
 class PythonCommaSpaceFormatter(Formatter):
     """Enforce no space before comma, one space after (or newline).
 
-    For single-line comma sequences, enforces ``, `` (no space before,
+    For single-line comma sequences, enforces `, ` (no space before,
     one space after). For multi-line sequences where the next element is
     on a new line, preserves the newline and indentation.
 

@@ -9,10 +9,10 @@ from cleer.formatters.formatter import Formatter
 
 
 class PythonAllFormatter(Formatter):
-    """Enforce ``__all__`` formatting: sorted, one item per line, blank lines around.
+    """Enforce `__all__` formatting: sorted, one item per line, blank lines around.
 
     Enforces:
-    - One blank line before and after ``__all__``
+    - One blank line before and after `__all__`
     - Items sorted alphabetically
     - One item per line (if there are any items)
     - Uses double quotes for items
@@ -20,17 +20,17 @@ class PythonAllFormatter(Formatter):
     Parameters
     ----------
     quote : str, default='"'
-        Quote character to use for ``__all__`` items.
+        Quote character to use for `__all__` items.
 
     Examples
     --------
 
-    ```python
+    ``python
     from cleer import PythonAllFormatter
 
     formatter = PythonAllFormatter()
     result = formatter.format("\\n__all__ = ['Foo', 'Bar']\\n\\n")
-    ```
+    ``
     """
     accepts_token_types = ["python_all"]
 
@@ -40,12 +40,12 @@ class PythonAllFormatter(Formatter):
 
 
     def inspect(self, token: str) -> str | None:
-        """Inspect ``__all__`` formatting.
+        """Inspect `__all__` formatting.
 
         Parameters
         ----------
         token : str
-            String token containing ``__all__`` with surrounding blank lines.
+            String token containing `__all__` with surrounding blank lines.
 
         Returns
         -------
@@ -61,17 +61,17 @@ class PythonAllFormatter(Formatter):
 
 
     def format(self, token: str) -> str:
-        """Reformat ``__all__``.
+        """Reformat `__all__`.
 
         Parameters
         ----------
         token : str
-            Token to format (``__all__`` block with surrounding whitespace).
+            Token to format (`__all__` block with surrounding whitespace).
 
         Returns
         -------
         str
-            Correctly formatted ``__all__`` block.
+            Correctly formatted `__all__` block.
         """
         return self._format_token(token)
 

@@ -232,7 +232,7 @@ class PythonImportFormatter(Formatter):
     def _sort_key_line(self, line: str) -> str:
         """Generate a sort key for a formatted import line.
 
-        Strips the ``from`` or ``import`` keyword so sorting is by
+        Strips the `from` or `import` keyword so sorting is by
         module name only.
         """
         stripped = line.lstrip(".")
