@@ -3,7 +3,6 @@ __all__ = ["Cleer"]
 
 import pathlib
 import re
-from typing import List
 
 from loguru import logger
 
@@ -84,7 +83,7 @@ class Cleer:
     def _get_file_pattern_match(
         self,
         file_path: pathlib.Path,
-        patterns: List[str]
+        patterns: list[str]
     ) -> str | None:
         for pattern in patterns:
             regex = glob_to_regex(
@@ -142,7 +141,7 @@ class Cleer:
                     )
                     continue
 
-                logger.info(f"Including '{file_path.resolve()}' in groups[{gi}] for matching the '{include_pattern}' include pattern.")
+                logger.info(f"Including '{file_path}' in groups[{gi}] for matching the '{include_pattern}' include pattern.")
                 inspection['included'].append(
                     {
                         "group": gi,
@@ -233,7 +232,7 @@ class Cleer:
         path: str | pathlib.Path,
         keep_only_excluded: bool = False,
         keep_not_included: bool = False
-    ) -> List[Inspection]:
+    ) -> list[Inspection]:
         """Inspect a file or directory for violations.
 
         Parameters
@@ -248,7 +247,7 @@ class Cleer:
 
         Returns
         -------
-        List[Inspection]
+        list[Inspection]
             List of inspections for the file or directory. 
             By default, it only includes files that matched at least one group that they were not also excluded from.
         
@@ -257,7 +256,7 @@ class Cleer:
         cleer.exceptions.BadPathError
             If the given path is not a file or directory.    
         """
-        path = pathlib.Path(path)
+        path = pathlib.Path(path).resolve()
         if path.is_file() is True:
             inspection = self._inspect_one(
                 file_path=path,
@@ -321,7 +320,7 @@ class Cleer:
                     )
                     continue
 
-                logger.info(f"Including '{file_path.resolve()}' in groups[{gi}] for matching the '{include_pattern}' include pattern.")
+                logger.info(f"Including '{file_path}' in groups[{gi}] for matching the '{include_pattern}' include pattern.")
                 formatting['included'].append(
                     {
                         "group": gi,
@@ -395,7 +394,7 @@ class Cleer:
         path: str | pathlib.Path,
         keep_only_excluded: bool = False,
         keep_not_included: bool = False
-    ) -> List[Formatting]:
+    ) -> list[Formatting]:
         """Format a file or directory of files.
 
 
@@ -411,7 +410,7 @@ class Cleer:
 
         Returns
         -------
-        List[Formatting]
+        list[Formatting]
             List of formatting results for the file or directory. 
             By default, it only includes files that matched at least one group that they were not also excluded from.
         

@@ -4,7 +4,7 @@ __all__ = ["PythonKwargsSpaceTokenizer"]
 
 
 import ast
-from typing import List
+
 
 from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
@@ -29,7 +29,7 @@ class PythonKwargsSpaceTokenizer(Tokenizer):
     emits_token_type = "python_kwargs_space"
 
 
-    def tokenize(self, document: str) -> List[TokenResult]:
+    def tokenize(self, document: str) -> list[TokenResult]:
         """Tokenize = spacing in kwargs and function defaults.
 
         Parameters
@@ -39,7 +39,7 @@ class PythonKwargsSpaceTokenizer(Tokenizer):
 
         Returns
         -------
-        List[TokenResult]
+        list[TokenResult]
             List of token results for each kwarg = segment.
 
             ```python
@@ -68,8 +68,8 @@ class PythonKwargsSpaceTokenizer(Tokenizer):
         self,
         node: ast.keyword,
         document: str,
-        line_offsets: List[int],
-        tokens: List[TokenResult]
+        line_offsets: list[int],
+        tokens: list[TokenResult]
     ):
         """Add token for a call keyword argument."""
         arg_end_col = node.col_offset + len(node.arg)
@@ -98,8 +98,8 @@ class PythonKwargsSpaceTokenizer(Tokenizer):
         self,
         node,
         document: str,
-        line_offsets: List[int],
-        tokens: List[TokenResult]
+        line_offsets: list[int],
+        tokens: list[TokenResult]
     ):
         """Add tokens for function definition default values."""
         args = node.args
@@ -128,8 +128,8 @@ class PythonKwargsSpaceTokenizer(Tokenizer):
         arg: ast.arg,
         default: ast.expr,
         document: str,
-        line_offsets: List[int],
-        tokens: List[TokenResult]
+        line_offsets: list[int],
+        tokens: list[TokenResult]
     ):
         """Emit a token for a parameter default = segment."""
         if arg.end_lineno != default.lineno:
@@ -151,7 +151,7 @@ class PythonKwargsSpaceTokenizer(Tokenizer):
         )
 
 
-    def _build_line_offsets(self, document: str) -> List[int]:
+    def _build_line_offsets(self, document: str) -> list[int]:
         """Build a list mapping line numbers (0-indexed) to character offsets."""
         offsets = [0]
 

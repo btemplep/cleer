@@ -4,7 +4,7 @@ __all__ = ["PythonTypeHintFormatter"]
 
 
 import re
-from typing import List, Tuple
+from typing import Tuple
 
 from cleer.formatters.formatter import Formatter
 
@@ -30,7 +30,7 @@ class PythonTypeHintFormatter(Formatter):
     from cleer import PythonTypeHintFormatter
 
     formatter = PythonTypeHintFormatter()
-    result = formatter.format("    x: Dict[str, List[int]]")
+    result = formatter.format("    x: dict[str, list[int]]")
     ```
     """
     accepts_token_types = ["python_type_hint"]
@@ -92,7 +92,7 @@ class PythonTypeHintFormatter(Formatter):
         return prefix + expanded
 
 
-    def _split_prefix(self, token: str) -> Tuple[str, str]:
+    def _split_prefix(self, token: str) -> tuple[str, str]:
         """Split token into prefix and type expression.
 
         The prefix is everything before the type annotation starts.
@@ -253,7 +253,7 @@ class PythonTypeHintFormatter(Formatter):
         return result
 
 
-    def _parse_at(self, text: str, pos: int) -> Tuple[list, int]:
+    def _parse_at(self, text: str, pos: int) -> tuple[list, int]:
         """Parse segments starting at position.
 
         Returns
@@ -285,7 +285,7 @@ class PythonTypeHintFormatter(Formatter):
         return segments, pos
 
 
-    def _parse_children(self, text: str, pos: int) -> Tuple[list, int]:
+    def _parse_children(self, text: str, pos: int) -> tuple[list, int]:
         """Parse comma-separated children inside brackets.
 
         Returns

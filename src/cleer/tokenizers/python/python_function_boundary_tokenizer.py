@@ -4,7 +4,7 @@ __all__ = ["PythonFunctionBoundaryTokenizer"]
 
 
 import ast
-from typing import List
+
 
 from cleer.tokenizers.tokenizer import Tokenizer
 
@@ -37,7 +37,7 @@ class PythonFunctionBoundaryTokenizer(Tokenizer):
     emits_token_type = "python_function_boundary"
 
 
-    def tokenize(self, document: str) -> List[dict]:
+    def tokenize(self, document: str) -> list[dict]:
         """Tokenize blank line boundaries around top-level definitions.
 
         Handles functions, methods, and classes at module or class scope.
@@ -57,7 +57,7 @@ class PythonFunctionBoundaryTokenizer(Tokenizer):
 
         Returns
         -------
-        List[dict]
+        list[dict]
             List of token results for each whitespace boundary before
             function definitions, or an empty list if none exist.
 
@@ -76,7 +76,7 @@ class PythonFunctionBoundaryTokenizer(Tokenizer):
         return boundaries
 
 
-    def _build_line_offsets(self, document: str) -> List[int]:
+    def _build_line_offsets(self, document: str) -> list[int]:
         """Build a list mapping line numbers (0-indexed) to character offsets."""
         offsets = [0]
         for i, char in enumerate(document):
@@ -89,10 +89,10 @@ class PythonFunctionBoundaryTokenizer(Tokenizer):
     def _collect_boundaries(
         self,
         tree: ast.Module,
-        lines: List[str],
-        line_offsets: List[int],
+        lines: list[str],
+        line_offsets: list[int],
         document: str
-    ) -> List[dict]:
+    ) -> list[dict]:
         """Collect all function boundary tokens."""
         tokens = []
         seen_ranges = set()
@@ -124,10 +124,10 @@ class PythonFunctionBoundaryTokenizer(Tokenizer):
     def _process_body(
         self,
         body: list,
-        lines: List[str],
-        line_offsets: List[int],
+        lines: list[str],
+        line_offsets: list[int],
         document: str,
-        tokens: List[dict],
+        tokens: list[dict],
         seen_ranges: set
     ):
         """Process a body (module or class) for definition boundaries."""
@@ -233,8 +233,8 @@ class PythonFunctionBoundaryTokenizer(Tokenizer):
     def _extract_boundary(
         self,
         document: str,
-        lines: List[str],
-        line_offsets: List[int],
+        lines: list[str],
+        line_offsets: list[int],
         prev_end_line: int,
         next_start_line: int
     ) -> dict | None:

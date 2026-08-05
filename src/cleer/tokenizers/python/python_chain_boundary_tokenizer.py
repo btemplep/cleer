@@ -4,7 +4,6 @@ __all__ = ["PythonChainBoundaryTokenizer"]
 
 
 import ast
-from typing import List, Set, Tuple
 
 from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
@@ -50,7 +49,7 @@ class PythonChainBoundaryTokenizer(Tokenizer):
             self.emits_token_type = "python_chain_boundary_after_return"
 
 
-    def tokenize(self, document: str) -> List[TokenResult]:
+    def tokenize(self, document: str) -> list[TokenResult]:
         """Tokenize blank lines between chain connectors.
 
         Parameters
@@ -60,7 +59,7 @@ class PythonChainBoundaryTokenizer(Tokenizer):
 
         Returns
         -------
-        List[TokenResult]
+        list[TokenResult]
             List of token results for whitespace between chain parts.
         """
         try:
@@ -70,7 +69,7 @@ class PythonChainBoundaryTokenizer(Tokenizer):
 
         line_offsets = self._build_line_offsets(document)
         tokens = []
-        seen: Set[Tuple[int, int]] = set()
+        seen: set[tuple[int, int]] = set()
 
         for node in ast.walk(tree):
             if isinstance(node, ast.If):
@@ -89,7 +88,7 @@ class PythonChainBoundaryTokenizer(Tokenizer):
         self,
         node: ast.If,
         document: str,
-        line_offsets: List[int],
+        line_offsets: list[int],
         tokens: list,
         seen: set
     ):
@@ -124,7 +123,7 @@ class PythonChainBoundaryTokenizer(Tokenizer):
         self,
         node,
         document: str,
-        line_offsets: List[int],
+        line_offsets: list[int],
         tokens: list,
         seen: set
     ):
@@ -155,7 +154,7 @@ class PythonChainBoundaryTokenizer(Tokenizer):
         self,
         node: ast.Try,
         document: str,
-        line_offsets: List[int],
+        line_offsets: list[int],
         tokens: list,
         seen: set
     ):
@@ -249,7 +248,7 @@ class PythonChainBoundaryTokenizer(Tokenizer):
         body_end_line: int,
         connector_line: int,
         document: str,
-        line_offsets: List[int],
+        line_offsets: list[int],
         tokens: list,
         seen: set
     ):
@@ -348,7 +347,7 @@ class PythonChainBoundaryTokenizer(Tokenizer):
         return before_line - 1
 
 
-    def _build_line_offsets(self, document: str) -> List[int]:
+    def _build_line_offsets(self, document: str) -> list[int]:
         """Build a list mapping line numbers (0-indexed) to character offsets."""
         offsets = [0]
 

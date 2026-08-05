@@ -4,7 +4,7 @@ __all__ = ["PythonInnerMaxBlankLinesTokenizer"]
 
 
 import ast
-from typing import List, Set, Tuple
+
 
 from cleer.tokenizers.tokenizer import Tokenizer
 
@@ -42,7 +42,7 @@ class PythonInnerMaxBlankLinesTokenizer(Tokenizer):
         self._max_blank_lines = max_blank_lines
 
 
-    def tokenize(self, document: str) -> List[dict]:
+    def tokenize(self, document: str) -> list[dict]:
         """Tokenize excessive blank lines inside function/method bodies.
 
         Parameters
@@ -52,7 +52,7 @@ class PythonInnerMaxBlankLinesTokenizer(Tokenizer):
 
         Returns
         -------
-        List[dict]
+        list[dict]
             List of token results for blank line runs inside functions
             that exceed the max, or an empty list if none exist.
 
@@ -76,7 +76,7 @@ class PythonInnerMaxBlankLinesTokenizer(Tokenizer):
             return []
 
         tokens = []
-        seen_ranges: Set[Tuple[int, int]] = set()
+        seen_ranges: set[tuple[int, int]] = set()
 
         i = 0
 
@@ -120,7 +120,7 @@ class PythonInnerMaxBlankLinesTokenizer(Tokenizer):
         return tokens
 
 
-    def _build_line_offsets(self, document: str) -> List[int]:
+    def _build_line_offsets(self, document: str) -> list[int]:
         """Build a list mapping line numbers (0-indexed) to character offsets."""
         offsets = [0]
 
@@ -134,9 +134,9 @@ class PythonInnerMaxBlankLinesTokenizer(Tokenizer):
     def _collect_function_body_ranges(
         self,
         tree: ast.Module,
-        line_offsets: List[int],
+        line_offsets: list[int],
         document: str
-    ) -> List[Tuple[int, int]]:
+    ) -> list[tuple[int, int]]:
         """Collect character ranges for all function/method bodies.
 
         Excludes regions inside class definitions so their internal
@@ -184,7 +184,7 @@ class PythonInnerMaxBlankLinesTokenizer(Tokenizer):
         self,
         start: int,
         end: int,
-        function_ranges: List[Tuple[int, int]]
+        function_ranges: list[tuple[int, int]]
     ) -> bool:
         """Check if a span falls inside a function body but not directly in a class body.
 

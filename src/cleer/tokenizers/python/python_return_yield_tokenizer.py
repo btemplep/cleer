@@ -4,7 +4,7 @@ __all__ = ["PythonReturnYieldTokenizer"]
 
 
 import ast
-from typing import List
+
 
 from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
@@ -30,7 +30,7 @@ class PythonReturnYieldTokenizer(Tokenizer):
     emits_token_type = "python_return_yield"
 
 
-    def tokenize(self, document: str) -> List[TokenResult]:
+    def tokenize(self, document: str) -> list[TokenResult]:
         """Tokenize functions containing return/yield statements.
 
         Parameters
@@ -40,7 +40,7 @@ class PythonReturnYieldTokenizer(Tokenizer):
 
         Returns
         -------
-        List[TokenResult]
+        list[TokenResult]
             List of token results, one per function with return/yield.
         """
         tree = ast.parse(document)
@@ -57,7 +57,7 @@ class PythonReturnYieldTokenizer(Tokenizer):
     def _walk(
         self,
         body: list,
-        line_offsets: List[int],
+        line_offsets: list[int],
         document: str,
         results: list
     ):
@@ -112,7 +112,7 @@ class PythonReturnYieldTokenizer(Tokenizer):
     def _get_end(
         self,
         node: ast.stmt,
-        line_offsets: List[int],
+        line_offsets: list[int],
         document: str
     ) -> int:
         """Get the end of the function including trailing blank lines."""
@@ -124,7 +124,7 @@ class PythonReturnYieldTokenizer(Tokenizer):
         return end_offset
 
 
-    def _build_line_offsets(self, document: str) -> List[int]:
+    def _build_line_offsets(self, document: str) -> list[int]:
         """Build a list mapping line numbers (0-indexed) to character offsets."""
         offsets = [0]
 

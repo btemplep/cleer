@@ -4,7 +4,7 @@ __all__ = [
 ]
 
 
-from typing import List, TypedDict
+from typing import TypedDict
 
 from cleer.exceptions import NotImplementedError
 
@@ -38,7 +38,7 @@ class Tokenizer:
     emits_token_type: str = ""
 
 
-    def tokenize(self, document: str) -> List[TokenResult]:
+    def tokenize(self, document: str) -> list[TokenResult]:
         """Tokenize a document.
 
         Tokens from a single call of tokenize cannot overlap.
@@ -52,7 +52,7 @@ class Tokenizer:
 
         Returns
         -------
-        List[TokenResult]
+        list[TokenResult]
             List of token results.
         """
         raise NotImplementedError("Tokenizer classes must implement the tokenize method!")

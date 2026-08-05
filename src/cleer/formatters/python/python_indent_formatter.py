@@ -5,7 +5,7 @@ __all__ = ["PythonIndentFormatter"]
 
 import ast
 import re
-from typing import Dict, List
+from typing import Dict
 
 from cleer.formatters.formatter import Formatter
 
@@ -167,7 +167,7 @@ class PythonIndentFormatter(Formatter):
         except SyntaxError:
             return {}, set()
 
-        indent_map: Dict[int, int] = {}
+        indent_map: dict[int, int] = {}
         frozen_lines: set = set()
         token_lines = token.split("\n")
         self._walk_node(tree, 0, indent_map, frozen_lines, token_lines)
@@ -179,9 +179,9 @@ class PythonIndentFormatter(Formatter):
         self,
         node,
         depth: int,
-        indent_map: Dict[int, int],
+        indent_map: dict[int, int],
         frozen_lines: set,
-        token_lines: List[str]
+        token_lines: list[str]
     ):
         """Walk an AST node, recording indent levels for each line."""
         if hasattr(node, "lineno"):
@@ -308,8 +308,8 @@ class PythonIndentFormatter(Formatter):
         self,
         node,
         depth: int,
-        indent_map: Dict[int, int],
-        token_lines: List[str]
+        indent_map: dict[int, int],
+        token_lines: list[str]
     ):
         """Map all lines of a docstring to the correct indent depth.
 
@@ -323,9 +323,9 @@ class PythonIndentFormatter(Formatter):
             The Expr node containing the docstring.
         depth : int
             Expected indent depth for this docstring.
-        indent_map : Dict[int, int]
+        indent_map : dict[int, int]
             Line index to depth mapping (mutated).
-        token_lines : List[str]
+        token_lines : list[str]
             Lines of the token being processed.
         """
         if not hasattr(node, "end_lineno") or node.end_lineno is None:

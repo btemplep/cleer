@@ -4,7 +4,7 @@ __all__ = ["PythonNestedFunctionBoundaryTokenizer"]
 
 
 import ast
-from typing import List
+
 
 from cleer.tokenizers.tokenizer import Tokenizer
 
@@ -33,7 +33,7 @@ class PythonNestedFunctionBoundaryTokenizer(Tokenizer):
     emits_token_type = "python_nested_function_boundary"
 
 
-    def tokenize(self, document: str) -> List[dict]:
+    def tokenize(self, document: str) -> list[dict]:
         """Tokenize blank line boundaries around nested function definitions.
 
         Parameters
@@ -43,7 +43,7 @@ class PythonNestedFunctionBoundaryTokenizer(Tokenizer):
 
         Returns
         -------
-        List[dict]
+        list[dict]
             List of token results for each whitespace boundary before/after
             nested function definitions, or an empty list if none exist.
 
@@ -66,7 +66,7 @@ class PythonNestedFunctionBoundaryTokenizer(Tokenizer):
         return tokens
 
 
-    def _build_line_offsets(self, document: str) -> List[int]:
+    def _build_line_offsets(self, document: str) -> list[int]:
         """Build a list mapping line numbers (0-indexed) to character offsets."""
         offsets = [0]
 
@@ -81,8 +81,8 @@ class PythonNestedFunctionBoundaryTokenizer(Tokenizer):
         self,
         tree: ast.Module,
         document: str,
-        line_offsets: List[int],
-        tokens: List[dict],
+        line_offsets: list[int],
+        tokens: list[dict],
         seen_ranges: set
     ):
         """Walk the AST to find all nested functions and their boundaries."""
@@ -103,8 +103,8 @@ class PythonNestedFunctionBoundaryTokenizer(Tokenizer):
         self,
         body: list,
         document: str,
-        line_offsets: List[int],
-        tokens: List[dict],
+        line_offsets: list[int],
+        tokens: list[dict],
         seen_ranges: set
     ):
         """Process a function body for nested function/class boundaries."""
@@ -168,7 +168,7 @@ class PythonNestedFunctionBoundaryTokenizer(Tokenizer):
     def _extract_boundary(
         self,
         document: str,
-        line_offsets: List[int],
+        line_offsets: list[int],
         prev_end_line: int,
         next_start_line: int
     ) -> dict | None:

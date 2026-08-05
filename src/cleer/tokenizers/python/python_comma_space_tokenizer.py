@@ -4,7 +4,7 @@ __all__ = ["PythonCommaSpaceTokenizer"]
 
 
 import ast
-from typing import List, Tuple
+
 
 from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
@@ -33,7 +33,7 @@ class PythonCommaSpaceTokenizer(Tokenizer):
     emits_token_type = "python_comma_space"
 
 
-    def tokenize(self, document: str) -> List[TokenResult]:
+    def tokenize(self, document: str) -> list[TokenResult]:
         """Tokenize comma spacing segments between consecutive elements.
 
         Parameters
@@ -43,7 +43,7 @@ class PythonCommaSpaceTokenizer(Tokenizer):
 
         Returns
         -------
-        List[TokenResult]
+        list[TokenResult]
             List of token results for each comma spacing segment.
 
             ```python
@@ -87,8 +87,8 @@ class PythonCommaSpaceTokenizer(Tokenizer):
         self,
         elements: list,
         document: str,
-        line_offsets: List[int],
-        tokens: List[TokenResult]
+        line_offsets: list[int],
+        tokens: list[TokenResult]
     ):
         """Add tokens for commas between elements in a sequence."""
         for i in range(len(elements) - 1):
@@ -118,8 +118,8 @@ class PythonCommaSpaceTokenizer(Tokenizer):
         self,
         node: ast.Dict,
         document: str,
-        line_offsets: List[int],
-        tokens: List[TokenResult]
+        line_offsets: list[int],
+        tokens: list[TokenResult]
     ):
         """Add tokens for commas between dict entries."""
         entries = []
@@ -161,8 +161,8 @@ class PythonCommaSpaceTokenizer(Tokenizer):
         self,
         node: ast.Call,
         document: str,
-        line_offsets: List[int],
-        tokens: List[TokenResult]
+        line_offsets: list[int],
+        tokens: list[TokenResult]
     ):
         """Add tokens for commas between function call arguments."""
         all_args = self._get_call_args_ordered(node)
@@ -194,8 +194,8 @@ class PythonCommaSpaceTokenizer(Tokenizer):
         self,
         node,
         document: str,
-        line_offsets: List[int],
-        tokens: List[TokenResult]
+        line_offsets: list[int],
+        tokens: list[TokenResult]
     ):
         """Add tokens for commas between function definition parameters."""
         all_params = self._get_funcdef_params(node)
@@ -226,7 +226,7 @@ class PythonCommaSpaceTokenizer(Tokenizer):
     def _get_call_args_ordered(
         self,
         node: ast.Call
-    ) -> List[Tuple[int, int, int, int]]:
+    ) -> list[tuple[int, int, int, int]]:
         """Get ordered (end_line, end_col, start_line, start_col) for all call args."""
         items = []
 
@@ -251,7 +251,7 @@ class PythonCommaSpaceTokenizer(Tokenizer):
         return items
 
 
-    def _get_funcdef_params(self, node) -> List[Tuple[int, int, int, int]]:
+    def _get_funcdef_params(self, node) -> list[tuple[int, int, int, int]]:
         """Get ordered (end_line, end_col, start_line, start_col) for all params."""
         items = []
         args = node.args
@@ -339,7 +339,7 @@ class PythonCommaSpaceTokenizer(Tokenizer):
         return False
 
 
-    def _deduplicate(self, tokens: List[TokenResult]) -> List[TokenResult]:
+    def _deduplicate(self, tokens: list[TokenResult]) -> list[TokenResult]:
         """Remove duplicate tokens at the same index."""
         seen = set()
         result = []
@@ -352,7 +352,7 @@ class PythonCommaSpaceTokenizer(Tokenizer):
         return result
 
 
-    def _build_line_offsets(self, document: str) -> List[int]:
+    def _build_line_offsets(self, document: str) -> list[int]:
         """Build a list mapping line numbers (0-indexed) to character offsets."""
         offsets = [0]
 

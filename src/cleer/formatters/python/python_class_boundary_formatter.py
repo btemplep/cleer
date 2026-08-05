@@ -4,8 +4,6 @@ __all__ = ["PythonClassBoundaryFormatter"]
 
 
 import ast
-import textwrap
-from typing import List
 
 from cleer.formatters.formatter import Formatter
 
@@ -90,7 +88,7 @@ class PythonClassBoundaryFormatter(Formatter):
         return result
 
 
-    def _rebuild_body(self, class_node: ast.ClassDef, lines: List[str]) -> List[str]:
+    def _rebuild_body(self, class_node: ast.ClassDef, lines: list[str]) -> list[str]:
         """Rebuild class body with correct spacing.
 
         Parameters

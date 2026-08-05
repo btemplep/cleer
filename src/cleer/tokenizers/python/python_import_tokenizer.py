@@ -4,7 +4,7 @@ __all__ = ["PythonImportTokenizer"]
 
 
 import ast
-from typing import List
+
 
 from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
@@ -33,7 +33,7 @@ class PythonImportTokenizer(Tokenizer):
     emits_token_type = "python_import"
 
 
-    def tokenize(self, document: str) -> List[TokenResult]:
+    def tokenize(self, document: str) -> list[TokenResult]:
         """Tokenize import sections with surrounding context.
 
         Parameters
@@ -43,7 +43,7 @@ class PythonImportTokenizer(Tokenizer):
 
         Returns
         -------
-        List[TokenResult]
+        list[TokenResult]
             List of token results, one per import section found.
         """
         tree = ast.parse(document)
@@ -74,7 +74,7 @@ class PythonImportTokenizer(Tokenizer):
         return results
 
 
-    def _find_import_sections(self, tree: ast.Module) -> List[List[ast.stmt]]:
+    def _find_import_sections(self, tree: ast.Module) -> list[list[ast.stmt]]:
         """Find contiguous groups of import statements in the module body.
 
         Returns a list of sections, where each section is a list of
@@ -100,9 +100,9 @@ class PythonImportTokenizer(Tokenizer):
     def _find_boundaries(
         self,
         tree: ast.Module,
-        section: List[ast.stmt],
+        section: list[ast.stmt],
         document: str,
-        line_offsets: List[int]
+        line_offsets: list[int]
     ):
         """Find start and end boundaries including surrounding whitespace."""
         first_node = section[0]
@@ -157,7 +157,7 @@ class PythonImportTokenizer(Tokenizer):
         return prev_end, next_start
 
 
-    def _build_line_offsets(self, document: str) -> List[int]:
+    def _build_line_offsets(self, document: str) -> list[int]:
         """Build a list mapping line numbers (0-indexed) to character offsets."""
         offsets = [0]
 

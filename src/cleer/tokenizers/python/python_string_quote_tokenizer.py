@@ -4,7 +4,7 @@ __all__ = ["PythonStringQuoteTokenizer"]
 
 
 import ast
-from typing import List, Set, Tuple
+
 
 from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
@@ -32,7 +32,7 @@ class PythonStringQuoteTokenizer(Tokenizer):
     emits_token_type = "python_string_quote"
 
 
-    def tokenize(self, document: str) -> List[TokenResult]:
+    def tokenize(self, document: str) -> list[TokenResult]:
         """Tokenize Python string literals (excluding dict key lookups).
 
         Includes regular strings, f-strings, and t-strings.
@@ -44,7 +44,7 @@ class PythonStringQuoteTokenizer(Tokenizer):
 
         Returns
         -------
-        List[TokenResult]
+        list[TokenResult]
             List of token results for each string literal.
 
             ```python
@@ -77,7 +77,7 @@ class PythonStringQuoteTokenizer(Tokenizer):
         return tokens
 
 
-    def _build_line_offsets(self, document: str) -> List[int]:
+    def _build_line_offsets(self, document: str) -> list[int]:
         """Build a list mapping line numbers (0-indexed) to character offsets."""
         offsets = [0]
 
@@ -88,7 +88,7 @@ class PythonStringQuoteTokenizer(Tokenizer):
         return offsets
 
 
-    def _collect_dict_key_positions(self, tree: ast.Module) -> Set[Tuple[int, int]]:
+    def _collect_dict_key_positions(self, tree: ast.Module) -> set[tuple[int, int]]:
         """Collect line/col positions of string constants used as dict subscript keys."""
         positions = set()
 
@@ -104,7 +104,7 @@ class PythonStringQuoteTokenizer(Tokenizer):
         return positions
 
 
-    def _collect_fstring_positions(self, tree: ast.Module) -> Set[Tuple[int, int]]:
+    def _collect_fstring_positions(self, tree: ast.Module) -> set[tuple[int, int]]:
         """Collect line/col positions of constants that are children of f/t-strings."""
         positions = set()
         fstring_types = [ast.JoinedStr]
@@ -130,8 +130,8 @@ class PythonStringQuoteTokenizer(Tokenizer):
         self,
         tree: ast.Module,
         document: str,
-        line_offsets: List[int],
-        tokens: List[TokenResult]
+        line_offsets: list[int],
+        tokens: list[TokenResult]
     ):
         """Collect f-string and t-string tokens."""
         fstring_types = [ast.JoinedStr]
@@ -169,10 +169,10 @@ class PythonStringQuoteTokenizer(Tokenizer):
         self,
         tree: ast.Module,
         document: str,
-        line_offsets: List[int],
-        dict_key_positions: Set[Tuple[int, int]],
-        fstring_positions: Set[Tuple[int, int]]
-    ) -> List[TokenResult]:
+        line_offsets: list[int],
+        dict_key_positions: set[tuple[int, int]],
+        fstring_positions: set[tuple[int, int]]
+    ) -> list[TokenResult]:
         """Collect all non-dict-key, non-fstring-child string constant tokens."""
         tokens = []
 

@@ -4,7 +4,7 @@ __all__ = ["PythonCompoundEndTokenizer"]
 
 
 import ast
-from typing import List, Set, Tuple
+
 
 from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
@@ -42,7 +42,7 @@ class PythonCompoundEndTokenizer(Tokenizer):
     )
 
 
-    def tokenize(self, document: str) -> List[TokenResult]:
+    def tokenize(self, document: str) -> list[TokenResult]:
         """Tokenize missing blank lines after compound statement chains.
 
         Parameters
@@ -52,7 +52,7 @@ class PythonCompoundEndTokenizer(Tokenizer):
 
         Returns
         -------
-        List[TokenResult]
+        list[TokenResult]
             List of token results for locations where a blank line
             should be inserted after a compound statement.
         """
@@ -63,7 +63,7 @@ class PythonCompoundEndTokenizer(Tokenizer):
 
         line_offsets = self._build_line_offsets(document)
         tokens = []
-        seen: Set[Tuple[int, int]] = set()
+        seen: set[tuple[int, int]] = set()
 
         self._process_bodies(tree, document, line_offsets, tokens, seen)
 
@@ -76,7 +76,7 @@ class PythonCompoundEndTokenizer(Tokenizer):
         self,
         tree,
         document: str,
-        line_offsets: List[int],
+        line_offsets: list[int],
         tokens: list,
         seen: set
     ):
@@ -109,7 +109,7 @@ class PythonCompoundEndTokenizer(Tokenizer):
         self,
         body: list,
         document: str,
-        line_offsets: List[int],
+        line_offsets: list[int],
         tokens: list,
         seen: set
     ):
@@ -154,7 +154,7 @@ class PythonCompoundEndTokenizer(Tokenizer):
                 )
 
 
-    def _build_line_offsets(self, document: str) -> List[int]:
+    def _build_line_offsets(self, document: str) -> list[int]:
         """Build a list mapping line numbers (0-indexed) to character offsets."""
         offsets = [0]
 

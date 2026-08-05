@@ -4,7 +4,7 @@ __all__ = ["PythonAllTokenizer"]
 
 
 import ast
-from typing import List
+
 
 from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
@@ -32,7 +32,7 @@ class PythonAllTokenizer(Tokenizer):
     emits_token_type = "python_all"
 
 
-    def tokenize(self, document: str) -> List[TokenResult]:
+    def tokenize(self, document: str) -> list[TokenResult]:
         """Tokenize the first ``__all__`` assignment with surrounding context.
 
         Parameters
@@ -42,7 +42,7 @@ class PythonAllTokenizer(Tokenizer):
 
         Returns
         -------
-        List[TokenResult]
+        list[TokenResult]
             List with at most one token result for the ``__all__`` block.
 
             ```python
@@ -91,7 +91,7 @@ class PythonAllTokenizer(Tokenizer):
         tree: ast.Module,
         all_node: ast.Assign,
         document: str,
-        line_offsets: List[int]
+        line_offsets: list[int]
     ):
         """Find the start and end boundaries including surrounding whitespace.
 
@@ -128,7 +128,7 @@ class PythonAllTokenizer(Tokenizer):
         return prev_end, next_start
 
 
-    def _build_line_offsets(self, document: str) -> List[int]:
+    def _build_line_offsets(self, document: str) -> list[int]:
         """Build a list mapping line numbers (0-indexed) to character offsets."""
         offsets = [0]
 

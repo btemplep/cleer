@@ -4,7 +4,6 @@ __all__ = ["FileStartWhitespaceTokenizer"]
 
 
 import re
-from typing import List
 
 from cleer.tokenizers.tokenizer import Tokenizer
 
@@ -30,7 +29,7 @@ class FileStartWhitespaceTokenizer(Tokenizer):
     leading_whitespace_pattern = re.compile(r"^\s*")
 
 
-    def tokenize(self, document: str) -> List[dict]:
+    def tokenize(self, document: str) -> list[dict]:
         """Tokenize leading whitespace at the start of a document.
 
         Parameters
@@ -48,7 +47,7 @@ class FileStartWhitespaceTokenizer(Tokenizer):
 
         Returns
         -------
-        List[dict]
+        list[dict]
             List containing a single token result for the leading whitespace,
             or an empty list if the file has no leading whitespace.
 

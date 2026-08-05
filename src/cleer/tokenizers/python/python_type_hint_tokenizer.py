@@ -4,7 +4,7 @@ __all__ = ["PythonTypeHintTokenizer"]
 
 
 import ast
-from typing import List
+
 
 from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
@@ -23,13 +23,13 @@ class PythonTypeHintTokenizer(Tokenizer):
     from cleer import PythonTypeHintTokenizer
 
     tokenizer = PythonTypeHintTokenizer()
-    tokens = tokenizer.tokenize("x: Dict[str, List[int]] = {}\\n")
+    tokens = tokenizer.tokenize("x: dict[str, list[int]] = {}\\n")
     ```
     """
     emits_token_type = "python_type_hint"
 
 
-    def tokenize(self, document: str) -> List[TokenResult]:
+    def tokenize(self, document: str) -> list[TokenResult]:
         """Tokenize type annotations that need structural formatting.
 
         Parameters
@@ -39,7 +39,7 @@ class PythonTypeHintTokenizer(Tokenizer):
 
         Returns
         -------
-        List[TokenResult]
+        list[TokenResult]
             List of token results for each complex type annotation.
         """
         try:
@@ -103,8 +103,8 @@ class PythonTypeHintTokenizer(Tokenizer):
         self,
         annotation: ast.expr,
         document: str,
-        line_offsets: List[int],
-        tokens: List[TokenResult]
+        line_offsets: list[int],
+        tokens: list[TokenResult]
     ):
         """Add a token if the annotation is complex enough to format."""
         if not isinstance(annotation, (ast.Subscript, ast.BinOp)):
@@ -127,7 +127,7 @@ class PythonTypeHintTokenizer(Tokenizer):
         )
 
 
-    def _build_line_offsets(self, document: str) -> List[int]:
+    def _build_line_offsets(self, document: str) -> list[int]:
         """Build a list mapping line numbers (0-indexed) to character offsets."""
         offsets = [0]
 
@@ -138,7 +138,7 @@ class PythonTypeHintTokenizer(Tokenizer):
         return offsets
 
 
-    def _remove_overlaps(self, tokens: List[TokenResult]) -> List[TokenResult]:
+    def _remove_overlaps(self, tokens: list[TokenResult]) -> list[TokenResult]:
         """Remove overlapping tokens, keeping the longer one."""
         if not tokens:
             return tokens

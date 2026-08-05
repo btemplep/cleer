@@ -4,7 +4,7 @@ __all__ = ["PythonDictKeyQuoteTokenizer"]
 
 
 import ast
-from typing import List
+
 
 from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
@@ -29,7 +29,7 @@ class PythonDictKeyQuoteTokenizer(Tokenizer):
     emits_token_type = "python_dict_key_quote"
 
 
-    def tokenize(self, document: str) -> List[TokenResult]:
+    def tokenize(self, document: str) -> list[TokenResult]:
         """Tokenize string literals used as dict bracket subscript keys.
 
         Parameters
@@ -39,7 +39,7 @@ class PythonDictKeyQuoteTokenizer(Tokenizer):
 
         Returns
         -------
-        List[TokenResult]
+        list[TokenResult]
             List of token results for each dict key string.
 
             ```python
@@ -58,7 +58,7 @@ class PythonDictKeyQuoteTokenizer(Tokenizer):
         return tokens
 
 
-    def _build_line_offsets(self, document: str) -> List[int]:
+    def _build_line_offsets(self, document: str) -> list[int]:
         """Build a list mapping line numbers (0-indexed) to character offsets."""
         offsets = [0]
 
@@ -73,8 +73,8 @@ class PythonDictKeyQuoteTokenizer(Tokenizer):
         self,
         tree: ast.Module,
         document: str,
-        line_offsets: List[int]
-    ) -> List[TokenResult]:
+        line_offsets: list[int]
+    ) -> list[TokenResult]:
         """Collect string constants used as dict subscript keys."""
         tokens = []
 

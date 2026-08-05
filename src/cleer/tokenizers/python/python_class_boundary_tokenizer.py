@@ -4,7 +4,7 @@ __all__ = ["PythonClassBoundaryTokenizer"]
 
 
 import ast
-from typing import List
+
 
 from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
@@ -29,7 +29,7 @@ class PythonClassBoundaryTokenizer(Tokenizer):
     emits_token_type = "python_class_boundary"
 
 
-    def tokenize(self, document: str) -> List[TokenResult]:
+    def tokenize(self, document: str) -> list[TokenResult]:
         """Tokenize class definitions for spacing enforcement.
 
         Parameters
@@ -39,7 +39,7 @@ class PythonClassBoundaryTokenizer(Tokenizer):
 
         Returns
         -------
-        List[TokenResult]
+        list[TokenResult]
             List of token results, one per class definition.
         """
         try:
@@ -60,7 +60,7 @@ class PythonClassBoundaryTokenizer(Tokenizer):
     def _walk(
         self,
         body: list,
-        line_offsets: List[int],
+        line_offsets: list[int],
         document: str,
         results: list
     ):
@@ -89,7 +89,7 @@ class PythonClassBoundaryTokenizer(Tokenizer):
     def _get_end(
         self,
         node: ast.stmt,
-        line_offsets: List[int],
+        line_offsets: list[int],
         document: str
     ) -> int:
         """Get the end of the class including trailing blank lines."""
@@ -104,7 +104,7 @@ class PythonClassBoundaryTokenizer(Tokenizer):
         return end_offset
 
 
-    def _build_line_offsets(self, document: str) -> List[int]:
+    def _build_line_offsets(self, document: str) -> list[int]:
         """Build a list mapping line numbers (0-indexed) to character offsets."""
         offsets = [0]
 

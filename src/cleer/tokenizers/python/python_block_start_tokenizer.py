@@ -4,7 +4,7 @@ __all__ = ["PythonBlockStartTokenizer"]
 
 
 import ast
-from typing import List
+
 
 from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
@@ -44,7 +44,7 @@ class PythonBlockStartTokenizer(Tokenizer):
     )
 
 
-    def tokenize(self, document: str) -> List[TokenResult]:
+    def tokenize(self, document: str) -> list[TokenResult]:
         """Tokenize blank lines between block statements and first body line.
 
         Parameters
@@ -54,7 +54,7 @@ class PythonBlockStartTokenizer(Tokenizer):
 
         Returns
         -------
-        List[TokenResult]
+        list[TokenResult]
             List of token results for whitespace gaps after block
             statement lines.
         """
@@ -152,7 +152,7 @@ class PythonBlockStartTokenizer(Tokenizer):
         self,
         parent_node,
         body: list,
-        line_offsets: List[int],
+        line_offsets: list[int],
         document: str,
         tokens: list,
         seen: set
@@ -193,7 +193,7 @@ class PythonBlockStartTokenizer(Tokenizer):
         self,
         start_lineno: int,
         body_lineno: int,
-        line_offsets: List[int],
+        line_offsets: list[int],
         document: str
     ) -> int:
         """Find the line number (1-indexed) of the colon ending the block header.
@@ -217,7 +217,7 @@ class PythonBlockStartTokenizer(Tokenizer):
     def _check_after_docstring(
         self,
         node,
-        line_offsets: List[int],
+        line_offsets: list[int],
         document: str,
         tokens: list,
         seen: set
@@ -263,7 +263,7 @@ class PythonBlockStartTokenizer(Tokenizer):
         self,
         keyword_line: int,
         body: list,
-        line_offsets: List[int],
+        line_offsets: list[int],
         document: str,
         tokens: list,
         seen: set
@@ -298,7 +298,7 @@ class PythonBlockStartTokenizer(Tokenizer):
     def _find_keyword_line(
         self,
         document: str,
-        line_offsets: List[int],
+        line_offsets: list[int],
         after_line: int,
         before_line: int
     ) -> int:
@@ -330,7 +330,7 @@ class PythonBlockStartTokenizer(Tokenizer):
         return before_line - 1
 
 
-    def _build_line_offsets(self, document: str) -> List[int]:
+    def _build_line_offsets(self, document: str) -> list[int]:
         """Build a list mapping line numbers (0-indexed) to character offsets."""
         offsets = [0]
 

@@ -5,7 +5,7 @@ __all__ = ["PythonIndentTokenizer"]
 
 import ast
 import re
-from typing import List
+
 
 from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
@@ -41,7 +41,7 @@ class PythonIndentTokenizer(Tokenizer):
         self._tab_size = tab_size
 
 
-    def tokenize(self, document: str) -> List[TokenResult]:
+    def tokenize(self, document: str) -> list[TokenResult]:
         """Tokenize top-level code blocks with incorrect indentation.
 
         Parameters
@@ -51,7 +51,7 @@ class PythonIndentTokenizer(Tokenizer):
 
         Returns
         -------
-        List[TokenResult]
+        list[TokenResult]
             List of token results for each top-level code block that
             has incorrect indentation.
 
@@ -215,7 +215,7 @@ class PythonIndentTokenizer(Tokenizer):
         return ""
 
 
-    def _build_line_offsets(self, document: str) -> List[int]:
+    def _build_line_offsets(self, document: str) -> list[int]:
         """Build a list mapping line numbers (0-indexed) to character offsets."""
         offsets = [0]
 

@@ -4,7 +4,6 @@ __all__ = [
 
 
 import json
-from typing import List
 
 from loguru import logger
 
@@ -16,25 +15,25 @@ from cleer.types import *
 
 
 def cleer_default_config(
-    python_packages: List[str] | None=None,
-    python_internal_packages: List[str] | None=None,
-    excludes: List[str] | None=None
+    python_packages: list[str] | None=None,
+    python_internal_packages: list[str] | None=None,
+    excludes: list[str] | None=None
 ) -> CleerConfig:
     """Generate a new instance of cleer with the default configs.
 
     Parameters
     ----------
-    python_packages : List[str] | None, optional
+    python_packages : list[str] | None, optional
         List of package names for this project/repo/dir.
         Used to classify imports as "current package" and to determine
         which directories should enforce ``__all__``. File globs are
         derived from names (e.g. ``"my_pkg"`` becomes
         ``"my_pkg/**/*.py"``). ``src/**/*.py`` is always included.
-    python_internal_packages : List[str] | None, optional
+    python_internal_packages : list[str] | None, optional
         List of internal package names for import formatting.
         Internal packages are those that are hosted on private
         repositories, not including current packages.
-    excludes : List[str] | None, default=["**/venv*/**", "**/.venv*/**"]
+    excludes : list[str] | None, default=["**/venv*/**", "**/.venv*/**"]
         File patterns to exclude from formatting files.
 
     Returns

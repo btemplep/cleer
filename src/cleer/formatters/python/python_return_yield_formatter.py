@@ -4,7 +4,6 @@ __all__ = ["PythonReturnYieldFormatter"]
 
 
 import ast
-from typing import List
 
 from cleer.formatters.formatter import Formatter
 
@@ -143,7 +142,7 @@ class PythonReturnYieldFormatter(Formatter):
     def _find_edits(
         self,
         body: list,
-        lines: List[str],
+        lines: list[str],
         edits: list
     ):
         """Find required edits for return/yield in a body."""

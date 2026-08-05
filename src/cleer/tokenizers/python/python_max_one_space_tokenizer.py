@@ -5,7 +5,7 @@ __all__ = ["PythonMaxOneSpaceTokenizer"]
 
 import ast
 import re
-from typing import List, Tuple
+
 
 from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
@@ -31,7 +31,7 @@ class PythonMaxOneSpaceTokenizer(Tokenizer):
     _multi_space = re.compile(r" {2,}")
 
 
-    def tokenize(self, document: str) -> List[TokenResult]:
+    def tokenize(self, document: str) -> list[TokenResult]:
         """Tokenize runs of 2+ spaces outside indentation and string literals.
 
         Parameters
@@ -41,7 +41,7 @@ class PythonMaxOneSpaceTokenizer(Tokenizer):
 
         Returns
         -------
-        List[TokenResult]
+        list[TokenResult]
             List of token results for each multi-space run.
 
             ```python
@@ -81,7 +81,7 @@ class PythonMaxOneSpaceTokenizer(Tokenizer):
         self,
         start: int,
         end: int,
-        excluded: List[Tuple[int, int]]
+        excluded: list[tuple[int, int]]
     ) -> bool:
         """Check if a range overlaps with any excluded range."""
         for ex_start, ex_end in excluded:
@@ -94,7 +94,7 @@ class PythonMaxOneSpaceTokenizer(Tokenizer):
         return False
 
 
-    def _collect_indent_ranges(self, document: str) -> List[Tuple[int, int]]:
+    def _collect_indent_ranges(self, document: str) -> list[tuple[int, int]]:
         """Collect the byte ranges of leading whitespace on each line."""
         ranges = []
         pos = 0
@@ -114,7 +114,7 @@ class PythonMaxOneSpaceTokenizer(Tokenizer):
         self,
         tree: ast.Module,
         document: str
-    ) -> List[Tuple[int, int]]:
+    ) -> list[tuple[int, int]]:
         """Collect the byte ranges of all string literals in the source."""
         line_offsets = self._build_line_offsets(document)
         ranges = []
@@ -140,7 +140,7 @@ class PythonMaxOneSpaceTokenizer(Tokenizer):
         return ranges
 
 
-    def _build_line_offsets(self, document: str) -> List[int]:
+    def _build_line_offsets(self, document: str) -> list[int]:
         """Build a list mapping line numbers (0-indexed) to character offsets."""
         offsets = [0]
 

@@ -4,7 +4,7 @@ __all__ = ["PythonPairedPunctuationTokenizer"]
 
 
 import ast
-from typing import List
+
 
 from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
@@ -31,7 +31,7 @@ class PythonPairedPunctuationTokenizer(Tokenizer):
     emits_token_type = "python_paired_punctuation"
 
 
-    def tokenize(self, document: str) -> List[TokenResult]:
+    def tokenize(self, document: str) -> list[TokenResult]:
         """Tokenize statements containing paired punctuation.
 
         Parameters
@@ -41,7 +41,7 @@ class PythonPairedPunctuationTokenizer(Tokenizer):
 
         Returns
         -------
-        List[TokenResult]
+        list[TokenResult]
             List of token results.
         """
         try:
@@ -64,8 +64,8 @@ class PythonPairedPunctuationTokenizer(Tokenizer):
     def _walk(
         self,
         node,
-        lines: List[str],
-        line_offsets: List[int],
+        lines: list[str],
+        line_offsets: list[int],
         document: str,
         tokens: list,
         seen_ranges: set
@@ -165,8 +165,8 @@ class PythonPairedPunctuationTokenizer(Tokenizer):
     def _walk_single(
         self,
         node,
-        lines: List[str],
-        line_offsets: List[int],
+        lines: list[str],
+        line_offsets: list[int],
         document: str,
         tokens: list,
         seen_ranges: set
@@ -248,8 +248,8 @@ class PythonPairedPunctuationTokenizer(Tokenizer):
     def _emit_funcdef(
         self,
         node,
-        lines: List[str],
-        line_offsets: List[int],
+        lines: list[str],
+        line_offsets: list[int],
         document: str,
         tokens: list,
         seen_ranges: set
@@ -273,7 +273,7 @@ class PythonPairedPunctuationTokenizer(Tokenizer):
         self._add_token(start_idx, token, tokens, seen_ranges)
 
 
-    def _find_funcdef_end(self, node, lines: List[str]) -> int:
+    def _find_funcdef_end(self, node, lines: list[str]) -> int:
         """Find the line where the function def's colon is."""
         for line_idx in range(node.lineno - 1, min(node.end_lineno, len(lines))):
             line = lines[line_idx]
@@ -287,8 +287,8 @@ class PythonPairedPunctuationTokenizer(Tokenizer):
     def _emit_decorator(
         self,
         dec_node,
-        lines: List[str],
-        line_offsets: List[int],
+        lines: list[str],
+        line_offsets: list[int],
         document: str,
         tokens: list,
         seen_ranges: set
@@ -315,8 +315,8 @@ class PythonPairedPunctuationTokenizer(Tokenizer):
     def _emit_statement(
         self,
         node,
-        lines: List[str],
-        line_offsets: List[int],
+        lines: list[str],
+        line_offsets: list[int],
         document: str,
         tokens: list,
         seen_ranges: set
@@ -343,8 +343,8 @@ class PythonPairedPunctuationTokenizer(Tokenizer):
     def _emit_condition(
         self,
         node,
-        lines: List[str],
-        line_offsets: List[int],
+        lines: list[str],
+        line_offsets: list[int],
         document: str,
         tokens: list,
         seen_ranges: set
@@ -399,7 +399,7 @@ class PythonPairedPunctuationTokenizer(Tokenizer):
         )
 
 
-    def _compute_line_offsets(self, document: str) -> List[int]:
+    def _compute_line_offsets(self, document: str) -> list[int]:
         """Compute byte offsets for each line in the document."""
         offsets = [0]
         for i, char in enumerate(document):

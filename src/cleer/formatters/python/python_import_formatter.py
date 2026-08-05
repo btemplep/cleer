@@ -5,7 +5,6 @@ __all__ = ["PythonImportFormatter"]
 
 import ast
 import sys
-from typing import List
 
 from cleer.formatters.formatter import Formatter
 
@@ -23,10 +22,10 @@ class PythonImportFormatter(Formatter):
 
     Parameters
     ----------
-    internal_packages : List[str] | None, optional
+    internal_packages : list[str] | None, optional
         List of internal package names (private repos). By default, no
         packages are classified as internal.
-    current_packages : List[str] | None, optional
+    current_packages : list[str] | None, optional
         List of current project package names. By default, no packages
         are classified as current.
 
@@ -46,8 +45,8 @@ class PythonImportFormatter(Formatter):
 
     def __init__(
         self,
-        internal_packages: List[str] | None = None,
-        current_packages: List[str] | None = None
+        internal_packages: list[str] | None = None,
+        current_packages: list[str] | None = None
     ):
         self._internal_packages = internal_packages or []
         self._current_packages = current_packages or []
@@ -218,7 +217,7 @@ class PythonImportFormatter(Formatter):
         return "third_party"
 
 
-    def _format_block(self, imports: list) -> List[str]:
+    def _format_block(self, imports: list) -> list[str]:
         """Format a block of imports into sorted lines."""
         lines = []
 
@@ -248,7 +247,7 @@ class PythonImportFormatter(Formatter):
         return line
 
 
-    def _format_import(self, imp: dict) -> List[str]:
+    def _format_import(self, imp: dict) -> list[str]:
         """Format a single import entry into one or more lines."""
         if imp["type"] == "import":
             line = f"import {imp['module']}"

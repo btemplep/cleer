@@ -124,7 +124,7 @@
             - over 80 characters not including indent
             - over 100 chars including indent
             - over 4 args
-            - any inner paired punct is expanded
+            - any inner paired punctuation args are expanded
             - more than 2 args with at least one given as a kwarg
         - if any sub items are expanded
         - never split empty args, ie don't split the function def parenthesis to a new line
@@ -139,6 +139,11 @@
             - more than 2 args with at least one given as a kwarg
         - never split empty args, ie don't split the function call parenthesis to a new line
         - if any are expanded then they all are expanded, unless empty
+    - chained function calls
+        - First flatten 
+        - Expand all, except calls with 0 args, if:
+            - any of the chained function calls, meet any of the function call conditions for expansion,  
+            - The flattened length is > 80 chars
     - decorators
         - flatten first
         - expand if any of the following

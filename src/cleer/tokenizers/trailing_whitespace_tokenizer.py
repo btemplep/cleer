@@ -4,7 +4,6 @@ __all__ = ["TrailingWhitespaceTokenizer"]
 
 
 import re
-from typing import List
 
 from cleer.tokenizers.tokenizer import Tokenizer
 
@@ -29,7 +28,7 @@ class TrailingWhitespaceTokenizer(Tokenizer):
     trailing_ws_pattern = re.compile(r"[ \t]+(?=\n)")
 
 
-    def tokenize(self, document: str) -> List[dict]:
+    def tokenize(self, document: str) -> list[dict]:
         """Tokenize trailing whitespace before newlines in a document.
 
         Parameters
@@ -47,7 +46,7 @@ class TrailingWhitespaceTokenizer(Tokenizer):
 
         Returns
         -------
-        List[dict]
+        list[dict]
             List of token results for each trailing whitespace occurrence,
             or an empty list if none exist.
 

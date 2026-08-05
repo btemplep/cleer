@@ -6,7 +6,6 @@ import importlib
 import json
 import os
 import sys
-from typing import List
 
 from loguru import logger
 
@@ -28,7 +27,7 @@ class FMT:
    end = "\033[0m"
 
 
-def main(argv: List[str]=None) -> None:
+def main(argv: list[str]=None) -> None:
     parser = argparse.ArgumentParser(
         prog="cleer",
         description="Inspect and format files with cleer!"
@@ -131,25 +130,43 @@ def main(argv: List[str]=None) -> None:
 
     if args.command == "inspect":
         logger.info("Running inspect command...")
-        print(
-            json.dumps(
-                clr.inspect(args.path),
-                indent=4,
-                default=str
-            ),
-            flush=True
-        )
-        logger.info("Inspect command complete!")
+        try:
+            print(
+                json.dumps(
+                    clr.inspect(args.path),
+                    indent=4,
+                    default=str
+                ),
+                flush=True
+            )
+            logger.info("Inspect command complete!")
+        except Exception as exc:
+            logger.opt(
+                exception=True if args.log_level == "DEBUG" else False
+            ).critical(
+                f"Inspect Failed! [{type(exc).__name__}]: {exc}"
+            )
+            exit(1)
+
     elif args.command == "format":
         logger.info("Running format command...")
-        print(
-            json.dumps(
-                clr.format(args.path),
-                indent=4,
-                default=str
+        try:
+            print(
+                json.dumps(
+                    clr.format(args.path),
+                    indent=4,
+                    default=str
+                ),
+                flush=True
             )
-        )
-        logger.info("Format command complete!")
+            logger.info("Format command complete!")
+        except Exception as exc:
+            logger.opt(
+                exception=True if args.log_level == "DEBUG" else False
+            ).critical(
+                f"Format Failed! [{type(exc).__name__}]: {exc}"
+            )
+            exit(1)
 
     logger.info("Exiting.")
     exit(0)

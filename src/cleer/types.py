@@ -15,7 +15,7 @@ __all__ = [
 
 
 import pathlib
-from typing import List, TypedDict
+from typing import TypedDict
 
 from cleer.formatters.formatter import Formatter
 from cleer.tokenizers.tokenizer import Tokenizer
@@ -29,12 +29,12 @@ class Stage(TypedDict):
     ----------
     tokenizer : cleer.tokenizer.Tokenizer
         Tokenizer subclass instance for this formatting stage.
-    formatters : List[Formatter]
+    formatters : list[Formatter]
         List of formatters to run for each token in this formatting stage.
         Formatters are run sequentially in the order provided.
     """
     tokenizer: Tokenizer
-    formatters: List[Formatter]
+    formatters: list[Formatter]
 
 
 class Group(TypedDict):
@@ -42,20 +42,20 @@ class Group(TypedDict):
 
     Attributes
     ----------
-    includes : List[str]
+    includes : list[str]
         Unix glob patterns used to include files for this Group.
-    excludes : List[str]
+    excludes : list[str]
         Unix glob patterns used to exclude files from this Group.
-    validators : List[Validator]
+    validators : list[Validator]
         List of validators to run for each document.
         Documents that fail validation, will not be inspected or formatted.
-    stages : List[Stage]
+    stages : list[Stage]
         List of formatting stages to use for this group of files.
     """
-    includes: List[str]
-    excludes: List[str]
-    validators: List[Validator]
-    stages: List[Stage]
+    includes: list[str]
+    excludes: list[str]
+    validators: list[Validator]
+    stages: list[Stage]
 
 
 class CleerConfig(TypedDict):
@@ -63,10 +63,10 @@ class CleerConfig(TypedDict):
 
     Attributes
     ----------
-    groups : List[Group]
+    groups : list[Group]
         List of groups that will be evaluated for glob matches.
     """
-    groups: List[Group]
+    groups: list[Group]
 
 
 class Invalidation(TypedDict):
@@ -127,19 +127,19 @@ class Inspection(TypedDict):
     ----------
     path : pathlib.Path
         Path to the file.
-    included : List[Included]
+    included : list[Included]
         Config groups the file was included in.
-    excluded : List[Excluded]
+    excluded : list[Excluded]
         Config groups the file was explicitly excluded from.
-    violations : List[Violation]
+    violations : list[Violation]
         List of violations for the file.
-    invalidations : List[Invalidation]
+    invalidations : list[Invalidation]
         Any times the file was found to be invalid for a group.
     """
     path: pathlib.Path
-    included: List[Included]
-    excluded: List[Excluded]
-    violations: List[Violation]
+    included: list[Included]
+    excluded: list[Excluded]
+    violations: list[Violation]
 
 
 class Formatting(TypedDict):
@@ -149,17 +149,17 @@ class Formatting(TypedDict):
     ----------
     path : pathlib.Path
         Path to the file.
-    included : List[GroupMatch]
+    included : list[GroupMatch]
         Config groups the file was included in.
-    excluded : List[GroupMatch]
+    excluded : list[GroupMatch]
         Config groups the file was explicitly excluded from.
-    invalidations : List[Invalidation]
+    invalidations : list[Invalidation]
         Any times the file was found to be invalid for a group.
     """
     path: pathlib.Path
-    included: List[Included]
-    excluded: List[Excluded]
-    invalidations: List[Invalidation]
+    included: list[Included]
+    excluded: list[Excluded]
+    invalidations: list[Invalidation]
 
 
 class FormattingDocument(Formatting):
@@ -169,11 +169,11 @@ class FormattingDocument(Formatting):
     ----------
     path : pathlib.Path
         Path to the file.
-    included : List[GroupMatch]
+    included : list[GroupMatch]
         Config groups the file was included in.
-    excluded : List[GroupMatch]
+    excluded : list[GroupMatch]
         Config groups the file was explicitly excluded from.
-    invalidations : List[Invalidation]
+    invalidations : list[Invalidation]
         Any times the file was found to be invalid for a group.
     document : str
         Formatted Document

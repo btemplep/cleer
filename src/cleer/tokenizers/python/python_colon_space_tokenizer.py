@@ -4,7 +4,7 @@ __all__ = ["PythonColonSpaceTokenizer"]
 
 
 import ast
-from typing import List
+
 
 from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
@@ -31,7 +31,7 @@ class PythonColonSpaceTokenizer(Tokenizer):
     emits_token_type = "python_colon_space"
 
 
-    def tokenize(self, document: str) -> List[TokenResult]:
+    def tokenize(self, document: str) -> list[TokenResult]:
         """Tokenize colon spacing segments.
 
         Parameters
@@ -41,7 +41,7 @@ class PythonColonSpaceTokenizer(Tokenizer):
 
         Returns
         -------
-        List[TokenResult]
+        list[TokenResult]
             List of token results for each colon spacing segment.
 
             ```python
@@ -72,8 +72,8 @@ class PythonColonSpaceTokenizer(Tokenizer):
         self,
         node: ast.AnnAssign,
         document: str,
-        line_offsets: List[int],
-        tokens: List[TokenResult]
+        line_offsets: list[int],
+        tokens: list[TokenResult]
     ):
         """Add token for annotated assignment colon."""
         if node.target.end_lineno != node.annotation.lineno:
@@ -99,8 +99,8 @@ class PythonColonSpaceTokenizer(Tokenizer):
         self,
         node: ast.arg,
         document: str,
-        line_offsets: List[int],
-        tokens: List[TokenResult]
+        line_offsets: list[int],
+        tokens: list[TokenResult]
     ):
         """Add token for function argument annotation colon."""
         arg_name_end_col = node.col_offset + len(node.arg)
@@ -128,8 +128,8 @@ class PythonColonSpaceTokenizer(Tokenizer):
         self,
         node: ast.Dict,
         document: str,
-        line_offsets: List[int],
-        tokens: List[TokenResult]
+        line_offsets: list[int],
+        tokens: list[TokenResult]
     ):
         """Add tokens for dict literal key-value colons."""
         for key, value in zip(node.keys, node.values):
@@ -155,7 +155,7 @@ class PythonColonSpaceTokenizer(Tokenizer):
             )
 
 
-    def _build_line_offsets(self, document: str) -> List[int]:
+    def _build_line_offsets(self, document: str) -> list[int]:
         """Build a list mapping line numbers (0-indexed) to character offsets."""
         offsets = [0]
 

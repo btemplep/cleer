@@ -4,7 +4,6 @@ __all__ = ["PythonPairedPunctuationFormatter"]
 
 
 import re
-from typing import List, Tuple
 
 from cleer.formatters.formatter import Formatter
 
@@ -289,6 +288,9 @@ class PythonPairedPunctuationFormatter(Formatter):
                 if after_eq.startswith(("{", "[", "(")):
                     return "assignment"
 
+        if self._is_chained_call(stripped):
+            return "chained_call"
+
         return "call"
 
 
@@ -300,6 +302,41 @@ class PythonPairedPunctuationFormatter(Formatter):
         """
         import re
         return bool(re.search(r"(?<=[ )\n])or(?=[ (\n])|(?<=[ )\n])and(?=[ (\n])", s))
+
+
+    def _is_chained_call(self, stripped: str) -> bool:
+        """Check if the token is a chained function call.
+
+        A chained call has `).method(` — a closing paren followed by
+        ``.method_name(`` at the top level.
+        """
+        depth = 0
+        i = 0
+
+        while i < len(stripped):
+            ch = stripped[i]
+
+            if ch in ("'", '"'):
+                quote = stripped[i:i + 3] if stripped[i:i + 3] in ('"""', "'''") else ch
+                i += len(quote)
+                while i < len(stripped):
+                    if stripped[i:i + len(quote)] == quote:
+                        i += len(quote)
+                        break
+                    i += 1
+                continue
+
+            if ch in ("(", "[", "{"):
+                depth += 1
+            elif ch in (")", "]", "}"):
+                depth -= 1
+                if depth == 0 and ch == ")" and i + 1 < len(stripped):
+                    rest = stripped[i + 1:]
+                    if re.match(r"\.\w+\(", rest):
+                        return True
+            i += 1
+
+        return False
 
 
     def _format_logic(self, token: str, indent: str) -> str:
@@ -586,7 +623,7 @@ class PythonPairedPunctuationFormatter(Formatter):
         return "\n".join(lines)
 
 
-    def _split_logic_statements(self, condition: str) -> List[str]:
+    def _split_logic_statements(self, condition: str) -> list[str]:
         """Split a logic condition by top-level operators.
 
         Splits by 'or' first. If there are no 'or' operators, splits by 'and'.
@@ -625,7 +662,7 @@ class PythonPairedPunctuationFormatter(Formatter):
         return bool(re.search(pattern, s))
 
 
-    def _split_by_operator(self, s: str, operator: str) -> List[str]:
+    def _split_by_operator(self, s: str, operator: str) -> list[str]:
         """Split string by an operator at depth 0, respecting strings and brackets.
 
         Handles operators adjacent to parentheses (e.g., ``or(``, ``)and(``).
@@ -741,6 +778,9 @@ class PythonPairedPunctuationFormatter(Formatter):
             flat = re.sub(r":\s*=", ":=", flat)
             flat = re.sub(r":\s+", ": ", flat)
 
+        if context in ("chained_call", "call", "decorator"):
+            flat = self._collapse_paren_spaces(flat)
+
         return indent + flat
 
 
@@ -785,6 +825,55 @@ class PythonPairedPunctuationFormatter(Formatter):
                 else:
                     result.append(s[i])
                     i += 1
+
+        return "".join(result)
+
+
+    def _collapse_paren_spaces(self, flat: str) -> str:
+        """Remove spaces after opening and before closing brackets.
+
+        Only operates outside of string literals.
+        """
+        result = []
+        i = 0
+
+        while i < len(flat):
+            ch = flat[i]
+
+            if ch in ("'", '"'):
+                quote = flat[i:i + 3] if flat[i:i + 3] in ('"""', "'''") else ch
+                result.append(quote)
+                i += len(quote)
+                while i < len(flat):
+                    if flat[i:i + len(quote)] == quote:
+                        result.append(quote)
+                        i += len(quote)
+                        break
+                    if flat[i] == "\\" and not quote.startswith(("'''", '"""')):
+                        result.append(flat[i:i + 2])
+                        i += 2
+                    else:
+                        result.append(flat[i])
+                        i += 1
+                continue
+
+            if ch in ("(", "[", "{"):
+                result.append(ch)
+                i += 1
+                while i < len(flat) and flat[i] == " ":
+                    i += 1
+                continue
+
+            if ch == " " and i + 1 < len(flat) and flat[i + 1] in (")", "]", "}"):
+                j = i
+                while j < len(flat) and flat[j] == " ":
+                    j += 1
+                if j < len(flat) and flat[j] in (")", "]", "}"):
+                    i = j
+                    continue
+
+            result.append(ch)
+            i += 1
 
         return "".join(result)
 
@@ -915,7 +1004,7 @@ class PythonPairedPunctuationFormatter(Formatter):
         return None
 
 
-    def _split_items(self, content: str) -> List[str]:
+    def _split_items(self, content: str) -> list[str]:
         """Split content by top-level commas."""
         items = []
         current = ""
@@ -1064,7 +1153,7 @@ class PythonPairedPunctuationFormatter(Formatter):
 
     def _should_expand(
         self,
-        items: List[str],
+        items: list[str],
         region: dict,
         region_context: str,
         indent: str,
@@ -1211,7 +1300,7 @@ class PythonPairedPunctuationFormatter(Formatter):
         return True
 
 
-    def _any_inner_expanded(self, items: List[str], indent: str) -> bool:
+    def _any_inner_expanded(self, items: list[str], indent: str) -> bool:
         """Check if any item contains an inner region that would expand."""
         for item in items:
             regions = self._find_top_regions(item)
@@ -1249,6 +1338,8 @@ class PythonPairedPunctuationFormatter(Formatter):
             return self._rebuild_funcdef(stripped, regions, indent)
         elif context == "decorator":
             return self._rebuild_decorator(stripped, regions, indent)
+        elif context == "chained_call":
+            return self._rebuild_chained_call(stripped, indent)
         elif context == "call":
             return self._rebuild_call(stripped, regions, indent)
         elif context == "assignment":
@@ -1348,6 +1439,193 @@ class PythonPairedPunctuationFormatter(Formatter):
         )
 
 
+    def _rebuild_chained_call(self, stripped: str, indent: str) -> str:
+        """Rebuild a chained function call.
+
+        Splits the chain into segments, checks expansion conditions,
+        and formats each segment. Zero-arg calls stay inline on the
+        preceding closing paren line.
+        """
+        segments = self._split_chain_segments(stripped)
+
+        if not segments:
+            return indent + stripped
+
+        needs_expand = self._chain_needs_expand(segments, indent)
+
+        if not needs_expand:
+            return indent + stripped
+
+        return self._expand_chain(segments, indent)
+
+
+    def _split_chain_segments(self, stripped: str) -> list:
+        """Split a chained call into segments.
+
+        Each segment is a dict with:
+        - ``prefix``: the function/method name including leading dot
+        - ``args``: the content inside the parentheses
+        - ``has_args``: whether there are any arguments
+
+        Returns
+        -------
+        list
+            List of segment dicts.
+        """
+        segments = []
+        i = 0
+        current_prefix = ""
+
+        while i < len(stripped):
+            ch = stripped[i]
+
+            if ch in ("'", '"'):
+                quote = stripped[i:i + 3] if stripped[i:i + 3] in ('"""', "'''") else ch
+                current_prefix += quote
+                i += len(quote)
+                while i < len(stripped):
+                    if stripped[i:i + len(quote)] == quote:
+                        current_prefix += quote
+                        i += len(quote)
+                        break
+                    current_prefix += stripped[i]
+                    i += 1
+                continue
+
+            if ch == "(":
+                depth = 1
+                i += 1
+                args_content = ""
+                while i < len(stripped) and depth > 0:
+                    c = stripped[i]
+                    if c in ("'", '"'):
+                        q = stripped[i:i + 3] if stripped[i:i + 3] in ('"""', "'''") else c
+                        args_content += q
+                        i += len(q)
+                        while i < len(stripped):
+                            if stripped[i:i + len(q)] == q:
+                                args_content += q
+                                i += len(q)
+                                break
+                            args_content += stripped[i]
+                            i += 1
+                        continue
+                    if c in ("(", "[", "{"):
+                        depth += 1
+                    elif c in (")", "]", "}"):
+                        depth -= 1
+                        if depth == 0:
+                            i += 1
+                            break
+                    args_content += c
+                    i += 1
+
+                args_stripped = args_content.strip()
+                segments.append({
+                    "prefix": current_prefix,
+                    "args": args_stripped,
+                    "has_args": len(args_stripped) > 0
+                })
+                current_prefix = ""
+            else:
+                current_prefix += ch
+                i += 1
+
+        if current_prefix.strip():
+            segments.append({
+                "prefix": current_prefix,
+                "args": "",
+                "has_args": False
+            })
+
+        return segments
+
+
+    def _chain_needs_expand(self, segments: list, indent: str) -> bool:
+        """Determine if a chained call needs expansion.
+
+        Returns True if the total flat length > 80 chars, or if any
+        individual call segment meets the call expansion conditions.
+        """
+        flat_len = len(indent)
+        for seg in segments:
+            flat_len += len(seg["prefix"]) + 1
+            if seg["has_args"]:
+                flat_len += len(seg["args"])
+            flat_len += 1
+
+        if flat_len > 80:
+            return True
+
+        for seg in segments:
+            if not seg["has_args"]:
+                continue
+
+            items = self._split_items(seg["args"])
+            region = {
+                "open_char": "(",
+                "close_char": ")",
+                "content": seg["args"],
+                "start": 0,
+                "end": 0
+            }
+            rc = "call"
+            has_kwarg = any(
+                "=" in item and not self._eq_in_string(item) for item in items
+            )
+            more_than_two = len(items) > 2
+
+            if len(items) > 4:
+                return True
+            if has_kwarg and more_than_two:
+                return True
+
+            seg_line_len = len(seg["prefix"]) + 1 + len(", ".join(items)) + 1
+            if seg_line_len > 60:
+                return True
+            if seg_line_len + len(indent) > 80:
+                return True
+
+            if self._any_inner_expanded(items, indent + "    "):
+                return True
+
+        return False
+
+
+    def _expand_chain(self, segments: list, indent: str) -> str:
+        """Expand a chained call with proper formatting.
+
+        Each call with args gets expanded. Zero-arg calls are inlined
+        on the preceding closing paren line.
+        """
+        inner_indent = indent + "    "
+        lines = []
+        pending_inline = ""
+
+        for seg_idx, seg in enumerate(segments):
+            if not seg["has_args"]:
+                pending_inline += seg["prefix"] + "()"
+                continue
+
+            items = self._split_items(seg["args"])
+
+            if seg_idx == 0:
+                lines.append(f"{indent}{pending_inline}{seg['prefix']}(")
+            else:
+                lines.append(f"{indent}){pending_inline}{seg['prefix']}(")
+
+            pending_inline = ""
+
+            for i, item in enumerate(items):
+                formatted_item = self._format_item(item, inner_indent, "call")
+                trailing = "," if i < len(items) - 1 else ""
+                lines.append(f"{inner_indent}{formatted_item}{trailing}")
+
+        lines.append(f"{indent}){pending_inline}")
+
+        return "\n".join(lines)
+
+
     def _rebuild_assignment(self, stripped: str, regions: list, indent: str) -> str:
         """Rebuild an assignment with paired punctuation value."""
         if not regions:
@@ -1369,7 +1647,7 @@ class PythonPairedPunctuationFormatter(Formatter):
         )
 
 
-    def _format_items_flat(self, items: List[str], region: dict, stripped: str) -> str:
+    def _format_items_flat(self, items: list[str], region: dict, stripped: str) -> str:
         """Format items as a flat single line."""
         before = stripped[:region["start"]]
         after = stripped[region["end"] + 1:]
@@ -1389,7 +1667,7 @@ class PythonPairedPunctuationFormatter(Formatter):
         self,
         stripped: str,
         region: dict,
-        items: List[str],
+        items: list[str],
         indent: str,
         region_context: str
     ) -> str:
@@ -1491,7 +1769,7 @@ class PythonPairedPunctuationFormatter(Formatter):
 
     def _expand_inner(
         self,
-        items: List[str],
+        items: list[str],
         region: dict,
         indent: str,
         region_context: str

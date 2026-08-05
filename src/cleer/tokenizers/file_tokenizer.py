@@ -3,7 +3,6 @@
 __all__ = ["FileTokenizer"]
 
 
-from typing import List
 
 from cleer.tokenizers.tokenizer import Tokenizer
 
@@ -29,7 +28,7 @@ class FileTokenizer(Tokenizer):
     emits_token_type = "file"
 
 
-    def tokenize(self, document: str) -> List[dict]:
+    def tokenize(self, document: str) -> list[dict]:
         """Tokenize a document as a single whole-file token.
 
         Returns the entire document as a single token with index 0 and
@@ -50,7 +49,7 @@ class FileTokenizer(Tokenizer):
 
         Returns
         -------
-        List[TokenResult]
+        list[TokenResult]
             List containing a single token result for the whole document,
             or an empty list if the document is empty.
 

@@ -4,7 +4,7 @@ __all__ = ["PythonDecoratorBoundaryTokenizer"]
 
 
 import ast
-from typing import List
+
 
 from cleer.tokenizers.tokenizer import Tokenizer
 
@@ -29,7 +29,7 @@ class PythonDecoratorBoundaryTokenizer(Tokenizer):
     emits_token_type = "python_decorator_boundary"
 
 
-    def tokenize(self, document: str) -> List[dict]:
+    def tokenize(self, document: str) -> list[dict]:
         """Tokenize whitespace between decorators and function definitions.
 
         Parameters
@@ -47,7 +47,7 @@ class PythonDecoratorBoundaryTokenizer(Tokenizer):
 
         Returns
         -------
-        List[dict]
+        list[dict]
             List of token results for whitespace gaps between decorators
             and their function definitions, or an empty list if none exist.
 
@@ -68,7 +68,7 @@ class PythonDecoratorBoundaryTokenizer(Tokenizer):
         return tokens
 
 
-    def _build_line_offsets(self, document: str) -> List[int]:
+    def _build_line_offsets(self, document: str) -> list[int]:
         """Build a list mapping line numbers (0-indexed) to character offsets."""
         offsets = [0]
         for i, char in enumerate(document):
@@ -81,10 +81,10 @@ class PythonDecoratorBoundaryTokenizer(Tokenizer):
     def _walk_for_decorated(
         self,
         tree: ast.Module,
-        lines: List[str],
-        line_offsets: List[int],
+        lines: list[str],
+        line_offsets: list[int],
         document: str,
-        tokens: List[dict]
+        tokens: list[dict]
     ):
         """Walk the AST to find all decorated functions/methods."""
         for node in ast.walk(tree):
@@ -120,10 +120,10 @@ class PythonDecoratorBoundaryTokenizer(Tokenizer):
         self,
         prev_node,
         next_line: int,
-        lines: List[str],
-        line_offsets: List[int],
+        lines: list[str],
+        line_offsets: list[int],
         document: str,
-        tokens: List[dict]
+        tokens: list[dict]
     ):
         """Check for blank lines between a decorator and the next line.
 

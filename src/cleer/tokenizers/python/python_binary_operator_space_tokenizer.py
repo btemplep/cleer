@@ -4,7 +4,7 @@ __all__ = ["PythonBinaryOperatorSpaceTokenizer"]
 
 
 import ast
-from typing import List
+
 
 from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
@@ -32,7 +32,7 @@ class PythonBinaryOperatorSpaceTokenizer(Tokenizer):
     emits_token_type = "python_binary_operator_space"
 
 
-    def tokenize(self, document: str) -> List[TokenResult]:
+    def tokenize(self, document: str) -> list[TokenResult]:
         """Tokenize operator spacing segments.
 
         Parameters
@@ -42,7 +42,7 @@ class PythonBinaryOperatorSpaceTokenizer(Tokenizer):
 
         Returns
         -------
-        List[TokenResult]
+        list[TokenResult]
             List of token results for each operator spacing segment.
 
             ```python
@@ -79,8 +79,8 @@ class PythonBinaryOperatorSpaceTokenizer(Tokenizer):
         self,
         node: ast.BinOp,
         document: str,
-        line_offsets: List[int],
-        tokens: List[TokenResult]
+        line_offsets: list[int],
+        tokens: list[TokenResult]
     ):
         """Add token for a binary operation."""
         if node.left.end_lineno != node.right.lineno:
@@ -101,8 +101,8 @@ class PythonBinaryOperatorSpaceTokenizer(Tokenizer):
         self,
         node: ast.Compare,
         document: str,
-        line_offsets: List[int],
-        tokens: List[TokenResult]
+        line_offsets: list[int],
+        tokens: list[TokenResult]
     ):
         """Add tokens for comparison operations."""
         left = node.left
@@ -126,8 +126,8 @@ class PythonBinaryOperatorSpaceTokenizer(Tokenizer):
         self,
         node: ast.BoolOp,
         document: str,
-        line_offsets: List[int],
-        tokens: List[TokenResult]
+        line_offsets: list[int],
+        tokens: list[TokenResult]
     ):
         """Add tokens for boolean operations (and/or)."""
         for i in range(len(node.values) - 1):
@@ -152,8 +152,8 @@ class PythonBinaryOperatorSpaceTokenizer(Tokenizer):
         self,
         node: ast.Assign,
         document: str,
-        line_offsets: List[int],
-        tokens: List[TokenResult]
+        line_offsets: list[int],
+        tokens: list[TokenResult]
     ):
         """Add token for an assignment."""
         last_target = node.targets[-1]
@@ -176,8 +176,8 @@ class PythonBinaryOperatorSpaceTokenizer(Tokenizer):
         self,
         node: ast.AugAssign,
         document: str,
-        line_offsets: List[int],
-        tokens: List[TokenResult]
+        line_offsets: list[int],
+        tokens: list[TokenResult]
     ):
         """Add token for an augmented assignment."""
         if node.target.end_lineno != node.value.lineno:
@@ -198,8 +198,8 @@ class PythonBinaryOperatorSpaceTokenizer(Tokenizer):
         self,
         node: ast.AnnAssign,
         document: str,
-        line_offsets: List[int],
-        tokens: List[TokenResult]
+        line_offsets: list[int],
+        tokens: list[TokenResult]
     ):
         """Add token for an annotated assignment with value."""
         if node.annotation.end_lineno != node.value.lineno:
@@ -223,8 +223,8 @@ class PythonBinaryOperatorSpaceTokenizer(Tokenizer):
         right_line: int,
         right_col: int,
         document: str,
-        line_offsets: List[int],
-        tokens: List[TokenResult]
+        line_offsets: list[int],
+        tokens: list[TokenResult]
     ):
         """Emit a token for the segment between two operands."""
         start = line_offsets[left_end_line - 1] + left_end_col
@@ -253,7 +253,7 @@ class PythonBinaryOperatorSpaceTokenizer(Tokenizer):
         )
 
 
-    def _build_line_offsets(self, document: str) -> List[int]:
+    def _build_line_offsets(self, document: str) -> list[int]:
         """Build a list mapping line numbers (0-indexed) to character offsets."""
         offsets = [0]
 

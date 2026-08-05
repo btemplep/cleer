@@ -4,7 +4,7 @@ __all__ = ["PythonTrailingCommaTokenizer"]
 
 
 import ast
-from typing import List
+
 
 from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
@@ -31,7 +31,7 @@ class PythonTrailingCommaTokenizer(Tokenizer):
     emits_token_type = "python_trailing_comma"
 
 
-    def tokenize(self, document: str) -> List[TokenResult]:
+    def tokenize(self, document: str) -> list[TokenResult]:
         """Tokenize trailing commas that violate the style.
 
         Parameters
@@ -41,7 +41,7 @@ class PythonTrailingCommaTokenizer(Tokenizer):
 
         Returns
         -------
-        List[TokenResult]
+        list[TokenResult]
             List of token results for each trailing comma violation.
 
             ```python
@@ -81,8 +81,8 @@ class PythonTrailingCommaTokenizer(Tokenizer):
         container_node,
         elements: list,
         document: str,
-        line_offsets: List[int],
-        tokens: List[TokenResult]
+        line_offsets: list[int],
+        tokens: list[TokenResult]
     ):
         """Check for trailing comma in a sequence."""
         if not elements:
@@ -115,8 +115,8 @@ class PythonTrailingCommaTokenizer(Tokenizer):
         self,
         node: ast.Dict,
         document: str,
-        line_offsets: List[int],
-        tokens: List[TokenResult]
+        line_offsets: list[int],
+        tokens: list[TokenResult]
     ):
         """Check for trailing comma in a dict."""
         last_value = node.values[-1]
@@ -146,8 +146,8 @@ class PythonTrailingCommaTokenizer(Tokenizer):
         self,
         node: ast.Call,
         document: str,
-        line_offsets: List[int],
-        tokens: List[TokenResult]
+        line_offsets: list[int],
+        tokens: list[TokenResult]
     ):
         """Check for trailing comma in a function call."""
         all_args = list(node.args) + [kw.value for kw in node.keywords]
@@ -182,8 +182,8 @@ class PythonTrailingCommaTokenizer(Tokenizer):
         self,
         node,
         document: str,
-        line_offsets: List[int],
-        tokens: List[TokenResult]
+        line_offsets: list[int],
+        tokens: list[TokenResult]
     ):
         """Check for trailing comma in function definition params."""
         args = node.args
@@ -249,7 +249,7 @@ class PythonTrailingCommaTokenizer(Tokenizer):
         )
 
 
-    def _build_line_offsets(self, document: str) -> List[int]:
+    def _build_line_offsets(self, document: str) -> list[int]:
         """Build a list mapping line numbers (0-indexed) to character offsets."""
         offsets = [0]
 

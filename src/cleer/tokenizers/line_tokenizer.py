@@ -3,7 +3,6 @@
 __all__ = ["LineTokenizer"]
 
 
-from typing import List
 
 from cleer.tokenizers.tokenizer import Tokenizer
 
@@ -27,7 +26,7 @@ class LineTokenizer(Tokenizer):
     emits_token_type = "line"
 
 
-    def tokenize(self, document: str) -> List[dict]:
+    def tokenize(self, document: str) -> list[dict]:
         """Tokenize a document into individual lines.
 
         Parameters
@@ -45,7 +44,7 @@ class LineTokenizer(Tokenizer):
 
         Returns
         -------
-        List[dict]
+        list[dict]
             List of token results for each line, or an empty list if
             the document is empty.
 

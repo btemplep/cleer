@@ -39,3 +39,7 @@ def _format_one(
         "invalidations": [],
         "document": document
     }
+my_func_call_herethere(thing="here", that="this", there="now").no_args_call().another_one("hello").last_one([1,2,3])
+my_func_call_herethere(thing="here", that="this").no_args_call().another_one("hello").last_one([1,2,3, {"hello": "there"}])
+my_func_call_herethere(thing="here", that="this").no_args_call()
+my_func_call_herethere(thing="here", that="this").no_args_call().another_one("h")

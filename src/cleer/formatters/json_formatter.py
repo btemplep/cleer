@@ -1,17 +1,13 @@
-__all__ = ["Formatter"]
+""""""
+
+__all__ = [
+    "JSONFormatter"
+]
+
+from cleer.formatters.formatter import Formatter
 
 
-
-
-class Formatter:
-    """Formatter base class
-
-    Formatters are use by cleer to:
-    - inspect tokens to see if they are formatted correctly
-    - format tokens
-
-    Formatters must implement the `inspect` and `format` methods
-    """
+class JSONFormatter(Formatter):
     accepts_token_types: list[str] = []
 
 
@@ -49,3 +45,4 @@ class Formatter:
             Formatted token.
         """
         raise NotImplementedError("Formatter classes must implement the format method!")
+

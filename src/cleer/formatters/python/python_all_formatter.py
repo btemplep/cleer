@@ -4,7 +4,6 @@ __all__ = ["PythonAllFormatter"]
 
 
 import ast
-from typing import List
 
 from cleer.formatters.formatter import Formatter
 
@@ -91,7 +90,7 @@ class PythonAllFormatter(Formatter):
         return self._build_all(items, leading_newline)
 
 
-    def _extract_items(self, token: str) -> List[str] | None:
+    def _extract_items(self, token: str) -> list[str] | None:
         """Extract the string items from __all__."""
         stripped = token.strip()
 
@@ -132,7 +131,7 @@ class PythonAllFormatter(Formatter):
         return items
 
 
-    def _build_all(self, items: List[str], leading_newline: bool = True) -> str:
+    def _build_all(self, items: list[str], leading_newline: bool = True) -> str:
         """Build the formatted __all__ string."""
         q = self._quote
         prefix = "\n" if leading_newline else ""
