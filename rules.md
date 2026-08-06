@@ -97,13 +97,14 @@
     -I think the existing formatters for those items that are have the item formatting and the blank space formatting should just set the ending of them to be one blank line
     - A separate tokenizer/formatter needs to be made to handle that block holistically with the rules I gave above
 - [x] if/elif/else, try/except/finally, with blocks etc.
+    - no blank lines between the in-between statements, between if and elif or else, etc.
+        - except 
+            - after a return or yield statement, or exit() call
+            - another end of chain statement and
     - At end of chain of statements if/elif/else, if/else, try/except etc.
         - always have at least one blank line following
         - should not remove extra blank lines
         - If multiple end at different levels, and there is no blank line, then it should only be one blank line total.
-    - no blank lines between the in-between statements, between if and elif or else, etc.
-        - except after a return or yield statement, or exit() call
-            - The return formatter should handle this if it's missing, just need to not remove it.
     - no blank lines between indent block (if, for, while, with, etc) and first line of inner code
 - [x] paired punctuation
     - excludes:
@@ -171,6 +172,10 @@
         - should always be multiline, and surrounded by parenthesis for themselves
         - fully expand everything that it is in per usual. 
     - dictionary key notation
+        - always flatten
+        - never expand
+    - Inline generators
+        - always flatten
         - never expand
 - [x] header format
     - should be in this order, with one line in between each, if they exist:

@@ -200,6 +200,9 @@ class PythonPairedPunctuationTokenizer(Tokenizer):
             if isinstance(child.value, ast.Subscript):
                 return True
 
+            if isinstance(child.value, (ast.ListComp, ast.SetComp, ast.DictComp, ast.GeneratorExp)):
+                return True
+
         if isinstance(child, ast.AnnAssign):
             if child.value is None:
                 return True

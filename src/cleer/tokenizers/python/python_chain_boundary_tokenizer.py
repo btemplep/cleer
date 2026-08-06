@@ -15,19 +15,21 @@ class PythonChainBoundaryTokenizer(Tokenizer):
     next connector in a chain (if/elif/else, try/except/else/finally).
 
     When `after_return=False` (default), emits tokens for boundaries
-    where the previous statement is NOT a return/yield/exit. These
-    blank lines should be removed.
+    where the previous statement is a simple statement (not return,
+    yield, exit, or a compound block). These blank lines should be
+    removed.
 
     When `after_return=True`, emits tokens for boundaries where the
-    previous statement IS a return/yield/exit and the blank lines are
-    not exactly 1. These should be normalized to 1 blank.
+    previous statement IS a return/yield/exit or a compound block and
+    the blank lines are not exactly 1. These should be normalized to
+    1 blank line.
 
     Parameters
     ----------
     after_return : bool, default=False
         If False, emit boundaries that should have 0 blank lines.
-        If True, emit boundaries after return/yield/exit that should
-        have exactly 1 blank line.
+        If True, emit boundaries after return/yield/exit/compound
+        that should have exactly 1 blank line.
 
     Examples
     --------
@@ -298,7 +300,14 @@ class PythonChainBoundaryTokenizer(Tokenizer):
 
 
     def _is_return_yield_exit(self, node) -> bool:
-        """Check if a node is a return, yield, or exit() call."""
+        """Check if a boundary should preserve a blank line.
+
+        Returns True when the last statement before a connector is:
+        - A return, yield, or exit() call
+        - Any compound statement (if, for, while, with, try) — because
+          a nested block ending right before a connector needs visual
+          separation.
+        """
         if isinstance(node, ast.Return):
             return True
 
@@ -312,6 +321,17 @@ class PythonChainBoundaryTokenizer(Tokenizer):
                 and node.value.func.id == "exit"
             ):
                 return True
+
+        if isinstance(node, (
+            ast.If,
+            ast.For,
+            ast.AsyncFor,
+            ast.While,
+            ast.With,
+            ast.AsyncWith,
+            ast.Try
+        )):
+            return True
 
         return False
 

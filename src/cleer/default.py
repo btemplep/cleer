@@ -222,21 +222,9 @@ def cleer_default_config(
                         ]
                     },
                     {
-                        "tokenizer": PythonChainBoundaryTokenizer(),
+                        "tokenizer": PythonCompoundChainTokenizer(),
                         "formatters": [
-                            BlankLineFormatter(
-                                num_blank_lines=0,
-                                message="No blank lines between chain connectors."
-                            )
-                        ]
-                    },
-                    {
-                        "tokenizer": PythonChainBoundaryTokenizer(after_return=True),
-                        "formatters": [
-                            BlankLineFormatter(
-                                num_blank_lines=1,
-                                message="Expected 1 blank line after return/yield before chain connector."
-                            )
+                            PythonCompoundChainFormatter()
                         ]
                     },
                     {

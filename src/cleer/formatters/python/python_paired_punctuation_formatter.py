@@ -883,42 +883,80 @@ class PythonPairedPunctuationFormatter(Formatter):
         in_string = False
         string_char = ""
         triple_quote = False
+        is_raw = False
 
         while i < len(s):
             if not in_string:
-                if s[i:i + 3] in ('"""', "'''"):
+                prefix_start = i
+                while i < len(s) and s[i].lower() in ("f", "r", "b", "u"):
+                    i += 1
+
+                if i < len(s) and s[i:i + 3] in ('"""', "'''"):
+                    raw = any(
+                        s[j].lower() == "r" for j in range(prefix_start, i)
+                    )
                     in_string = True
                     string_char = s[i:i + 3]
                     triple_quote = True
-                    result.append(s[i:i + 3])
+                    is_raw = raw
+                    result.append(s[prefix_start:i + 3])
                     i += 3
-                elif s[i] in ('"', "'"):
+                elif i < len(s) and s[i] in ('"', "'"):
+                    raw = any(
+                        s[j].lower() == "r" for j in range(prefix_start, i)
+                    )
                     in_string = True
                     string_char = s[i]
                     triple_quote = False
-                    result.append(s[i])
+                    is_raw = raw
+                    result.append(s[prefix_start:i + 1])
                     i += 1
-                elif s[i] in (" ", "\t", "\n", "\r"):
+                elif i < len(s) and s[i] in (" ", "\t", "\n", "\r"):
+                    if prefix_start < i:
+                        result.append(s[prefix_start:i])
                     if result and result[-1] != " ":
                         result.append(" ")
                     i += 1
-                else:
-                    result.append(s[i])
+                elif i < len(s):
+                    result.append(s[prefix_start:i + 1])
                     i += 1
+                else:
+                    if prefix_start < i:
+                        result.append(s[prefix_start:i])
             else:
                 if triple_quote and s[i:i + 3] == string_char:
                     in_string = False
                     result.append(s[i:i + 3])
                     i += 3
-                elif not triple_quote and s[i] == string_char and (i == 0 or s[i - 1] != "\\"):
-                    in_string = False
-                    result.append(s[i])
-                    i += 1
+                elif not triple_quote and s[i] == string_char:
+                    if is_raw or self._is_closing_quote(s, i):
+                        in_string = False
+                        result.append(s[i])
+                        i += 1
+                    else:
+                        result.append(s[i])
+                        i += 1
                 else:
                     result.append(s[i])
                     i += 1
 
         return "".join(result)
+
+
+    def _is_closing_quote(self, s: str, i: int) -> bool:
+        """Check if the quote at position i is a closing quote.
+
+        Counts consecutive backslashes before the quote. An even number
+        means the quote is NOT escaped (the backslashes escape each other).
+        """
+        num_backslashes = 0
+        j = i - 1
+
+        while j >= 0 and s[j] == "\\":
+            num_backslashes += 1
+            j -= 1
+
+        return num_backslashes % 2 == 0
 
 
     def _collapse_paren_spaces(self, flat: str) -> str:
@@ -1259,6 +1297,9 @@ class PythonPairedPunctuationFormatter(Formatter):
         if region_context == "subscript":
             return False
 
+        if self._is_comprehension_content(region["content"]):
+            return False
+
         indent_len = len(indent)
         content_len = len(region["open_char"]) + len(", ".join(items)) + len(region["close_char"])
 
@@ -1296,6 +1337,10 @@ class PythonPairedPunctuationFormatter(Formatter):
             return False
 
         if region_context in ("call", "decorator"):
+            if len(items) == 1 and not has_kwarg:
+                if not self._is_expandable_arg(items[0], indent + "    "):
+                    return False
+
             if full_line_len > 60:
                 return True
             if full_line_len + indent_len > 80:
@@ -1307,6 +1352,89 @@ class PythonPairedPunctuationFormatter(Formatter):
             if self._any_inner_expanded(items, indent + "    "):
                 return True
             return False
+
+        return False
+
+
+    def _is_expandable_arg(self, item: str, indent: str) -> bool:
+        """Check if a single argument is something that should expand.
+
+        Returns True for dicts, lists, sets, tuples, string concat,
+        and function calls that themselves have multiple args or inner
+        expansion. Returns False for simple values like strings, numbers,
+        variables, inline if/else, etc.
+        """
+        stripped = item.strip()
+
+        if self._is_string_concat_content(stripped):
+            return True
+
+        if stripped.startswith(("{", "[", "(")):
+            return True
+
+        regions = self._find_top_regions(item)
+        if not regions:
+            return False
+
+        for region in regions:
+            if region["open_char"] == "(":
+                if self._is_string_concat_content(region["content"]):
+                    return True
+
+                inner_items = self._split_items(region["content"])
+                if len(inner_items) > 1:
+                    return True
+
+                rc = self._region_context(region, item)
+                if rc in ("dict", "list", "set", "tuple"):
+                    return True
+
+                if inner_items and self._any_inner_expanded(inner_items, indent):
+                    return True
+
+            elif region["open_char"] in ("{", "["):
+                return True
+
+        return False
+
+
+    def _is_comprehension_content(self, content: str) -> bool:
+        """Check if region content is a comprehension expression.
+
+        Detects ``for <var> in`` at the top level (not inside nested
+        brackets or strings). Matches list/set/dict comprehensions and
+        generator expressions.
+        """
+        depth = 0
+        i = 0
+
+        while i < len(content):
+            ch = content[i]
+
+            if ch in ("'", '"'):
+                quote = content[i:i + 3] if content[i:i + 3] in ('"""', "'''") else ch
+                i += len(quote)
+                while i < len(content):
+                    if content[i:i + len(quote)] == quote:
+                        i += len(quote)
+                        break
+                    if ch != quote[0] and content[i] == "\\":
+                        i += 2
+                    else:
+                        i += 1
+                continue
+
+            if ch in ("(", "[", "{"):
+                depth += 1
+            elif ch in (")", "]", "}"):
+                depth -= 1
+
+            if depth == 0 and content[i:i + 4] == "for " and (i == 0 or content[i - 1] == " "):
+                rest = content[i + 4:]
+                if " in " in rest:
+                    return True
+
+            i += 1
 
         return False
 

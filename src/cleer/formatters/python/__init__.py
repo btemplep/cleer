@@ -7,6 +7,7 @@ __all__ = [
     "PythonClassBoundaryFormatter",
     "PythonColonSpaceFormatter",
     "PythonCommaSpaceFormatter",
+    "PythonCompoundChainFormatter",
     "PythonDictKeyQuoteFormatter",
     "PythonImportFormatter",
     "PythonIndentFormatter",
@@ -28,6 +29,7 @@ from cleer.formatters.python.python_binary_operator_space_formatter import Pytho
 from cleer.formatters.python.python_class_boundary_formatter import PythonClassBoundaryFormatter
 from cleer.formatters.python.python_colon_space_formatter import PythonColonSpaceFormatter
 from cleer.formatters.python.python_comma_space_formatter import PythonCommaSpaceFormatter
+from cleer.formatters.python.python_compound_chain_formatter import PythonCompoundChainFormatter
 from cleer.formatters.python.python_dict_key_quote_formatter import PythonDictKeyQuoteFormatter
 from cleer.formatters.python.python_import_formatter import PythonImportFormatter
 from cleer.formatters.python.python_indent_formatter import PythonIndentFormatter

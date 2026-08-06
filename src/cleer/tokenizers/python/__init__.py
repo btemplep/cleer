@@ -7,6 +7,7 @@ __all__ = [
     "PythonChainBoundaryTokenizer",
     "PythonColonSpaceTokenizer",
     "PythonCommaSpaceTokenizer",
+    "PythonCompoundChainTokenizer",
     "PythonCompoundEndTokenizer",
     "PythonDecoratorBoundaryTokenizer",
     "PythonDictKeyQuoteTokenizer",
@@ -32,6 +33,7 @@ from cleer.tokenizers.python.python_chain_boundary_tokenizer import PythonChainB
 from cleer.tokenizers.python.python_class_boundary_tokenizer import PythonClassBoundaryTokenizer
 from cleer.tokenizers.python.python_colon_space_tokenizer import PythonColonSpaceTokenizer
 from cleer.tokenizers.python.python_comma_space_tokenizer import PythonCommaSpaceTokenizer
+from cleer.tokenizers.python.python_compound_chain_tokenizer import PythonCompoundChainTokenizer
 from cleer.tokenizers.python.python_compound_end_tokenizer import PythonCompoundEndTokenizer
 from cleer.tokenizers.python.python_decorator_boundary_tokenizer import PythonDecoratorBoundaryTokenizer
 from cleer.tokenizers.python.python_dict_key_quote_tokenizer import PythonDictKeyQuoteTokenizer

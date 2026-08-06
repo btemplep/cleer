@@ -14,6 +14,7 @@ from my_package import (
     there
 )
 import requests
+from some_lib.is_a_really_long.long_long.lots_of_lengthy_words_are_here import a_really_long_here_toooooo
 
 from cleer import Cleer, CleerConfig, CleerError, CleerGroup
 
@@ -480,3 +481,106 @@ other = here(
     ),
     1234
 )
+
+
+def new_func():
+    if args.command == "inspect":
+        logger.info("Running inspect command...")
+        try:
+            print(
+                json.dumps(
+                    clr.inspect(args.path),
+                    indent=4,
+                    default=str
+                ),
+                flush=True
+            )
+            logger.info("Inspect command complete!")
+        except Exception as exc:
+            logger.opt(
+                exception=True if args.log_level == "DEBUG" else False
+            ).critical(
+                f"Inspect Failed! [{type(exc).__name__}]: {exc}"
+            )
+            exit(1)
+
+    elif args.command == "format":
+        logger.info("Running format command...")
+        try:
+            print(
+                json.dumps(
+                    clr.format(args.path),
+                    indent=4,
+                    default=str
+                ),
+                flush=True
+            )
+            logger.info("Format command complete!")
+        except Exception as exc:
+            logger.opt(
+                exception=True if args.log_level == "DEBUG" else False
+            ).critical(
+                f"Format Failed! [{type(exc).__name__}]: {exc}"
+            )
+            exit(1)
+
+    if not seps:
+        if os.path.altsep:
+            seps = (os.path.sep, os.path.altsep)
+        else:
+            seps = (os.path.sep,)
+
+    elif isinstance(seps, str):
+        seps = (seps,)
+
+    results = []
+    parts = re.split(f"[{escaped_seps}]", pattern)
+    last_part_idx = len(parts) - 1
+
+    for idx, part in enumerate(parts):
+        if part == "*":
+            results.append(one_segment if idx < last_part_idx else one_last_segment)
+        elif recursive and part == "**":
+            if idx < last_part_idx:
+                if parts[idx + 1] != "**":
+                    results.append(any_segments)
+
+            else:
+                results.append(any_last_segments)
+
+        else:
+            if part:
+                if not include_hidden and part[0] in "*?":
+                    results.append(r"(?!\.)")
+
+                results.extend(_translate_segment(part, not_sep))
+
+            if idx < last_part_idx:
+                results.append(any_sep)
+
+    res = "".join(results)
+    while i < n:
+        c = pat[i]
+        i += 1
+
+        if c == "*":
+            res.append(f"{not_sep}*")
+            while i < n and pat[i] == "*":
+                i += 1
+
+        elif c == "?":
+            res.append(not_sep)
+
+    stuff = "-".join(s.replace("\\", r"\\").replace("-", r"\-") for s in chunks)
+    thing(thing(thing(s for s in my_list)))
+    for idx, part in enumerate(parts):
+        if part == "*":
+            results.append(one_segment if idx < last_part_idx else one_last_segment)
+        elif recursive and part == "**":
+            if idx < last_part_idx:
+                if parts[idx + 1] != "**":
+                    results.append(any_segments)
+
+                print("my thing")
+            else:
+                results.append(any_last_segments)
