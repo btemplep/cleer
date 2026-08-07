@@ -1,7 +1,8 @@
 """File start whitespace tokenizer module."""
 
-__all__ = ["FileStartWhitespaceTokenizer"]
-
+__all__ = [
+    "FileStartWhitespaceTokenizer"
+]
 
 import re
 
@@ -63,10 +64,8 @@ class FileStartWhitespaceTokenizer(Tokenizer):
         if not leading_ws:
             return []
 
-        return [
-            {
-                "token": leading_ws,
-                "index": 0,
-                "length": len(leading_ws)
-            }
-        ]
+        return [{
+            "token": leading_ws,
+            "index": 0,
+            "length": len(leading_ws)
+        }]

@@ -1,7 +1,8 @@
 """Trailing whitespace formatter module."""
 
-__all__ = ["TrailingWhitespaceFormatter"]
-
+__all__ = [
+    "TrailingWhitespaceFormatter"
+]
 
 from cleer.formatters.formatter import Formatter
 

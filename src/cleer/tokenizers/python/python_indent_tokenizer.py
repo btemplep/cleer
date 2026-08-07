@@ -1,11 +1,11 @@
 """Python indent tokenizer module."""
 
-__all__ = ["PythonIndentTokenizer"]
-
+__all__ = [
+    "PythonIndentTokenizer"
+]
 
 import ast
 import re
-
 
 from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
@@ -33,11 +33,10 @@ class PythonIndentTokenizer(Tokenizer):
     ```
     """
     emits_token_type = "python_indent"
-
     _leading_ws = re.compile(r"^([ \t]*)")
 
 
-    def __init__(self, tab_size: int = 4):
+    def __init__(self, tab_size: int=4):
         self._tab_size = tab_size
 
 
@@ -67,7 +66,10 @@ class PythonIndentTokenizer(Tokenizer):
         tokens = []
 
         for node in tree.body:
-            if not hasattr(node, "end_lineno") or node.end_lineno is None:
+            if (
+                not hasattr(node, "end_lineno")
+                or node.end_lineno is None
+            ):
                 continue
 
             start_line = node.lineno
@@ -143,8 +145,7 @@ class PythonIndentTokenizer(Tokenizer):
                     continue
 
                 is_docstring = (
-                    i == 0
-                    or isinstance(body[i - 1], (ast.Assign, ast.AnnAssign))
+                    i == 0 or isinstance(body[i - 1], (ast.Assign, ast.AnnAssign))
                 )
 
                 if not is_docstring:
@@ -189,6 +190,7 @@ class PythonIndentTokenizer(Tokenizer):
             if isinstance(body, list) and node in body:
                 if not isinstance(parent, ast.Module):
                     depth += 1
+
                 break
 
             for attr in ("handlers", "orelse", "finalbody"):
@@ -197,6 +199,7 @@ class PythonIndentTokenizer(Tokenizer):
                 if isinstance(items, list) and node in items:
                     if not isinstance(parent, ast.Module):
                         depth += 1
+
                     break
 
         if not isinstance(node, ast.Module):

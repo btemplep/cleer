@@ -1,10 +1,10 @@
 """Python block start tokenizer module."""
 
-__all__ = ["PythonBlockStartTokenizer"]
-
+__all__ = [
+    "PythonBlockStartTokenizer"
+]
 
 import ast
-
 
 from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
@@ -30,7 +30,6 @@ class PythonBlockStartTokenizer(Tokenizer):
     ```
     """
     emits_token_type = "python_block_start"
-
     _block_types = (
         ast.FunctionDef,
         ast.AsyncFunctionDef,
@@ -40,7 +39,7 @@ class PythonBlockStartTokenizer(Tokenizer):
         ast.While,
         ast.With,
         ast.AsyncWith,
-        ast.Try,
+        ast.Try
     )
 
 
@@ -69,15 +68,27 @@ class PythonBlockStartTokenizer(Tokenizer):
 
         for node in ast.walk(tree):
             if isinstance(node, self._block_types):
-                self._check_body_start(node, node.body, line_offsets, document, tokens, seen)
+                self._check_body_start(
+                    node,
+                    node.body,
+                    line_offsets,
+                    document,
+                    tokens,
+                    seen
+                )
 
                 if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                    self._check_after_docstring(node, line_offsets, document, tokens, seen)
+                    self._check_after_docstring(
+                        node,
+                        line_offsets,
+                        document,
+                        tokens,
+                        seen
+                    )
 
             if isinstance(node, (ast.If, ast.For, ast.AsyncFor, ast.While)):
                 if node.orelse:
                     first_else = node.orelse[0]
-
                     if not isinstance(first_else, ast.If):
                         else_line = self._find_keyword_line(
                             document,
@@ -85,7 +96,6 @@ class PythonBlockStartTokenizer(Tokenizer):
                             node.body[-1].end_lineno,
                             first_else.lineno
                         )
-
                         self._check_body_start_at_line(
                             else_line,
                             node.orelse,
@@ -113,7 +123,6 @@ class PythonBlockStartTokenizer(Tokenizer):
                         node.handlers[-1].end_lineno if node.handlers else node.body[-1].end_lineno,
                         node.orelse[0].lineno
                     )
-
                     self._check_body_start_at_line(
                         else_line,
                         node.orelse,
@@ -133,7 +142,6 @@ class PythonBlockStartTokenizer(Tokenizer):
                         prev_end,
                         node.finalbody[0].lineno
                     )
-
                     self._check_body_start_at_line(
                         finally_line,
                         node.finalbody,
@@ -143,7 +151,7 @@ class PythonBlockStartTokenizer(Tokenizer):
                         seen
                     )
 
-        tokens.sort(key=lambda t: t["index"])
+        tokens.sort(key=lambda t: t['index'])
 
         return tokens
 
@@ -165,7 +173,10 @@ class PythonBlockStartTokenizer(Tokenizer):
         first_body_line = first_stmt.lineno
 
         colon_line = self._find_colon_line(
-            parent_node.lineno, first_body_line, line_offsets, document
+            parent_node.lineno,
+            first_body_line,
+            line_offsets,
+            document
         )
 
         if first_body_line <= colon_line + 1:
@@ -176,7 +187,10 @@ class PythonBlockStartTokenizer(Tokenizer):
         token = document[start:end]
 
         if not token.strip():
-            token_key = (start, len(token))
+            token_key = (
+                start,
+                len(token)
+            )
 
             if token_key not in seen:
                 seen.add(token_key)
@@ -207,6 +221,7 @@ class PythonBlockStartTokenizer(Tokenizer):
                 line_end = line_offsets[line_num]
             else:
                 line_end = len(document)
+
             line_text = document[line_start:line_end]
             if line_text.strip():
                 return line_num
@@ -246,7 +261,10 @@ class PythonBlockStartTokenizer(Tokenizer):
         token = document[start:end]
 
         if not token.strip():
-            token_key = (start, len(token))
+            token_key = (
+                start,
+                len(token)
+            )
 
             if token_key not in seen:
                 seen.add(token_key)
@@ -282,7 +300,10 @@ class PythonBlockStartTokenizer(Tokenizer):
         token = document[start:end]
 
         if not token.strip():
-            token_key = (start, len(token))
+            token_key = (
+                start,
+                len(token)
+            )
 
             if token_key not in seen:
                 seen.add(token_key)

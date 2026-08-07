@@ -1,7 +1,8 @@
 """Max blank lines formatter module."""
 
-__all__ = ["MaxBlankLinesFormatter"]
-
+__all__ = [
+    "MaxBlankLinesFormatter"
+]
 
 from cleer.formatters.formatter import Formatter
 
@@ -30,9 +31,9 @@ class MaxBlankLinesFormatter(Formatter):
     accepts_token_types = ["whitespace"]
 
 
-    def __init__(self, max_blank_lines: int = 2):
+    def __init__(self, max_blank_lines: int=2):
         self._max_blank_lines = max_blank_lines
-        self._replacement = "\n" * (max_blank_lines + 1)
+        self._replacement = "\n" * ( max_blank_lines + 1)
 
 
     def _count_blank_lines(self, token: str) -> int:

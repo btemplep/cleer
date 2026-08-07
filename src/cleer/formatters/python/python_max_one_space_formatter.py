@@ -1,7 +1,8 @@
 """Python max one space formatter module."""
 
-__all__ = ["PythonMaxOneSpaceFormatter"]
-
+__all__ = [
+    "PythonMaxOneSpaceFormatter"
+]
 
 from cleer.formatters.formatter import Formatter
 

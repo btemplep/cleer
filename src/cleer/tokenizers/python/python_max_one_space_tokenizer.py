@@ -1,11 +1,11 @@
 """Python max one space tokenizer module."""
 
-__all__ = ["PythonMaxOneSpaceTokenizer"]
-
+__all__ = [
+    "PythonMaxOneSpaceTokenizer"
+]
 
 import ast
 import re
-
 
 from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
@@ -27,7 +27,6 @@ class PythonMaxOneSpaceTokenizer(Tokenizer):
     ```
     """
     emits_token_type = "python_max_one_space"
-
     _multi_space = re.compile(r" {2,}")
 
 
@@ -120,19 +119,28 @@ class PythonMaxOneSpaceTokenizer(Tokenizer):
         ranges = []
 
         for node in ast.walk(tree):
-            if isinstance(node, ast.Constant) and isinstance(node.value, str):
+            if (
+                isinstance(node, ast.Constant)
+                and isinstance(node.value, str)
+            ):
                 start = line_offsets[node.lineno - 1] + node.col_offset
                 end = line_offsets[node.end_lineno - 1] + node.end_col_offset
                 ranges.append((start, end))
-
             elif isinstance(node, ast.JoinedStr):
-                if node.end_lineno is not None and node.end_col_offset is not None:
+                if (
+                    node.end_lineno is not None
+                    and node.end_col_offset is not None
+                ):
                     start = line_offsets[node.lineno - 1] + node.col_offset
                     end = line_offsets[node.end_lineno - 1] + node.end_col_offset
                     ranges.append((start, end))
 
-            elif hasattr(ast, "TemplateStr") and isinstance(node, ast.TemplateStr):
-                if node.end_lineno is not None and node.end_col_offset is not None:
+            elif (
+                hasattr(ast, "TemplateStr")
+                and isinstance(node, ast.TemplateStr)
+                and node.end_lineno is not None
+                    and node.end_col_offset is not None
+            ):
                     start = line_offsets[node.lineno - 1] + node.col_offset
                     end = line_offsets[node.end_lineno - 1] + node.end_col_offset
                     ranges.append((start, end))

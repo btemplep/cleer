@@ -1,7 +1,8 @@
 """Non-ASCII whitespace tokenizer module."""
 
-__all__ = ["NonAsciiWhitespaceTokenizer"]
-
+__all__ = [
+    "NonAsciiWhitespaceTokenizer"
+]
 
 import re
 

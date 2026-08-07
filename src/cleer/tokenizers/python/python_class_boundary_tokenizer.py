@@ -1,10 +1,10 @@
 """Python class boundary tokenizer module."""
 
-__all__ = ["PythonClassBoundaryTokenizer"]
-
+__all__ = [
+    "PythonClassBoundaryTokenizer"
+]
 
 import ast
-
 
 from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
@@ -49,10 +49,8 @@ class PythonClassBoundaryTokenizer(Tokenizer):
 
         line_offsets = self._build_line_offsets(document)
         results = []
-
         self._walk(tree.body, line_offsets, document, results)
-
-        results.sort(key=lambda e: e["index"])
+        results.sort(key=lambda e: e['index'])
 
         return results
 
@@ -98,7 +96,10 @@ class PythonClassBoundaryTokenizer(Tokenizer):
         else:
             end_offset = line_offsets[node.end_lineno]
 
-        while end_offset < len(document) and document[end_offset] == "\n":
+        while (
+            end_offset < len(document)
+            and document[end_offset] == "\n"
+        ):
             end_offset += 1
 
         return end_offset

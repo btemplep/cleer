@@ -1,7 +1,8 @@
 """Python paired punctuation formatter module."""
 
-__all__ = ["PythonPairedPunctuationFormatter"]
-
+__all__ = [
+    "PythonPairedPunctuationFormatter"
+]
 
 import re
 
@@ -20,12 +21,12 @@ class PythonPairedPunctuationFormatter(Formatter):
     - Lists/sets/tuples: flatten if not nested; expand if >30 chars
     - Nested containers expand if >0 items; if any sibling expands, all expand
     - Function defs: expand if >80 chars (no indent), >100 (with indent),
-      >4 args, any kwarg with >1 arg, or inner expanded
+    >4 args, any kwarg with >1 arg, or inner expanded
     - Function calls: expand if >60 chars (no indent), >80 (with indent),
-      >4 args, any kwarg with >1 arg, or inner expanded
+    >4 args, any kwarg with >1 arg, or inner expanded
     - Decorators: same as function calls
     - Logic blocks: expand if >2 statements, >60 (no indent), >80 (with
-      indent), or inner expanded; add parentheses when expanded
+    indent), or inner expanded; add parentheses when expanded
 
     Examples
     --------
@@ -38,11 +39,18 @@ class PythonPairedPunctuationFormatter(Formatter):
     ```
     """
     accepts_token_types = ["python_paired_punctuation"]
-
     _OPEN_BRACKETS = "([{"
     _CLOSE_BRACKETS = ")]}"
-    _BRACKET_PAIRS = {"(": ")", "[": "]", "{": "}"}
-    _CLOSE_TO_OPEN = {")": "(", "]": "[", "}": "{"}
+    _BRACKET_PAIRS = {
+        "(": ")",
+        "[": "]",
+        "{": "}"
+    }
+    _CLOSE_TO_OPEN = {
+        ")": "(",
+        "]": "[",
+        "}": "{"
+    }
 
 
     def inspect(self, token: str) -> str | None:
@@ -131,6 +139,7 @@ class PythonPairedPunctuationFormatter(Formatter):
                 if depth == 0:
                     paren_end = i
                     break
+
             i += 1
 
         if paren_end == -1:
@@ -165,6 +174,7 @@ class PythonPairedPunctuationFormatter(Formatter):
         lines = [f"{indent}{before}"]
         for s in strings:
             lines.append(f"{inner_indent}{s}")
+
         lines.append(f"{indent})")
 
         return "\n".join(lines)
@@ -192,6 +202,7 @@ class PythonPairedPunctuationFormatter(Formatter):
         lines = ["("]
         for s in strings:
             lines.append(f"{inner_indent}{s}")
+
         lines.append(f"{indent})")
 
         return "\n".join(lines)
@@ -225,6 +236,7 @@ class PythonPairedPunctuationFormatter(Formatter):
             if i >= len(s):
                 if i > prefix_start:
                     return False
+
                 break
 
             if s[i:i + 3] in ('"""', "'''"):
@@ -235,9 +247,11 @@ class PythonPairedPunctuationFormatter(Formatter):
                     if s[i:i + 3] == quote:
                         i += 3
                         break
+
                     i += 1
                 else:
                     i = len(s)
+
                 continue
 
             if s[i] in ('"', "'"):
@@ -248,7 +262,9 @@ class PythonPairedPunctuationFormatter(Formatter):
                     if s[i] == quote and s[i - 1] != "\\":
                         i += 1
                         break
+
                     i += 1
+
                 continue
 
             if i > prefix_start:
@@ -287,9 +303,11 @@ class PythonPairedPunctuationFormatter(Formatter):
                     if s[i:i + 3] == quote:
                         i += 3
                         break
+
                     i += 1
                 else:
                     i = len(s)
+
                 strings.append(s[start:i])
                 continue
 
@@ -301,7 +319,9 @@ class PythonPairedPunctuationFormatter(Formatter):
                     if s[i] == quote and s[i - 1] != "\\":
                         i += 1
                         break
+
                     i += 1
+
                 strings.append(s[start:i])
                 continue
 
@@ -348,7 +368,10 @@ class PythonPairedPunctuationFormatter(Formatter):
         """
         import re
         safe = self._strip_string_contents(s)
-        return bool(re.search(r"(?<=[ )\n])or(?=[ (\n])|(?<=[ )\n])and(?=[ (\n])", safe))
+
+        return bool(
+            re.search(r"(?<=[ )\n])or(?=[ (\n])|(?<=[ )\n])and(?=[ (\n])", safe)
+        )
 
 
     def _is_chained_call(self, stripped: str) -> bool:
@@ -364,23 +387,33 @@ class PythonPairedPunctuationFormatter(Formatter):
             ch = stripped[i]
 
             if ch in ("'", '"'):
-                quote = stripped[i:i + 3] if stripped[i:i + 3] in ('"""', "'''") else ch
+                quote = stripped[i:i + 3] if stripped[i:i + 3] in (
+                    '"""',
+                    "'''"
+                ) else ch
                 i += len(quote)
                 while i < len(stripped):
                     if stripped[i:i + len(quote)] == quote:
                         i += len(quote)
                         break
+
                     i += 1
+
                 continue
 
             if ch in ("(", "[", "{"):
                 depth += 1
             elif ch in (")", "]", "}"):
                 depth -= 1
-                if depth == 0 and ch == ")" and i + 1 < len(stripped):
+                if (
+                    depth == 0
+                    and ch == ")"
+                    and i + 1 < len(stripped)
+                ):
                     rest = stripped[i + 1:]
                     if re.match(r"\.\w+\(", rest):
                         return True
+
             i += 1
 
         return False
@@ -410,17 +443,29 @@ class PythonPairedPunctuationFormatter(Formatter):
         statements = self._split_logic_statements(condition)
         inner_indent = indent + "    "
 
-        formatted_parts = self._format_logic_parts(statements, inner_indent)
+        formatted_parts = self._format_logic_parts(
+            statements,
+            inner_indent
+        )
 
         needs_expand = self._logic_needs_expand(
-            keyword, formatted_parts, indent, inner_indent
+            keyword,
+            formatted_parts,
+            indent,
+            inner_indent
         )
 
         if not needs_expand:
             flat_condition = self._join_logic_flat(formatted_parts)
+
             return f"{indent}{keyword}{flat_condition}:"
 
-        return self._expand_logic(keyword, formatted_parts, indent, inner_indent)
+        return self._expand_logic(
+            keyword,
+            formatted_parts,
+            indent,
+            inner_indent
+        )
 
 
     def _format_logic_parts(self, statements: list, indent: str) -> list:
@@ -479,39 +524,52 @@ class PythonPairedPunctuationFormatter(Formatter):
             if rc == "subscript":
                 continue
 
-            inner_items = self._split_items(region["content"])
+            inner_items = self._split_items(region['content'])
 
             if not inner_items:
                 continue
 
-            if region["open_char"] == "(" and self._is_string_concat_content(region["content"]):
-                strings = self._extract_string_literals(region["content"])
+            if (
+                region['open_char'] == "("
+                and self._is_string_concat_content(region['content'])
+            ):
+                strings = self._extract_string_literals(region['content'])
                 exp_indent = indent + "    "
                 parts = [f"{region['open_char']}"]
                 for s in strings:
                     parts.append(f"\n{exp_indent}{s}")
+
                 parts.append(f"\n{indent}{region['close_char']}")
                 expanded = "".join(parts)
-                start = region["start"] + offset
-                end = region["end"] + offset + 1
+                start = region['start'] + offset
+                end = region['end'] + offset + 1
                 result = result[:start] + expanded + result[end:]
-                offset += len(expanded) - (region["end"] - region["start"] + 1)
+                offset += len(expanded) - ( region['end'] - region['start'] + 1)
                 continue
 
-            before = item[:region["start"]]
-            after = item[region["end"] + 1:]
+            before = item[:region['start']]
+            after = item[region['end'] + 1:]
             full_line_len = len(before) + 1 + len(", ".join(inner_items)) + 1 + len(after)
 
             should_exp = self._should_expand(
-                inner_items, region, rc, indent, full_line_len=full_line_len
+                inner_items,
+                region,
+                rc,
+                indent,
+                full_line_len=full_line_len
             )
 
             if should_exp:
-                expanded = self._expand_inner(inner_items, region, indent, rc)
-                start = region["start"] + offset
-                end = region["end"] + offset + 1
+                expanded = self._expand_inner(
+                    inner_items,
+                    region,
+                    indent,
+                    rc
+                )
+                start = region['start'] + offset
+                end = region['end'] + offset + 1
                 result = result[:start] + expanded + result[end:]
-                offset += len(expanded) - (region["end"] - region["start"] + 1)
+                offset += len(expanded) - ( region['end'] - region['start'] + 1)
 
         return result
 
@@ -527,6 +585,7 @@ class PythonPairedPunctuationFormatter(Formatter):
             return False
 
         safe = self._strip_string_contents(inner)
+
         return " and " in safe or " or " in safe
 
 
@@ -550,8 +609,10 @@ class PythonPairedPunctuationFormatter(Formatter):
                         result.append(quote)
                         i += 3
                         break
+
                     result.append("_")
                     i += 1
+
             elif s[i] in ('"', "'"):
                 quote = s[i]
                 result.append(quote)
@@ -567,6 +628,7 @@ class PythonPairedPunctuationFormatter(Formatter):
                     else:
                         result.append("_")
                         i += 1
+
             else:
                 result.append(s[i])
                 i += 1
@@ -585,10 +647,13 @@ class PythonPairedPunctuationFormatter(Formatter):
 
         lines = ["("]
         for part in parts:
-            raw_content = part["content"]
-            operator = part["operator"]
+            raw_content = part['content']
+            operator = part['operator']
 
-            formatted = self._format_logic_item(raw_content, inner_indent)
+            formatted = self._format_logic_item(
+                raw_content,
+                inner_indent
+            )
 
             if "\n" in formatted:
                 content_lines = formatted.split("\n")
@@ -597,8 +662,10 @@ class PythonPairedPunctuationFormatter(Formatter):
                     lines.append(f"{inner_indent}{operator} {first_line}")
                 else:
                     lines.append(f"{inner_indent}{first_line}")
+
                 for cl in content_lines[1:]:
                     lines.append(cl)
+
             else:
                 if operator:
                     lines.append(f"{inner_indent}{operator} {formatted}")
@@ -606,6 +673,7 @@ class PythonPairedPunctuationFormatter(Formatter):
                     lines.append(f"{inner_indent}{formatted}")
 
         lines.append(f"{indent})")
+
         return "\n".join(lines)
 
 
@@ -623,10 +691,7 @@ class PythonPairedPunctuationFormatter(Formatter):
         if condition_count > 2:
             return True
 
-        any_inner_expands = any(
-            self._logic_item_has_expansion(p["content"], inner_indent)
-            for p in parts
-        )
+        any_inner_expands = any(self._logic_item_has_expansion(p['content'], inner_indent) for p in parts)
         if any_inner_expands:
             return True
 
@@ -635,6 +700,7 @@ class PythonPairedPunctuationFormatter(Formatter):
 
         if flat_len > 60:
             return True
+
         if flat_len + indent_len > 80:
             return True
 
@@ -650,15 +716,18 @@ class PythonPairedPunctuationFormatter(Formatter):
             if rc == "subscript":
                 continue
 
-            if region["open_char"] == "(" and self._is_string_concat_content(region["content"]):
+            if (
+                region['open_char'] == "("
+                and self._is_string_concat_content(region['content'])
+            ):
                 return True
 
-            inner_items = self._split_items(region["content"])
+            inner_items = self._split_items(region['content'])
             if not inner_items:
                 continue
 
-            before = item[:region["start"]]
-            after = item[region["end"] + 1:]
+            before = item[:region['start']]
+            after = item[region['end'] + 1:]
             full_line_len = len(before) + 1 + len(", ".join(inner_items)) + 1 + len(after)
 
             if self._should_expand(inner_items, region, rc, indent, full_line_len=full_line_len):
@@ -671,10 +740,11 @@ class PythonPairedPunctuationFormatter(Formatter):
         """Join logic parts into a single flat condition string."""
         pieces = []
         for p in parts:
-            if p["operator"]:
+            if p['operator']:
                 pieces.append(f" {p['operator']} {p['content']}")
             else:
-                pieces.append(p["content"])
+                pieces.append(p['content'])
+
         return "".join(pieces)
 
 
@@ -689,10 +759,13 @@ class PythonPairedPunctuationFormatter(Formatter):
         lines = [f"{indent}{keyword}("]
 
         for part in parts:
-            raw_content = part["content"]
-            operator = part["operator"]
+            raw_content = part['content']
+            operator = part['operator']
 
-            formatted = self._format_logic_item(raw_content, inner_indent)
+            formatted = self._format_logic_item(
+                raw_content,
+                inner_indent
+            )
 
             if "\n" in formatted:
                 content_lines = formatted.split("\n")
@@ -704,6 +777,7 @@ class PythonPairedPunctuationFormatter(Formatter):
 
                 for cl in content_lines[1:]:
                     lines.append(cl)
+
             else:
                 if operator:
                     lines.append(f"{inner_indent}{operator} {formatted}")
@@ -730,9 +804,11 @@ class PythonPairedPunctuationFormatter(Formatter):
                 if self._has_logic_operator_word(part, "and"):
                     if not (part.startswith("(") and part.endswith(")") and self._brackets_balanced(part[1:-1])):
                         part = f"({part})"
+
                 result.append(part)
                 if i < len(or_parts) - 1:
                     result.append("or")
+
             return result
 
         and_parts = self._split_by_operator(condition, " and ")
@@ -742,6 +818,7 @@ class PythonPairedPunctuationFormatter(Formatter):
                 result.append(part)
                 if i < len(and_parts) - 1:
                     result.append("and")
+
             return result
 
         return [condition]
@@ -751,6 +828,7 @@ class PythonPairedPunctuationFormatter(Formatter):
         """Check if string contains the given operator keyword at top level."""
         import re
         pattern = rf"(?<=[ )\n]){keyword}(?=[ (\n])"
+
         return bool(re.search(pattern, s))
 
 
@@ -799,12 +877,10 @@ class PythonPairedPunctuationFormatter(Formatter):
                     i += 1
                 elif depth == 0 and s[i:i + kw_len] == keyword:
                     before_ok = (
-                        i == 0
-                        or s[i - 1] in (" ", "\t", ")")
+                        i == 0 or s[i - 1] in (" ", "\t", ")")
                     )
                     after_ok = (
-                        i + kw_len >= len(s)
-                        or s[i + kw_len] in (" ", "\t", "(")
+                        i + kw_len >= len(s) or s[i + kw_len] in (" ", "\t", "(")
                     )
                     if before_ok and after_ok:
                         parts.append(current.strip())
@@ -812,19 +888,29 @@ class PythonPairedPunctuationFormatter(Formatter):
                         i += kw_len
                         if i < len(s) and s[i] == " ":
                             i += 1
+
                     else:
                         current += ch
                         i += 1
+
                 else:
                     current += ch
                     i += 1
+
             else:
                 if triple_quote and s[i:i + 3] == string_char:
                     in_string = False
                     current += s[i:i + 3]
                     i += 3
                     continue
-                elif not triple_quote and ch == string_char and (i == 0 or s[i - 1] != "\\"):
+                elif (
+                    not triple_quote
+                    and ch == string_char
+                    and (
+                        i == 0
+                        or s[i - 1] != "\\"
+                    )
+                ):
                     in_string = False
                     current += ch
                     i += 1
@@ -840,7 +926,10 @@ class PythonPairedPunctuationFormatter(Formatter):
 
     def _format_punctuation(self, token: str, indent: str, context: str) -> str:
         """Format paired punctuation (non-logic contexts)."""
-        if context == "assignment" and self._is_string_parens(token):
+        if (
+            context == "assignment"
+            and self._is_string_parens(token)
+        ):
             return self._format_string_concat(token, indent)
 
         flat = self._flatten_token(token, indent, context)
@@ -860,9 +949,9 @@ class PythonPairedPunctuationFormatter(Formatter):
         stripped = token.strip()
         flat = self._flatten_string(stripped)
 
-        flat = flat.replace("[ ]", "[]")
-        flat = flat.replace("( )", "()")
-        flat = flat.replace("{ }", "{}")
+        flat = flat.replace("[]", "[]")
+        flat = flat.replace("()", "()")
+        flat = flat.replace("{}", "{}")
 
         if context == "funcdef":
             flat = re.sub(r"\s*:\s*", ": ", flat)
@@ -892,9 +981,7 @@ class PythonPairedPunctuationFormatter(Formatter):
                     i += 1
 
                 if i < len(s) and s[i:i + 3] in ('"""', "'''"):
-                    raw = any(
-                        s[j].lower() == "r" for j in range(prefix_start, i)
-                    )
+                    raw = any(s[j].lower() == "r" for j in range(prefix_start, i))
                     in_string = True
                     string_char = s[i:i + 3]
                     triple_quote = True
@@ -902,9 +989,7 @@ class PythonPairedPunctuationFormatter(Formatter):
                     result.append(s[prefix_start:i + 3])
                     i += 3
                 elif i < len(s) and s[i] in ('"', "'"):
-                    raw = any(
-                        s[j].lower() == "r" for j in range(prefix_start, i)
-                    )
+                    raw = any(s[j].lower() == "r" for j in range(prefix_start, i))
                     in_string = True
                     string_char = s[i]
                     triple_quote = False
@@ -914,39 +999,51 @@ class PythonPairedPunctuationFormatter(Formatter):
                 elif i < len(s) and s[i] == "#":
                     if prefix_start < i:
                         result.append(s[prefix_start:i])
+
                     nl_pos = s.find("\n", i)
                     if nl_pos == -1:
                         result.append(s[i:])
                         break
+
                     result.append(s[i:nl_pos + 1])
                     i = nl_pos + 1
                     indent_start = i
                     while i < len(s) and s[i] in (" ", "\t"):
                         i += 1
+
                     if indent_start < i:
                         result.append(s[indent_start:i])
+
                 elif i < len(s) and s[i] in (" ", "\t", "\n", "\r"):
                     if prefix_start < i:
                         result.append(s[prefix_start:i])
+
                     has_newline = False
                     ws_start = i
                     while i < len(s) and s[i] in (" ", "\t", "\n", "\r"):
                         if s[i] == "\n":
                             has_newline = True
+
                         i += 1
-                    if has_newline and i < len(s) and s[i] == "#":
+
+                    if (
+                        has_newline
+                        and i < len(s)
+                        and s[i] == "#"
+                    ):
                         last_nl = s.rfind("\n", ws_start, i)
                         result.append(s[last_nl:i])
                     else:
                         if result and result[-1] != " ":
                             result.append(" ")
-                    
+
                 elif i < len(s):
                     result.append(s[prefix_start:i + 1])
                     i += 1
                 else:
                     if prefix_start < i:
                         result.append(s[prefix_start:i])
+
             else:
                 if triple_quote and s[i:i + 3] == string_char:
                     in_string = False
@@ -960,6 +1057,7 @@ class PythonPairedPunctuationFormatter(Formatter):
                     else:
                         result.append(s[i])
                         i += 1
+
                 else:
                     result.append(s[i])
                     i += 1
@@ -995,7 +1093,10 @@ class PythonPairedPunctuationFormatter(Formatter):
             ch = flat[i]
 
             if ch in ("'", '"'):
-                quote = flat[i:i + 3] if flat[i:i + 3] in ('"""', "'''") else ch
+                quote = flat[i:i + 3] if flat[i:i + 3] in (
+                    '"""',
+                    "'''"
+                ) else ch
                 result.append(quote)
                 i += len(quote)
                 while i < len(flat):
@@ -1003,12 +1104,14 @@ class PythonPairedPunctuationFormatter(Formatter):
                         result.append(quote)
                         i += len(quote)
                         break
+
                     if flat[i] == "\\" and not quote.startswith(("'''", '"""')):
                         result.append(flat[i:i + 2])
                         i += 2
                     else:
                         result.append(flat[i])
                         i += 1
+
                 continue
 
             if ch in ("(", "[", "{"):
@@ -1016,12 +1119,18 @@ class PythonPairedPunctuationFormatter(Formatter):
                 i += 1
                 while i < len(flat) and flat[i] == " ":
                     i += 1
+
                 continue
 
-            if ch == " " and i + 1 < len(flat) and flat[i + 1] in (")", "]", "}"):
+            if (
+                ch == " "
+                and i + 1 < len(flat)
+                and flat[i + 1] in (")", "]", "}")
+            ):
                 j = i
                 while j < len(flat) and flat[j] == " ":
                     j += 1
+
                 if j < len(flat) and flat[j] in (")", "]", "}"):
                     i = j
                     continue
@@ -1099,13 +1208,22 @@ class PythonPairedPunctuationFormatter(Formatter):
                         i = end + 1
                     else:
                         i += 1
+
                 else:
                     i += 1
+
             else:
                 if triple_quote and s[i:i + 3] == string_char:
                     in_string = False
                     i += 3
-                elif not triple_quote and s[i] == string_char and (i == 0 or s[i - 1] != "\\"):
+                elif (
+                    not triple_quote
+                    and s[i] == string_char
+                    and (
+                        i == 0
+                        or s[i - 1] != "\\"
+                    )
+                ):
                     in_string = False
                     i += 1
                 else:
@@ -1145,12 +1263,20 @@ class PythonPairedPunctuationFormatter(Formatter):
                     depth -= 1
                     if depth == 0:
                         return i
+
             else:
                 if triple_quote and s[i:i + 3] == string_char:
                     in_string = False
                     i += 3
                     continue
-                elif not triple_quote and s[i] == string_char and (i == 0 or s[i - 1] != "\\"):
+                elif (
+                    not triple_quote
+                    and s[i] == string_char
+                    and (
+                        i == 0
+                        or s[i - 1] != "\\"
+                    )
+                ):
                     in_string = False
 
             i += 1
@@ -1198,13 +1324,21 @@ class PythonPairedPunctuationFormatter(Formatter):
                     current = ""
                 else:
                     current += ch
+
             else:
                 if triple_quote and content[i:i + 3] == string_char:
                     in_string = False
                     current += content[i:i + 3]
                     i += 3
                     continue
-                elif not triple_quote and ch == string_char and (i == 0 or content[i - 1] != "\\"):
+                elif (
+                    not triple_quote
+                    and ch == string_char
+                    and (
+                        i == 0
+                        or content[i - 1] != "\\"
+                    )
+                ):
                     in_string = False
                     current += ch
                 else:
@@ -1247,12 +1381,20 @@ class PythonPairedPunctuationFormatter(Formatter):
                     depth -= 1
                     if depth < 0:
                         return False
+
             else:
                 if triple_quote and s[i:i + 3] == string_char:
                     in_string = False
                     i += 3
                     continue
-                elif not triple_quote and s[i] == string_char and (i == 0 or s[i - 1] != "\\"):
+                elif (
+                    not triple_quote
+                    and s[i] == string_char
+                    and (
+                        i == 0
+                        or s[i - 1] != "\\"
+                    )
+                ):
                     in_string = False
 
             i += 1
@@ -1265,7 +1407,7 @@ class PythonPairedPunctuationFormatter(Formatter):
         regions = self._find_top_regions(content)
 
         for region in regions:
-            items = self._split_items(region["content"])
+            items = self._split_items(region['content'])
             rc = self._region_context(region, content)
 
             if self._should_expand(items, region, rc, indent + "    "):
@@ -1276,28 +1418,42 @@ class PythonPairedPunctuationFormatter(Formatter):
 
     def _region_context(self, region: dict, full_str: str) -> str:
         """Determine the context of a specific region."""
-        start = region["start"]
+        start = region['start']
         before = full_str[:start].rstrip()
 
-        if region["open_char"] == "{":
-            items = self._split_items(region["content"])
+        if region['open_char'] == "{":
+            items = self._split_items(region['content'])
             if items and ":" in items[0]:
                 return "dict"
+
             return "set"
 
-        if region["open_char"] == "[":
-            if before and (before[-1].isalnum() or before[-1] in ("_", "'", '"', ")")):
+        if region['open_char'] == "[":
+            if (
+                before
+                and (
+                    before[-1].isalnum()
+                    or before[-1] in ("_", "'", '"', ")")
+                )
+            ):
                 return "subscript"
+
             return "list"
 
-        if region["open_char"] == "(":
+        if region['open_char'] == "(":
             if before.endswith("@") or re.search(r"@[\w.]+$", before):
                 return "decorator"
 
             if re.search(r"(def|async\s+def)\s+\w+$", before):
                 return "funcdef"
 
-            if before and (before[-1].isalnum() or before[-1] in ("_", ".", ")")):
+            if (
+                before
+                and (
+                    before[-1].isalnum()
+                    or before[-1] in ("_", ".", ")")
+                )
+            ):
                 return "call"
 
             return "tuple"
@@ -1311,8 +1467,8 @@ class PythonPairedPunctuationFormatter(Formatter):
         region: dict,
         region_context: str,
         indent: str,
-        is_nested: bool = False,
-        full_line_len: int = 0
+        is_nested: bool=False,
+        full_line_len: int=0
     ) -> bool:
         """Determine if a region should be expanded."""
         if not items:
@@ -1321,11 +1477,15 @@ class PythonPairedPunctuationFormatter(Formatter):
         if region_context == "subscript":
             return False
 
-        if self._is_comprehension_content(region["content"]):
+        if self._is_comprehension_content(region['content']):
             return False
 
         indent_len = len(indent)
-        content_len = len(region["open_char"]) + len(", ".join(items)) + len(region["close_char"])
+        content_len = (
+            len(region['open_char']) 
+            + len(", ".join(items)) 
+            + len(region['close_char'])
+        )
 
         if region_context == "dict":
             return len(items) > 0
@@ -1334,11 +1494,10 @@ class PythonPairedPunctuationFormatter(Formatter):
             if is_nested:
                 return len(items) > 0
 
-            has_nested = any(
-                self._item_has_container(item) for item in items
-            )
+            has_nested = any(self._item_has_container(item) for item in items)
             if has_nested:
                 return len(items) > 0
+
             return content_len > 30
 
         has_kwarg = any("=" in item and not self._eq_in_string(item) for item in items)
@@ -1350,14 +1509,19 @@ class PythonPairedPunctuationFormatter(Formatter):
         if region_context == "funcdef":
             if full_line_len > 80:
                 return True
+
             if full_line_len + indent_len > 100:
                 return True
+
             if len(items) > 4:
                 return True
+
             if has_kwarg and more_than_two:
                 return True
+
             if self._any_inner_expanded(items, indent + "    "):
                 return True
+
             return False
 
         if region_context in ("call", "decorator"):
@@ -1367,14 +1531,19 @@ class PythonPairedPunctuationFormatter(Formatter):
 
             if full_line_len > 60:
                 return True
+
             if full_line_len + indent_len > 80:
                 return True
+
             if len(items) > 4:
                 return True
+
             if has_kwarg and more_than_two:
                 return True
+
             if self._any_inner_expanded(items, indent + "    "):
                 return True
+
             return False
 
         return False
@@ -1401,11 +1570,11 @@ class PythonPairedPunctuationFormatter(Formatter):
             return False
 
         for region in regions:
-            if region["open_char"] == "(":
-                if self._is_string_concat_content(region["content"]):
+            if region['open_char'] == "(":
+                if self._is_string_concat_content(region['content']):
                     return True
 
-                inner_items = self._split_items(region["content"])
+                inner_items = self._split_items(region['content'])
                 if len(inner_items) > 1:
                     return True
 
@@ -1413,10 +1582,13 @@ class PythonPairedPunctuationFormatter(Formatter):
                 if rc in ("dict", "list", "set", "tuple"):
                     return True
 
-                if inner_items and self._any_inner_expanded(inner_items, indent):
+                if (
+                    inner_items
+                    and self._any_inner_expanded(inner_items, indent)
+                ):
                     return True
 
-            elif region["open_char"] in ("{", "["):
+            elif region['open_char'] in ("{", "["):
                 return True
 
         return False
@@ -1436,16 +1608,21 @@ class PythonPairedPunctuationFormatter(Formatter):
             ch = content[i]
 
             if ch in ("'", '"'):
-                quote = content[i:i + 3] if content[i:i + 3] in ('"""', "'''") else ch
+                quote = content[i:i + 3] if content[i:i + 3] in (
+                    '"""',
+                    "'''"
+                ) else ch
                 i += len(quote)
                 while i < len(content):
                     if content[i:i + len(quote)] == quote:
                         i += len(quote)
                         break
+
                     if ch != quote[0] and content[i] == "\\":
                         i += 2
                     else:
                         i += 1
+
                 continue
 
             if ch in ("(", "[", "{"):
@@ -1453,7 +1630,14 @@ class PythonPairedPunctuationFormatter(Formatter):
             elif ch in (")", "]", "}"):
                 depth -= 1
 
-            if depth == 0 and content[i:i + 4] == "for " and (i == 0 or content[i - 1] == " "):
+            if (
+                depth == 0
+                and content[i:i + 4] == "for "
+                and (
+                    i == 0
+                    or content[i - 1] == " "
+                )
+            ):
                 rest = content[i + 4:]
                 if " in " in rest:
                     return True
@@ -1487,12 +1671,20 @@ class PythonPairedPunctuationFormatter(Formatter):
 
                 if item[i] in self._OPEN_BRACKETS:
                     return True
+
             else:
                 if triple_quote and item[i:i + 3] == string_char:
                     in_string = False
                     i += 3
                     continue
-                elif not triple_quote and item[i] == string_char and (i == 0 or item[i - 1] != "\\"):
+                elif (
+                    not triple_quote
+                    and item[i] == string_char
+                    and (
+                        i == 0
+                        or item[i - 1] != "\\"
+                    )
+                ):
                     in_string = False
 
             i += 1
@@ -1531,12 +1723,20 @@ class PythonPairedPunctuationFormatter(Formatter):
                     if i > 0 and item[i - 1] not in "!<>":
                         if i + 1 < len(item) and item[i + 1] != "=":
                             return False
+
             else:
                 if triple_quote and item[i:i + 3] == string_char:
                     in_string = False
                     i += 3
                     continue
-                elif not triple_quote and item[i] == string_char and (i == 0 or item[i - 1] != "\\"):
+                elif (
+                    not triple_quote
+                    and item[i] == string_char
+                    and (
+                        i == 0
+                        or item[i - 1] != "\\"
+                    )
+                ):
                     in_string = False
 
             i += 1
@@ -1553,17 +1753,20 @@ class PythonPairedPunctuationFormatter(Formatter):
             regions = self._find_top_regions(item)
             for region in regions:
                 if (
-                    region["open_char"] == "("
-                    and self._is_string_concat_content(region["content"])
+                    region['open_char'] == "("
+                    and self._is_string_concat_content(region['content'])
                 ):
                     return True
 
-                if region["open_char"] == "(" and self._is_logic_subgroup(
-                    item[region["start"]:region["end"] + 1]
+                if (
+                    region['open_char'] == "("
+                    and self._is_logic_subgroup(
+                        item[region['start']:region['end'] + 1]
+                    )
                 ):
                     return True
 
-                inner_items = self._split_items(region["content"])
+                inner_items = self._split_items(region['content'])
                 rc = self._region_context(region, item)
                 if self._should_expand(
                     inner_items, region, rc, indent, is_nested=False
@@ -1575,20 +1778,24 @@ class PythonPairedPunctuationFormatter(Formatter):
 
     def _rebuild(self, parsed: dict, indent: str, context: str) -> str:
         """Rebuild the token with proper expansion/flattening."""
-        stripped = parsed["stripped"]
-        regions = parsed["regions"]
+        stripped = parsed['stripped']
+        regions = parsed['regions']
 
         if not regions:
-            return parsed["content"]
+            return parsed['content']
 
         if context == "funcdef":
             return self._rebuild_funcdef(stripped, regions, indent)
+
         elif context == "decorator":
             return self._rebuild_decorator(stripped, regions, indent)
+
         elif context == "chained_call":
             return self._rebuild_chained_call(stripped, indent)
+
         elif context == "call":
             return self._rebuild_call(stripped, regions, indent)
+
         elif context == "assignment":
             return self._rebuild_assignment(stripped, regions, indent)
 
@@ -1601,22 +1808,27 @@ class PythonPairedPunctuationFormatter(Formatter):
             return indent + stripped
 
         region = regions[0]
-        items = self._split_items(region["content"])
+        items = self._split_items(region['content'])
         rc = "funcdef"
 
         if not items:
             return indent + stripped
 
-        before = stripped[:region["start"]]
-        after = stripped[region["end"] + 1:]
+        before = stripped[:region['start']]
+        after = stripped[region['end'] + 1:]
         full_line_len = len(before) + 1 + len(", ".join(items)) + 1 + len(after)
 
         if not self._should_expand(items, region, rc, indent, full_line_len=full_line_len):
             flat = self._format_items_flat(items, region, stripped)
+
             return indent + flat
 
         return self._expand_region_in_context(
-            stripped, region, items, indent, rc
+            stripped,
+            region,
+            items,
+            indent,
+            rc
         )
 
 
@@ -1626,22 +1838,27 @@ class PythonPairedPunctuationFormatter(Formatter):
             return indent + stripped
 
         region = regions[0]
-        items = self._split_items(region["content"])
+        items = self._split_items(region['content'])
         rc = "decorator"
 
         if not items:
             return indent + stripped
 
-        before = stripped[:region["start"]]
-        after = stripped[region["end"] + 1:]
+        before = stripped[:region['start']]
+        after = stripped[region['end'] + 1:]
         full_line_len = len(before) + 1 + len(", ".join(items)) + 1 + len(after)
 
         if not self._should_expand(items, region, rc, indent, full_line_len=full_line_len):
             flat = self._format_items_flat(items, region, stripped)
+
             return indent + flat
 
         return self._expand_region_in_context(
-            stripped, region, items, indent, rc
+            stripped,
+            region,
+            items,
+            indent,
+            rc
         )
 
 
@@ -1659,30 +1876,43 @@ class PythonPairedPunctuationFormatter(Formatter):
 
         if last_call_region is None:
             region = regions[0]
-            items = self._split_items(region["content"])
+            items = self._split_items(region['content'])
             formatted_items = []
             for item in items:
-                formatted_items.append(self._format_item(item, indent, "subscript"))
-            flat = self._format_items_flat(formatted_items, region, stripped)
+                formatted_items.append(
+                    self._format_item(item, indent, "subscript")
+                )
+
+            flat = self._format_items_flat(
+                formatted_items,
+                region,
+                stripped
+            )
+
             return indent + flat
 
         region = last_call_region
-        items = self._split_items(region["content"])
+        items = self._split_items(region['content'])
         rc = self._region_context(region, stripped)
 
         if not items:
             return indent + stripped
 
-        before = stripped[:region["start"]]
-        after = stripped[region["end"] + 1:]
+        before = stripped[:region['start']]
+        after = stripped[region['end'] + 1:]
         full_line_len = len(before) + 1 + len(", ".join(items)) + 1 + len(after)
 
         if not self._should_expand(items, region, rc, indent, full_line_len=full_line_len):
             flat = self._format_items_flat(items, region, stripped)
+
             return indent + flat
 
         return self._expand_region_in_context(
-            stripped, region, items, indent, rc
+            stripped,
+            region,
+            items,
+            indent,
+            rc
         )
 
 
@@ -1727,7 +1957,10 @@ class PythonPairedPunctuationFormatter(Formatter):
             ch = stripped[i]
 
             if ch in ("'", '"'):
-                quote = stripped[i:i + 3] if stripped[i:i + 3] in ('"""', "'''") else ch
+                quote = stripped[i:i + 3] if stripped[i:i + 3] in (
+                    '"""',
+                    "'''"
+                ) else ch
                 current_prefix += quote
                 i += len(quote)
                 while i < len(stripped):
@@ -1735,8 +1968,10 @@ class PythonPairedPunctuationFormatter(Formatter):
                         current_prefix += quote
                         i += len(quote)
                         break
+
                     current_prefix += stripped[i]
                     i += 1
+
                 continue
 
             if ch == "(":
@@ -1746,7 +1981,10 @@ class PythonPairedPunctuationFormatter(Formatter):
                 while i < len(stripped) and depth > 0:
                     c = stripped[i]
                     if c in ("'", '"'):
-                        q = stripped[i:i + 3] if stripped[i:i + 3] in ('"""', "'''") else c
+                        q = stripped[i:i + 3] if stripped[i:i + 3] in (
+                            '"""',
+                            "'''"
+                        ) else c
                         args_content += q
                         i += len(q)
                         while i < len(stripped):
@@ -1754,9 +1992,12 @@ class PythonPairedPunctuationFormatter(Formatter):
                                 args_content += q
                                 i += len(q)
                                 break
+
                             args_content += stripped[i]
                             i += 1
+
                         continue
+
                     if c in ("(", "[", "{"):
                         depth += 1
                     elif c in (")", "]", "}"):
@@ -1764,26 +2005,31 @@ class PythonPairedPunctuationFormatter(Formatter):
                         if depth == 0:
                             i += 1
                             break
+
                     args_content += c
                     i += 1
 
                 args_stripped = args_content.strip()
-                segments.append({
-                    "prefix": current_prefix,
-                    "args": args_stripped,
-                    "has_args": len(args_stripped) > 0
-                })
+                segments.append(
+                    {
+                        "prefix": current_prefix,
+                        "args": args_stripped,
+                        "has_args": len(args_stripped) > 0
+                    }
+                )
                 current_prefix = ""
             else:
                 current_prefix += ch
                 i += 1
 
         if current_prefix.strip():
-            segments.append({
-                "prefix": current_prefix,
-                "args": "",
-                "has_args": False
-            })
+            segments.append(
+                {
+                    "prefix": current_prefix,
+                    "args": "",
+                    "has_args": False
+                }
+            )
 
         return segments
 
@@ -1796,40 +2042,43 @@ class PythonPairedPunctuationFormatter(Formatter):
         """
         flat_len = len(indent)
         for seg in segments:
-            flat_len += len(seg["prefix"]) + 1
-            if seg["has_args"]:
-                flat_len += len(seg["args"])
+            flat_len += len(seg['prefix']) + 1
+            if seg['has_args']:
+                flat_len += len(seg['args'])
+
             flat_len += 1
 
         if flat_len > 80:
             return True
 
         for seg in segments:
-            if not seg["has_args"]:
+            if not seg['has_args']:
                 continue
 
-            items = self._split_items(seg["args"])
+            items = self._split_items(seg['args'])
             region = {
                 "open_char": "(",
                 "close_char": ")",
-                "content": seg["args"],
+                "content": seg['args'],
                 "start": 0,
                 "end": 0
             }
             rc = "call"
-            has_kwarg = any(
-                "=" in item and not self._eq_in_string(item) for item in items
-            )
+            has_kwarg = any("=" in item and not self._eq_in_string(item) for item in items)
             more_than_two = len(items) > 2
 
             if len(items) > 4:
                 return True
+
             if has_kwarg and more_than_two:
                 return True
 
-            seg_line_len = len(seg["prefix"]) + 1 + len(", ".join(items)) + 1
+            seg_line_len = len(
+                seg['prefix']
+            ) + 1 + len(", ".join(items)) + 1
             if seg_line_len > 60:
                 return True
+
             if seg_line_len + len(indent) > 80:
                 return True
 
@@ -1850,11 +2099,11 @@ class PythonPairedPunctuationFormatter(Formatter):
         pending_inline = ""
 
         for seg_idx, seg in enumerate(segments):
-            if not seg["has_args"]:
-                pending_inline += seg["prefix"] + "()"
+            if not seg['has_args']:
+                pending_inline += seg['prefix'] + "()"
                 continue
 
-            items = self._split_items(seg["args"])
+            items = self._split_items(seg['args'])
 
             if seg_idx == 0:
                 lines.append(f"{indent}{pending_inline}{seg['prefix']}(")
@@ -1864,7 +2113,11 @@ class PythonPairedPunctuationFormatter(Formatter):
             pending_inline = ""
 
             for i, item in enumerate(items):
-                formatted_item = self._format_item(item, inner_indent, "call")
+                formatted_item = self._format_item(
+                    item,
+                    inner_indent,
+                    "call"
+                )
                 trailing = "," if i < len(items) - 1 else ""
                 lines.append(f"{inner_indent}{formatted_item}{trailing}")
 
@@ -1879,7 +2132,7 @@ class PythonPairedPunctuationFormatter(Formatter):
             return indent + stripped
 
         region = regions[0]
-        items = self._split_items(region["content"])
+        items = self._split_items(region['content'])
         rc = self._region_context(region, stripped)
 
         if not items:
@@ -1887,21 +2140,31 @@ class PythonPairedPunctuationFormatter(Formatter):
 
         if not self._should_expand(items, region, rc, indent):
             flat = self._format_items_flat(items, region, stripped)
+
             return indent + flat
 
         return self._expand_region_in_context(
-            stripped, region, items, indent, rc
+            stripped,
+            region,
+            items,
+            indent,
+            rc
         )
 
 
-    def _format_items_flat(self, items: list[str], region: dict, stripped: str) -> str:
+    def _format_items_flat(
+        self,
+        items: list[str],
+        region: dict,
+        stripped: str
+    ) -> str:
         """Format items as a flat single line."""
-        before = stripped[:region["start"]]
-        after = stripped[region["end"] + 1:]
+        before = stripped[:region['start']]
+        after = stripped[region['end'] + 1:]
         inner = ", ".join(items)
 
         if (
-            region["open_char"] == "("
+            region['open_char'] == "("
             and len(items) == 1
             and self._region_context(region, stripped) == "tuple"
         ):
@@ -1919,14 +2182,20 @@ class PythonPairedPunctuationFormatter(Formatter):
         region_context: str
     ) -> str:
         """Expand a region with proper indentation."""
-        before = stripped[:region["start"]]
-        after = stripped[region["end"] + 1:]
+        before = stripped[:region['start']]
+        after = stripped[region['end'] + 1:]
         inner_indent = indent + "    "
 
-        lines = [f"{indent}{before}{region['open_char']}"]
+        lines = [
+            f"{indent}{before}{region['open_char']}"
+        ]
 
         for i, item in enumerate(items):
-            formatted_item = self._format_item(item, inner_indent, region_context)
+            formatted_item = self._format_item(
+                item,
+                inner_indent,
+                region_context
+            )
             trailing = "," if i < len(items) - 1 else ""
             lines.append(f"{inner_indent}{formatted_item}{trailing}")
 
@@ -1950,25 +2219,40 @@ class PythonPairedPunctuationFormatter(Formatter):
 
         any_expanded = False
         expansion_decisions = []
-        is_nested = parent_context in ("dict", "list", "set", "tuple")
+        is_nested = parent_context in (
+            "dict",
+            "list",
+            "set",
+            "tuple"
+        )
 
         for region in regions:
-            if region["open_char"] == "(" and self._is_string_concat_content(region["content"]):
+            if (
+                region['open_char'] == "("
+                and self._is_string_concat_content(region['content'])
+            ):
                 expansion_decisions.append("string_concat")
                 any_expanded = True
                 continue
 
-            if region["open_char"] == "(" and self._is_logic_subgroup(
-                item[region["start"]:region["end"] + 1]
+            if (
+                region['open_char'] == "("
+                and self._is_logic_subgroup(
+                    item[region['start']:region['end'] + 1]
+                )
             ):
                 expansion_decisions.append("logic_subgroup")
                 any_expanded = True
                 continue
 
-            inner_items = self._split_items(region["content"])
+            inner_items = self._split_items(region['content'])
             rc = self._region_context(region, item)
             should_exp = self._should_expand(
-                inner_items, region, rc, indent, is_nested=is_nested
+                inner_items,
+                region,
+                rc,
+                indent,
+                is_nested=is_nested
             )
             expansion_decisions.append(should_exp)
             if should_exp:
@@ -1977,42 +2261,56 @@ class PythonPairedPunctuationFormatter(Formatter):
         if any_expanded:
             for i, region in enumerate(regions):
                 if expansion_decisions[i] == "string_concat":
-                    strings = self._extract_string_literals(region["content"])
+                    strings = self._extract_string_literals(region['content'])
                     inner_indent = indent + "    "
                     parts = [f"{region['open_char']}"]
                     for s in strings:
                         parts.append(f"\n{inner_indent}{s}")
+
                     parts.append(f"\n{indent}{region['close_char']}")
                     expanded = "".join(parts)
-                    start = region["start"] + offset
-                    end = region["end"] + offset + 1
+                    start = region['start'] + offset
+                    end = region['end'] + offset + 1
                     result = result[:start] + expanded + result[end:]
-                    offset += len(expanded) - (region["end"] - region["start"] + 1)
+                    offset += len(expanded) - ( region['end'] - region['start'] + 1)
                     continue
 
                 if expansion_decisions[i] == "logic_subgroup":
-                    subgroup_text = item[region["start"]:region["end"] + 1]
-                    expanded = self._expand_logic_subgroup(subgroup_text, indent)
-                    start = region["start"] + offset
-                    end = region["end"] + offset + 1
+                    subgroup_text = item[region['start']:region['end'] + 1]
+                    expanded = self._expand_logic_subgroup(
+                        subgroup_text,
+                        indent
+                    )
+                    start = region['start'] + offset
+                    end = region['end'] + offset + 1
                     result = result[:start] + expanded + result[end:]
-                    offset += len(expanded) - (region["end"] - region["start"] + 1)
+                    offset += len(expanded) - ( region['end'] - region['start'] + 1)
                     continue
 
-                inner_items = self._split_items(region["content"])
+                inner_items = self._split_items(region['content'])
                 rc = self._region_context(region, item)
 
                 if not inner_items:
                     continue
 
-                if expansion_decisions[i] or (any_expanded and inner_items and rc != "subscript"):
-                    expanded = self._expand_inner(
-                        inner_items, region, indent, rc
+                if (
+                    expansion_decisions[i]
+                    or (
+                        any_expanded
+                        and inner_items
+                        and rc != "subscript"
                     )
-                    start = region["start"] + offset
-                    end = region["end"] + offset + 1
+                ):
+                    expanded = self._expand_inner(
+                        inner_items,
+                        region,
+                        indent,
+                        rc
+                    )
+                    start = region['start'] + offset
+                    end = region['end'] + offset + 1
                     result = result[:start] + expanded + result[end:]
-                    offset += len(expanded) - (region["end"] - region["start"] + 1)
+                    offset += len(expanded) - ( region['end'] - region['start'] + 1)
 
         return result
 
@@ -2026,10 +2324,16 @@ class PythonPairedPunctuationFormatter(Formatter):
     ) -> str:
         """Expand an inner region."""
         inner_indent = indent + "    "
-        lines = [region["open_char"]]
+        lines = [
+            region['open_char']
+        ]
 
         for i, item in enumerate(items):
-            formatted = self._format_item(item, inner_indent, region_context)
+            formatted = self._format_item(
+                item,
+                inner_indent,
+                region_context
+            )
             trailing = "," if i < len(items) - 1 else ""
             lines.append(f"{inner_indent}{formatted}{trailing}")
 

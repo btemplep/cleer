@@ -1,10 +1,10 @@
 """Python dict key quote tokenizer module."""
 
-__all__ = ["PythonDictKeyQuoteTokenizer"]
-
+__all__ = [
+    "PythonDictKeyQuoteTokenizer"
+]
 
 import ast
-
 
 from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
@@ -51,9 +51,13 @@ class PythonDictKeyQuoteTokenizer(Tokenizer):
         tree = ast.parse(document)
 
         line_offsets = self._build_line_offsets(document)
-        tokens = self._collect_dict_keys(tree, document, line_offsets)
+        tokens = self._collect_dict_keys(
+            tree,
+            document,
+            line_offsets
+        )
 
-        tokens.sort(key=lambda t: t["index"])
+        tokens.sort(key=lambda t: t['index'])
 
         return tokens
 

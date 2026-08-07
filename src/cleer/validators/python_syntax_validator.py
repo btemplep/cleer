@@ -1,3 +1,4 @@
+"""TODO: Add module docstring."""
 
 import ast
 
@@ -9,7 +10,7 @@ class PythonSyntaxValidator(Validator):
     """
 
 
-    def validate(self, document:str) -> str | None:
+    def validate(self, document: str) -> str | None:
         try:
             ast.parse(document)
         except SyntaxError as exc:

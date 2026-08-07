@@ -1,7 +1,8 @@
 """Python __all__ formatter module."""
 
-__all__ = ["PythonAllFormatter"]
-
+__all__ = [
+    "PythonAllFormatter"
+]
 
 import ast
 
@@ -35,7 +36,7 @@ class PythonAllFormatter(Formatter):
     accepts_token_types = ["python_all"]
 
 
-    def __init__(self, quote: str = '"'):
+    def __init__(self, quote: str='"'):
         self._quote = quote
 
 
@@ -123,7 +124,10 @@ class PythonAllFormatter(Formatter):
 
         items = []
         for elt in all_node.value.elts:
-            if isinstance(elt, ast.Constant) and isinstance(elt.value, str):
+            if (
+                isinstance(elt, ast.Constant)
+                and isinstance(elt.value, str)
+            ):
                 items.append(elt.value)
             else:
                 return None
@@ -131,7 +135,11 @@ class PythonAllFormatter(Formatter):
         return items
 
 
-    def _build_all(self, items: list[str], leading_newline: bool = True) -> str:
+    def _build_all(
+        self,
+        items: list[str],
+        leading_newline: bool=True
+    ) -> str:
         """Build the formatted __all__ string."""
         q = self._quote
         prefix = "\n" if leading_newline else ""

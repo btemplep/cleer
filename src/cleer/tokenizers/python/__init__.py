@@ -3,8 +3,9 @@
 __all__ = [
     "PythonAllTokenizer",
     "PythonBinaryOperatorSpaceTokenizer",
-    "PythonClassBoundaryTokenizer",
+    "PythonBlockStartTokenizer",
     "PythonChainBoundaryTokenizer",
+    "PythonClassBoundaryTokenizer",
     "PythonColonSpaceTokenizer",
     "PythonCommaSpaceTokenizer",
     "PythonCompoundChainTokenizer",
@@ -12,7 +13,6 @@ __all__ = [
     "PythonDecoratorBoundaryTokenizer",
     "PythonDictKeyQuoteTokenizer",
     "PythonFunctionBoundaryTokenizer",
-    "PythonBlockStartTokenizer",
     "PythonImportTokenizer",
     "PythonIndentTokenizer",
     "PythonInnerMaxBlankLinesTokenizer",
@@ -29,6 +29,7 @@ __all__ = [
 
 from cleer.tokenizers.python.python_all_tokenizer import PythonAllTokenizer
 from cleer.tokenizers.python.python_binary_operator_space_tokenizer import PythonBinaryOperatorSpaceTokenizer
+from cleer.tokenizers.python.python_block_start_tokenizer import PythonBlockStartTokenizer
 from cleer.tokenizers.python.python_chain_boundary_tokenizer import PythonChainBoundaryTokenizer
 from cleer.tokenizers.python.python_class_boundary_tokenizer import PythonClassBoundaryTokenizer
 from cleer.tokenizers.python.python_colon_space_tokenizer import PythonColonSpaceTokenizer
@@ -38,7 +39,6 @@ from cleer.tokenizers.python.python_compound_end_tokenizer import PythonCompound
 from cleer.tokenizers.python.python_decorator_boundary_tokenizer import PythonDecoratorBoundaryTokenizer
 from cleer.tokenizers.python.python_dict_key_quote_tokenizer import PythonDictKeyQuoteTokenizer
 from cleer.tokenizers.python.python_function_boundary_tokenizer import PythonFunctionBoundaryTokenizer
-from cleer.tokenizers.python.python_block_start_tokenizer import PythonBlockStartTokenizer
 from cleer.tokenizers.python.python_import_tokenizer import PythonImportTokenizer
 from cleer.tokenizers.python.python_indent_tokenizer import PythonIndentTokenizer
 from cleer.tokenizers.python.python_inner_max_blank_lines_tokenizer import PythonInnerMaxBlankLinesTokenizer
@@ -51,3 +51,4 @@ from cleer.tokenizers.python.python_string_quote_tokenizer import PythonStringQu
 from cleer.tokenizers.python.python_trailing_comma_tokenizer import PythonTrailingCommaTokenizer
 from cleer.tokenizers.python.python_type_hint_tokenizer import PythonTypeHintTokenizer
 from cleer.tokenizers.python.python_unary_operator_space_tokenizer import PythonUnaryOperatorSpaceTokenizer
+

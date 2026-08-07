@@ -1,3 +1,5 @@
+"""TODO: Add module docstring."""
+
 __all__ = [
     "FileEndWhitespaceTokenizer",
     "FileStartWhitespaceTokenizer",
@@ -19,5 +21,6 @@ from cleer.tokenizers.python import __all__ as python_all
 from cleer.tokenizers.tokenizer import Tokenizer
 from cleer.tokenizers.trailing_whitespace_tokenizer import TrailingWhitespaceTokenizer
 from cleer.tokenizers.whitespace_tokenizer import WhitespaceTokenizer
+
 
 __all__ += python_all

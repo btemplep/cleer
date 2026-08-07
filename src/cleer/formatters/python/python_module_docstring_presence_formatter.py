@@ -1,7 +1,8 @@
 """Python module docstring presence formatter module."""
 
-__all__ = ["PythonModuleDocstringPresenceFormatter"]
-
+__all__ = [
+    "PythonModuleDocstringPresenceFormatter"
+]
 
 import ast
 
@@ -84,7 +85,5 @@ class PythonModuleDocstringPresenceFormatter(Formatter):
         first_node = tree.body[0]
 
         return (
-            isinstance(first_node, ast.Expr)
-            and isinstance(first_node.value, ast.Constant)
-            and isinstance(first_node.value.value, str)
+            isinstance(first_node, ast.Expr) and isinstance(first_node.value, ast.Constant) and isinstance(first_node.value.value, str)
         )

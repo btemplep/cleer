@@ -1,10 +1,10 @@
 """Python compound end tokenizer module."""
 
-__all__ = ["PythonCompoundEndTokenizer"]
-
+__all__ = [
+    "PythonCompoundEndTokenizer"
+]
 
 import ast
-
 
 from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
@@ -30,7 +30,6 @@ class PythonCompoundEndTokenizer(Tokenizer):
     ```
     """
     emits_token_type = "python_compound_end"
-
     _compound_types = (
         ast.If,
         ast.For,
@@ -38,7 +37,7 @@ class PythonCompoundEndTokenizer(Tokenizer):
         ast.While,
         ast.With,
         ast.AsyncWith,
-        ast.Try,
+        ast.Try
     )
 
 
@@ -64,10 +63,14 @@ class PythonCompoundEndTokenizer(Tokenizer):
         line_offsets = self._build_line_offsets(document)
         tokens = []
         seen: set[tuple[int, int]] = set()
-
-        self._process_bodies(tree, document, line_offsets, tokens, seen)
-
-        tokens.sort(key=lambda t: t["index"])
+        self._process_bodies(
+            tree,
+            document,
+            line_offsets,
+            tokens,
+            seen
+        )
+        tokens.sort(key=lambda t: t['index'])
 
         return tokens
 
@@ -92,7 +95,13 @@ class PythonCompoundEndTokenizer(Tokenizer):
                     if len(body) == 1 and isinstance(body[0], ast.If):
                         continue
 
-                self._check_body(body, document, line_offsets, tokens, seen)
+                self._check_body(
+                    body,
+                    document,
+                    line_offsets,
+                    tokens,
+                    seen
+                )
 
             if isinstance(node, ast.Try):
                 for handler in node.handlers:
@@ -131,7 +140,10 @@ class PythonCompoundEndTokenizer(Tokenizer):
 
             next_start_line = next_stmt.lineno
 
-            if hasattr(next_stmt, "decorator_list") and next_stmt.decorator_list:
+            if (
+                hasattr(next_stmt, "decorator_list")
+                and next_stmt.decorator_list
+            ):
                 next_start_line = next_stmt.decorator_list[0].lineno
 
             if next_start_line <= compound_end_line + 1:
@@ -139,7 +151,10 @@ class PythonCompoundEndTokenizer(Tokenizer):
                 end = line_offsets[next_start_line - 1]
                 token = document[start:end]
 
-                token_key = (start, len(token))
+                token_key = (
+                    start,
+                    len(token)
+                )
 
                 if token_key in seen:
                     continue

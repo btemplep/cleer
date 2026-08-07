@@ -2,17 +2,16 @@
 
 __all__ = [
     "CleerConfig",
+    "Excluded",
     "Formatting",
     "FormattingDocument",
     "Group",
     "Included",
-    "Excluded",
     "Inspection",
     "Invalidation",
     "Stage",
     "Violation"
 ]
-
 
 import pathlib
 from typing import TypedDict
@@ -88,7 +87,7 @@ class Excluded(TypedDict):
     group : int
         Config group index that was matched.
     pattern : str
-        The pattern that was matched in the config group. 
+        The pattern that was matched in the config group.
     """
     group: int
     pattern: str
@@ -121,7 +120,7 @@ class Violation(TypedDict):
 
 
 class Inspection(TypedDict):
-    """Inspection for a file. 
+    """Inspection for a file.
 
     Attributes
     ----------
@@ -164,7 +163,7 @@ class Formatting(TypedDict):
 
 class FormattingDocument(Formatting):
     """Result of formatting a file string, with the formatted string.
-    
+
     Parameters
     ----------
     path : pathlib.Path

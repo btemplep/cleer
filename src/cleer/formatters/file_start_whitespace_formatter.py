@@ -1,7 +1,8 @@
 """File start whitespace formatter module."""
 
-__all__ = ["FileStartWhitespaceFormatter"]
-
+__all__ = [
+    "FileStartWhitespaceFormatter"
+]
 
 from cleer.formatters.formatter import Formatter
 
@@ -27,7 +28,7 @@ class FileStartWhitespaceFormatter(Formatter):
     accepts_token_types = ["file_start_whitespace"]
 
 
-    def __init__(self, spaces: int = 0):
+    def __init__(self, spaces: int=0):
         self._spaces = spaces
         self._starting_token = "\n" * spaces
 

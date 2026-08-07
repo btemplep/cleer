@@ -1,10 +1,10 @@
 """Python trailing comma tokenizer module."""
 
-__all__ = ["PythonTrailingCommaTokenizer"]
-
+__all__ = [
+    "PythonTrailingCommaTokenizer"
+]
 
 import ast
-
 
 from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
@@ -57,21 +57,56 @@ class PythonTrailingCommaTokenizer(Tokenizer):
 
         for node in ast.walk(tree):
             if isinstance(node, ast.List):
-                self._check_trailing(node, node.elts, document, line_offsets, tokens)
+                self._check_trailing(
+                    node,
+                    node.elts,
+                    document,
+                    line_offsets,
+                    tokens
+                )
             elif isinstance(node, ast.Set):
-                self._check_trailing(node, node.elts, document, line_offsets, tokens)
+                self._check_trailing(
+                    node,
+                    node.elts,
+                    document,
+                    line_offsets,
+                    tokens
+                )
             elif isinstance(node, ast.Tuple):
                 if len(node.elts) > 1:
-                    self._check_trailing(node, node.elts, document, line_offsets, tokens)
+                    self._check_trailing(
+                        node,
+                        node.elts,
+                        document,
+                        line_offsets,
+                        tokens
+                    )
+
             elif isinstance(node, ast.Dict):
                 if node.values:
-                    self._check_dict_trailing(node, document, line_offsets, tokens)
-            elif isinstance(node, ast.Call):
-                self._check_call_trailing(node, document, line_offsets, tokens)
-            elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                self._check_funcdef_trailing(node, document, line_offsets, tokens)
+                    self._check_dict_trailing(
+                        node,
+                        document,
+                        line_offsets,
+                        tokens
+                    )
 
-        tokens.sort(key=lambda t: t["index"])
+            elif isinstance(node, ast.Call):
+                self._check_call_trailing(
+                    node,
+                    document,
+                    line_offsets,
+                    tokens
+                )
+            elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                self._check_funcdef_trailing(
+                    node,
+                    document,
+                    line_offsets,
+                    tokens
+                )
+
+        tokens.sort(key=lambda t: t['index'])
 
         return tokens
 
@@ -155,7 +190,13 @@ class PythonTrailingCommaTokenizer(Tokenizer):
         if not all_args:
             return
 
-        last = max(all_args, key=lambda a: (a.end_lineno, a.end_col_offset))
+        last = max(
+            all_args,
+            key=lambda a: (
+                a.end_lineno,
+                a.end_col_offset
+            )
+        )
         start = line_offsets[last.end_lineno - 1] + last.end_col_offset
         end = line_offsets[node.end_lineno - 1] + node.end_col_offset - 1
 
@@ -198,7 +239,12 @@ class PythonTrailingCommaTokenizer(Tokenizer):
             return
 
         num_defaults = len(args.defaults)
-        if num_defaults and not args.kwonlyargs and not args.vararg and not args.kwarg:
+        if (
+            num_defaults
+            and not args.kwonlyargs
+            and not args.vararg
+            and not args.kwarg
+        ):
             last_default = args.defaults[-1]
             last_end_line = last_default.end_lineno
             last_end_col = last_default.end_col_offset
@@ -211,13 +257,17 @@ class PythonTrailingCommaTokenizer(Tokenizer):
         elif args.kwonlyargs:
             last_kw = args.kwonlyargs[-1]
             kw_idx = len(args.kwonlyargs) - 1
-            if kw_idx < len(args.kw_defaults) and args.kw_defaults[kw_idx] is not None:
+            if (
+                kw_idx < len(args.kw_defaults)
+                and args.kw_defaults[kw_idx] is not None
+            ):
                 last_default = args.kw_defaults[kw_idx]
                 last_end_line = last_default.end_lineno
                 last_end_col = last_default.end_col_offset
             else:
                 last_end_line = last_kw.end_lineno
                 last_end_col = last_kw.end_col_offset
+
         else:
             last_param = all_params[-1]
             last_end_line = last_param.end_lineno

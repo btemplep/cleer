@@ -1,10 +1,10 @@
 """Python colon space tokenizer module."""
 
-__all__ = ["PythonColonSpaceTokenizer"]
-
+__all__ = [
+    "PythonColonSpaceTokenizer"
+]
 
 import ast
-
 
 from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
@@ -59,11 +59,16 @@ class PythonColonSpaceTokenizer(Tokenizer):
             if isinstance(node, ast.AnnAssign):
                 self._add_ann_assign(node, document, line_offsets, tokens)
             elif isinstance(node, ast.arg) and node.annotation:
-                self._add_arg_annotation(node, document, line_offsets, tokens)
+                self._add_arg_annotation(
+                    node,
+                    document,
+                    line_offsets,
+                    tokens
+                )
             elif isinstance(node, ast.Dict):
                 self._add_dict_colons(node, document, line_offsets, tokens)
 
-        tokens.sort(key=lambda t: t["index"])
+        tokens.sort(key=lambda t: t['index'])
 
         return tokens
 

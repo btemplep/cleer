@@ -1,7 +1,8 @@
 """Python colon space formatter module."""
 
-__all__ = ["PythonColonSpaceFormatter"]
-
+__all__ = [
+    "PythonColonSpaceFormatter"
+]
 
 from cleer.formatters.formatter import Formatter
 

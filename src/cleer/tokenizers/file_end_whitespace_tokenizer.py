@@ -1,7 +1,8 @@
 """File end whitespace tokenizer module."""
 
-__all__ = ["FileEndWhitespaceTokenizer"]
-
+__all__ = [
+    "FileEndWhitespaceTokenizer"
+]
 
 import re
 
@@ -62,11 +63,8 @@ class FileEndWhitespaceTokenizer(Tokenizer):
         match = self.trailing_whitespace_pattern.search(document)
         trailing_ws = match.group()
 
-        return [
-            {
-                "token": trailing_ws,
-                "index": match.start(),
-                "length": len(trailing_ws)
-
-            }
-        ]
+        return [{
+            "token": trailing_ws,
+            "index": match.start(),
+            "length": len(trailing_ws)
+        }]

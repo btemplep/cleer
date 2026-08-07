@@ -1,7 +1,8 @@
 """Python return/yield formatter module."""
 
-__all__ = ["PythonReturnYieldFormatter"]
-
+__all__ = [
+    "PythonReturnYieldFormatter"
+]
 
 import ast
 
@@ -15,7 +16,7 @@ class PythonReturnYieldFormatter(Formatter):
     body at all nesting levels to enforce:
 
     - One blank line before return/yield unless it is the only
-      statement in its code block.
+    statement in its code block.
     - At least one blank line after return/yield.
 
     Examples
@@ -100,7 +101,10 @@ class PythonReturnYieldFormatter(Formatter):
             return token
 
         edits.sort(
-            key=lambda e: (e[0], 1 if e[1] == "add_after" else 0),
+            key=lambda e: (
+                e[0],
+                1 if e[1] == "add_after" else 0
+            ),
             reverse=True
         )
 
@@ -139,12 +143,7 @@ class PythonReturnYieldFormatter(Formatter):
         return "\n".join(dedented)
 
 
-    def _find_edits(
-        self,
-        body: list,
-        lines: list[str],
-        edits: list
-    ):
+    def _find_edits(self, body: list, lines: list[str], edits: list):
         """Find required edits for return/yield in a body."""
         for i, node in enumerate(body):
             is_ry = self._is_return_yield(node)
@@ -160,7 +159,10 @@ class PythonReturnYieldFormatter(Formatter):
                 end_line_idx = node.end_lineno - 1
                 next_line_idx = end_line_idx + 1
 
-                if next_line_idx < len(lines) and lines[next_line_idx].strip() != "":
+                if (
+                    next_line_idx < len(lines)
+                    and lines[next_line_idx].strip() != ""
+                ):
                     edits.append((end_line_idx, "add_after"))
 
             for field_name in ("body", "orelse", "finalbody"):
@@ -199,8 +201,9 @@ class PythonReturnYieldFormatter(Formatter):
         if isinstance(node, ast.Return):
             return True
 
-        if isinstance(node, ast.Expr) and isinstance(
-            node.value, (ast.Yield, ast.YieldFrom)
+        if (
+            isinstance(node, ast.Expr)
+            and isinstance( node.value, (ast.Yield, ast.YieldFrom) )
         ):
             return True
 

@@ -1,7 +1,8 @@
 """Python class boundary formatter module."""
 
-__all__ = ["PythonClassBoundaryFormatter"]
-
+__all__ = [
+    "PythonClassBoundaryFormatter"
+]
 
 import ast
 
@@ -13,7 +14,7 @@ class PythonClassBoundaryFormatter(Formatter):
 
     Rules:
     - No blank lines between class declaration, docstring, class vars,
-      or pass.
+    or pass.
     - 2 blank lines before any other members (methods, nested classes).
 
     Examples
@@ -75,7 +76,10 @@ class PythonClassBoundaryFormatter(Formatter):
         except SyntaxError:
             return token
 
-        if not tree.body or not isinstance(tree.body[0], ast.ClassDef):
+        if (
+            not tree.body
+            or not isinstance(tree.body[0], ast.ClassDef)
+        ):
             return token
 
         class_node = tree.body[0]
@@ -88,7 +92,11 @@ class PythonClassBoundaryFormatter(Formatter):
         return result
 
 
-    def _rebuild_body(self, class_node: ast.ClassDef, lines: list[str]) -> list[str]:
+    def _rebuild_body(
+        self,
+        class_node: ast.ClassDef,
+        lines: list[str]
+    ) -> list[str]:
         """Rebuild class body with correct spacing.
 
         Parameters
@@ -121,6 +129,7 @@ class PythonClassBoundaryFormatter(Formatter):
             if is_header:
                 for line_idx in range(node_start, node_end + 1):
                     result.append(lines[line_idx])
+
             else:
                 result.append("")
                 result.append("")
@@ -184,7 +193,10 @@ class PythonClassBoundaryFormatter(Formatter):
             return True
 
         if index == 0 and isinstance(node, ast.Expr):
-            if isinstance(node.value, ast.Constant) and isinstance(node.value.value, str):
+            if (
+                isinstance(node.value, ast.Constant)
+                and isinstance(node.value.value, str)
+            ):
                 return True
 
         if isinstance(node, (ast.AnnAssign, ast.Assign)):

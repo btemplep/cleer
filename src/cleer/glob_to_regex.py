@@ -1,5 +1,8 @@
-__all__ = ["glob_to_regex"]
+"""Glob to regex"""
 
+__all__ = [
+    "glob_to_regex"
+]
 
 from functools import lru_cache
 import os
@@ -13,10 +16,10 @@ _re_setops_sub = re.compile(r"([&~|])").sub
 @lru_cache(maxsize=512)
 def glob_to_regex(
     pattern: str,
-    recursive: bool = True,
-    include_hidden: bool = False,
-    seps: str | tuple | None = None,
-    anchor: bool = True
+    recursive: bool=True,
+    include_hidden: bool=False,
+    seps: str | tuple | None=None,
+    anchor: bool=True
 ) -> str:
     """Translate a glob pattern to a regular expression string.
 
@@ -197,10 +200,7 @@ def _translate_segment(pat: str, not_sep: str) -> list:
                             chunks[k - 1] = chunks[k - 1][:-1] + chunks[k][1:]
                             del chunks[k]
 
-                    stuff = "-".join(
-                        s.replace("\\", r"\\").replace("-", r"\-")
-                        for s in chunks
-                    )
+                    stuff = "-".join(s.replace("\\", r"\\").replace("-", r"\-") for s in chunks)
 
                 i = j + 1
 

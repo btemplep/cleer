@@ -1,10 +1,10 @@
 """Python type hint tokenizer module."""
 
-__all__ = ["PythonTypeHintTokenizer"]
-
+__all__ = [
+    "PythonTypeHintTokenizer"
+]
 
 import ast
-
 
 from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
@@ -65,35 +65,34 @@ class PythonTypeHintTokenizer(Tokenizer):
                     line_offsets,
                     tokens
                 )
-            elif isinstance(
-                node, (ast.FunctionDef, ast.AsyncFunctionDef)
-            ) and node.returns:
+            elif (
+                isinstance(
+                    node,
+                    (
+                        ast.FunctionDef,
+                        ast.AsyncFunctionDef
+                    )
+                )
+                and node.returns
+            ):
                 self._maybe_add(
                     node.returns,
                     document,
                     line_offsets,
                     tokens
                 )
-            elif isinstance(node, ast.Assign) and isinstance(
-                node.value, ast.Subscript
+            elif (
+                isinstance(node, ast.Assign)
+                and isinstance( node.value, ast.Subscript )
             ):
-                self._maybe_add(
-                    node.value,
-                    document,
-                    line_offsets,
-                    tokens
-                )
-            elif isinstance(node, ast.Expr) and isinstance(
-                node.value, ast.Subscript
+                self._maybe_add(node.value, document, line_offsets, tokens)
+            elif (
+                isinstance(node, ast.Expr)
+                and isinstance( node.value, ast.Subscript )
             ):
-                self._maybe_add(
-                    node.value,
-                    document,
-                    line_offsets,
-                    tokens
-                )
+                self._maybe_add(node.value, document, line_offsets, tokens)
 
-        tokens.sort(key=lambda t: t["index"])
+        tokens.sort(key=lambda t: t['index'])
         tokens = self._remove_overlaps(tokens)
 
         return tokens
@@ -146,9 +145,13 @@ class PythonTypeHintTokenizer(Tokenizer):
         result = []
 
         for tok in tokens:
-            if result and tok["index"] < result[-1]["index"] + result[-1]["length"]:
-                if tok["length"] > result[-1]["length"]:
+            if (
+                result
+                and tok['index'] < result[-1]['index'] + result[-1]['length']
+            ):
+                if tok['length'] > result[-1]['length']:
                     result[-1] = tok
+
             else:
                 result.append(tok)
 

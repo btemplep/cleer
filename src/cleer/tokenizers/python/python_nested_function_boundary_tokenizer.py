@@ -1,10 +1,10 @@
 """Python nested definition boundary tokenizer module."""
 
-__all__ = ["PythonNestedFunctionBoundaryTokenizer"]
-
+__all__ = [
+    "PythonNestedFunctionBoundaryTokenizer"
+]
 
 import ast
-
 
 from cleer.tokenizers.tokenizer import Tokenizer
 
@@ -54,14 +54,17 @@ class PythonNestedFunctionBoundaryTokenizer(Tokenizer):
             ```
         """
         tree = ast.parse(document)
-
         line_offsets = self._build_line_offsets(document)
         tokens = []
         seen_ranges = set()
-
-        self._walk_for_nested(tree, document, line_offsets, tokens, seen_ranges)
-
-        tokens.sort(key=lambda t: t["index"])
+        self._walk_for_nested(
+            tree,
+            document,
+            line_offsets,
+            tokens,
+            seen_ranges
+        )
+        tokens.sort(key=lambda t: t['index'])
 
         return tokens
 
@@ -108,8 +111,11 @@ class PythonNestedFunctionBoundaryTokenizer(Tokenizer):
         seen_ranges: set
     ):
         """Process a function body for nested function/class boundaries."""
-        target_types = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
-
+        target_types = (
+            ast.FunctionDef,
+            ast.AsyncFunctionDef,
+            ast.ClassDef
+        )
         for i, node in enumerate(body):
             if not isinstance(node, target_types):
                 continue
@@ -128,7 +134,10 @@ class PythonNestedFunctionBoundaryTokenizer(Tokenizer):
                     )
 
                     if token is not None:
-                        token_range = (token["index"], token["length"])
+                        token_range = (
+                            token['index'],
+                            token['length']
+                        )
                         if token_range not in seen_ranges:
                             seen_ranges.add(token_range)
                             tokens.append(token)
@@ -148,7 +157,10 @@ class PythonNestedFunctionBoundaryTokenizer(Tokenizer):
                         )
 
                         if token is not None:
-                            token_range = (token["index"], token["length"])
+                            token_range = (
+                                token['index'],
+                                token['length']
+                            )
                             if token_range not in seen_ranges:
                                 seen_ranges.add(token_range)
                                 tokens.append(token)

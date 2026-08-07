@@ -1,7 +1,8 @@
 """Python kwargs space formatter module."""
 
-__all__ = ["PythonKwargsSpaceFormatter"]
-
+__all__ = [
+    "PythonKwargsSpaceFormatter"
+]
 
 from cleer.formatters.formatter import Formatter
 

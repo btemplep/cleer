@@ -1,7 +1,8 @@
 """Python chain boundary tokenizer module."""
 
-__all__ = ["PythonChainBoundaryTokenizer"]
-
+__all__ = [
+    "PythonChainBoundaryTokenizer"
+]
 
 import ast
 
@@ -44,7 +45,7 @@ class PythonChainBoundaryTokenizer(Tokenizer):
     emits_token_type = "python_chain_boundary"
 
 
-    def __init__(self, after_return: bool = False):
+    def __init__(self, after_return: bool=False):
         self._after_return = after_return
 
         if after_return:
@@ -75,13 +76,31 @@ class PythonChainBoundaryTokenizer(Tokenizer):
 
         for node in ast.walk(tree):
             if isinstance(node, ast.If):
-                self._check_if_chain(node, document, line_offsets, tokens, seen)
+                self._check_if_chain(
+                    node,
+                    document,
+                    line_offsets,
+                    tokens,
+                    seen
+                )
             elif isinstance(node, (ast.For, ast.AsyncFor, ast.While)):
-                self._check_for_while_else(node, document, line_offsets, tokens, seen)
+                self._check_for_while_else(
+                    node,
+                    document,
+                    line_offsets,
+                    tokens,
+                    seen
+                )
             elif isinstance(node, ast.Try):
-                self._check_try_chain(node, document, line_offsets, tokens, seen)
+                self._check_try_chain(
+                    node,
+                    document,
+                    line_offsets,
+                    tokens,
+                    seen
+                )
 
-        tokens.sort(key=lambda t: t["index"])
+        tokens.sort(key=lambda t: t['index'])
 
         return tokens
 
@@ -263,7 +282,10 @@ class PythonChainBoundaryTokenizer(Tokenizer):
         token = document[start:end]
 
         if not token.strip():
-            token_key = (start, len(token))
+            token_key = (
+                start,
+                len(token)
+            )
 
             if token_key in seen:
                 return
@@ -305,8 +327,8 @@ class PythonChainBoundaryTokenizer(Tokenizer):
         Returns True when the last statement before a connector is:
         - A return, yield, or exit() call
         - Any compound statement (if, for, while, with, try) — because
-          a nested block ending right before a connector needs visual
-          separation.
+        a nested block ending right before a connector needs visual
+        separation.
         """
         if isinstance(node, ast.Return):
             return True

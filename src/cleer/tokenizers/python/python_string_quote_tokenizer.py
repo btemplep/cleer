@@ -1,10 +1,10 @@
 """Python string quote tokenizer module."""
 
-__all__ = ["PythonStringQuoteTokenizer"]
-
+__all__ = [
+    "PythonStringQuoteTokenizer"
+]
 
 import ast
-
 
 from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
@@ -65,14 +65,9 @@ class PythonStringQuoteTokenizer(Tokenizer):
             dict_key_positions,
             fstring_positions
         )
-        self._collect_fstrings(
-            tree,
-            document,
-            line_offsets,
-            tokens
-        )
+        self._collect_fstrings(tree, document, line_offsets, tokens)
 
-        tokens.sort(key=lambda t: t["index"])
+        tokens.sort(key=lambda t: t['index'])
 
         return tokens
 
@@ -98,8 +93,16 @@ class PythonStringQuoteTokenizer(Tokenizer):
 
             slice_node = node.slice
 
-            if isinstance(slice_node, ast.Constant) and isinstance(slice_node.value, str):
-                positions.add((slice_node.lineno, slice_node.col_offset))
+            if (
+                isinstance(slice_node, ast.Constant)
+                and isinstance(slice_node.value, str)
+            ):
+                positions.add(
+                    (
+                        slice_node.lineno,
+                        slice_node.col_offset
+                    )
+                )
 
         return positions
 
@@ -120,8 +123,16 @@ class PythonStringQuoteTokenizer(Tokenizer):
                 if child is node:
                     continue
 
-                if isinstance(child, ast.Constant) and hasattr(child, "lineno"):
-                    positions.add((child.lineno, child.col_offset))
+                if (
+                    isinstance(child, ast.Constant)
+                    and hasattr(child, "lineno")
+                ):
+                    positions.add(
+                        (
+                            child.lineno,
+                            child.col_offset
+                        )
+                    )
 
         return positions
 
@@ -228,7 +239,10 @@ class PythonStringQuoteTokenizer(Tokenizer):
             "fr", "fR", "Fr", "FR", "rf", "rF", "Rf", "RF",
             "tr", "tR", "Tr", "TR", "rt", "rT", "Rt", "RT"
         ):
-            if stripped.startswith(prefix) and len(stripped) > len(prefix):
+            if (
+                stripped.startswith(prefix)
+                and len(stripped) > len(prefix)
+            ):
                 after = stripped[len(prefix)]
                 if after in ("'", '"'):
                     return True

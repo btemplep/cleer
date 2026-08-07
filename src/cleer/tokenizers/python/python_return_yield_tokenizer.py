@@ -1,10 +1,10 @@
 """Python return/yield tokenizer module."""
 
-__all__ = ["PythonReturnYieldTokenizer"]
-
+__all__ = [
+    "PythonReturnYieldTokenizer"
+]
 
 import ast
-
 
 from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
@@ -49,7 +49,7 @@ class PythonReturnYieldTokenizer(Tokenizer):
 
         self._walk(tree.body, line_offsets, document, results)
 
-        results.sort(key=lambda e: e["index"])
+        results.sort(key=lambda e: e['index'])
 
         return results
 
@@ -75,6 +75,7 @@ class PythonReturnYieldTokenizer(Tokenizer):
                             "length": len(token)
                         }
                     )
+
             elif isinstance(node, ast.ClassDef):
                 self._walk(node.body, line_offsets, document, results)
             else:
@@ -118,7 +119,10 @@ class PythonReturnYieldTokenizer(Tokenizer):
         """Get the end of the function including trailing blank lines."""
         end_offset = line_offsets[node.end_lineno]
 
-        while end_offset < len(document) and document[end_offset] == "\n":
+        while (
+            end_offset < len(document)
+            and document[end_offset] == "\n"
+        ):
             end_offset += 1
 
         return end_offset

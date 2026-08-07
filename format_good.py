@@ -598,3 +598,123 @@ clr = Cleer(
         ]
     )
 )
+
+
+class AnotherClass:
+
+    def _is_inside_function(
+        self,
+        start: int,
+        end: int,
+        function_ranges: list[tuple[int, int]]
+    ) -> bool:
+        """Check if a span falls inside a function body but not directly in a class body.
+
+        A span inside a method (which is inside a class) is still
+        considered inside a function. Only spans that are in a class body
+        but not in any function body are excluded.
+        """
+        inside_function = False
+
+        for range_start, range_end in function_ranges:
+            if start >= range_start and end <= range_end:
+                inside_function = True
+                break
+
+        if not inside_function:
+            return False
+
+        inside_class = False
+
+        for range_start, range_end in self._class_ranges:
+            if start >= range_start and end <= range_end:
+                inside_class = True
+                break
+
+        if not inside_class:
+            return True
+
+        innermost_func = None
+
+        for range_start, range_end in function_ranges:
+            if start >= range_start and end <= range_end:
+                if (
+                    innermost_class is None 
+                    or (range_end - range_start) < (innermost_class[1] - innermost_class[0])
+                ):
+                    innermost_func = (range_start, range_end)
+
+        innermost_class = None
+
+        for range_start, range_end in self._class_ranges:
+            if start >= range_start and end <= range_end:
+                if (
+                    innermost_class is None
+                    or (range_end - range_start) < (innermost_class[1] - innermost_class[0])
+                ):
+                    innermost_class = (range_start, range_end)
+
+        if innermost_func and innermost_class:
+            func_size = innermost_func[1] - innermost_func[0]
+            class_size = innermost_class[1] - innermost_class[0]
+
+            return func_size < class_size
+
+        is_docstring = (
+            i == 0
+            or isinstance(body[i - 1], (ast.Assign, ast.AnnAssign))
+        )
+        is_docstring = (
+            i == 0
+            or isinstance(body[i - 1], (ast.Assign, ast.AnnAssign))
+        )
+        default_idx = i - (len(args.posonlyargs) + len(args.args) - num_defaults)
+        default_idx = i - (len(args.posonlyargs) + len(args.args) - num_defaults)
+        if thing:
+            return [
+                {
+                    "token": token,
+                    "index": prev_end,
+                    "length": len(token)
+                }
+            ]
+        
+        return [
+            {
+                "token": token,
+                "index": prev_end,
+                "length": len(token)
+            }
+        ]
+
+
+flat = flat.replace("[ ]", "[]")
+flat = flat.replace("( )", "()")
+flat = flat.replace("{ }", "{}")
+
+
+content_len = len(region['open_char']) + len(", ".join(items)) + len(region['close_char'])
+content_len = len(region['open_char']) + len(", ".join(items)) + len(region['close_char'])
+quote = content[i:i + 3] if content[i:i + 3] in ('"""', "'''") else ch
+quote = content[i:i + 3] if content[i:i + 3] in ('"""', "'''") else ch
+
+
+def return_logic():
+    if this:
+        return (
+            isinstance(first_node, ast.Expr) 
+            and isinstance(first_node.value, ast.Constant) 
+            and isinstance(first_node.value.value, str)
+        )
+
+    child_depth = depth if isinstance(node,ast.Module) else depth + 1
+
+    return (
+            isinstance(first_node, ast.Expr)
+            and isinstance(first_node.value, ast.Constant)
+            and isinstance(first_node.value.value, str)
+        )
+
+
+actual_indent = len(leading.replace("\t", " " * self._tab_size))
+actual_indent = len(leading.replace("\t", " " * self._tab_size))

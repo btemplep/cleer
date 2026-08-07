@@ -1,7 +1,8 @@
 """Python unary operator space formatter module."""
 
-__all__ = ["PythonUnaryOperatorSpaceFormatter"]
-
+__all__ = [
+    "PythonUnaryOperatorSpaceFormatter"
+]
 
 from cleer.formatters.formatter import Formatter
 
@@ -19,7 +20,9 @@ class PythonUnaryOperatorSpaceFormatter(Formatter):
     result = formatter.format("- x")
     ```
     """
-    accepts_token_types = ["python_unary_operator_space"]
+    accepts_token_types = [
+        "python_unary_operator_space"
+    ]
 
 
     def inspect(self, token: str) -> str | None:
@@ -36,7 +39,11 @@ class PythonUnaryOperatorSpaceFormatter(Formatter):
             Error message if there is space between - and operand.
             Returns `None` if there is no violation.
         """
-        if token.startswith("-") and len(token) > 1 and token[1] == " ":
+        if (
+            token.startswith("-")
+            and len(token) > 1
+            and token[1] == " "
+        ):
             return "There should not be space between unary negative and its operand."
 
         return None

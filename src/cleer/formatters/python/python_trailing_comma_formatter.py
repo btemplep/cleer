@@ -1,7 +1,8 @@
 """Python trailing comma formatter module."""
 
-__all__ = ["PythonTrailingCommaFormatter"]
-
+__all__ = [
+    "PythonTrailingCommaFormatter"
+]
 
 from cleer.formatters.formatter import Formatter
 

@@ -1,19 +1,20 @@
 """File end whitespace formatter module."""
 
-__all__ = ["FileEndWhitespaceFormatter"]
-
+__all__ = [
+    "FileEndWhitespaceFormatter"
+]
 
 from cleer.formatters.formatter import Formatter
 
 
 class FileEndWhitespaceFormatter(Formatter):
-    """Format the number of blank lines at the end of a file. 
+    """Format the number of blank lines at the end of a file.
 
 
     Parameters
     ----------
     blank_lines : int, default=1
-        Number of blank lines to enforce at the end of a file. 
+        Number of blank lines to enforce at the end of a file.
 
     Examples
     --------
@@ -27,7 +28,7 @@ class FileEndWhitespaceFormatter(Formatter):
     accepts_token_types = ["file_end_whitespace"]
 
 
-    def __init__(self, blank_lines: int = 1):
+    def __init__(self, blank_lines: int=1):
         self._blank_lines = blank_lines
         self._ending_token = "\n" * blank_lines
 
@@ -43,7 +44,7 @@ class FileEndWhitespaceFormatter(Formatter):
         Returns
         -------
         str | None
-            Error message if trailing whitespace does not match the expected. 
+            Error message if trailing whitespace does not match the expected.
             Returns `None` if there is no violation.
         """
         if token != self._ending_token:

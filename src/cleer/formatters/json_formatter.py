@@ -26,4 +26,3 @@ class JSONFormatter(Formatter):
 
     def format(self, token: str) -> str:
         return json.dumps(json.loads(token), indent=self._indent)
-

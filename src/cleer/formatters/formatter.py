@@ -1,6 +1,8 @@
-__all__ = ["Formatter"]
+"""TODO: Add module docstring."""
 
-
+__all__ = [
+    "Formatter"
+]
 
 
 class Formatter:

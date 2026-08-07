@@ -1,10 +1,10 @@
 """Python decorator boundary tokenizer module."""
 
-__all__ = ["PythonDecoratorBoundaryTokenizer"]
-
+__all__ = [
+    "PythonDecoratorBoundaryTokenizer"
+]
 
 import ast
-
 
 from cleer.tokenizers.tokenizer import Tokenizer
 
@@ -62,8 +62,14 @@ class PythonDecoratorBoundaryTokenizer(Tokenizer):
         lines = document.split("\n")
         line_offsets = self._build_line_offsets(document)
         tokens = []
-        self._walk_for_decorated(tree, lines, line_offsets, document, tokens)
-        tokens.sort(key=lambda t: t["index"])
+        self._walk_for_decorated(
+            tree,
+            lines,
+            line_offsets,
+            document,
+            tokens
+        )
+        tokens.sort(key=lambda t: t['index'])
 
         return tokens
 

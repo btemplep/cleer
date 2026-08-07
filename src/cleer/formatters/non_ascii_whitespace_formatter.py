@@ -1,7 +1,8 @@
 """Non-ASCII whitespace formatter module."""
 
-__all__ = ["NonAsciiWhitespaceFormatter"]
-
+__all__ = [
+    "NonAsciiWhitespaceFormatter"
+]
 
 from cleer.formatters.formatter import Formatter
 

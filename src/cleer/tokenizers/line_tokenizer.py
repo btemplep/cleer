@@ -1,8 +1,8 @@
 """Line tokenizer module."""
 
-__all__ = ["LineTokenizer"]
-
-
+__all__ = [
+    "LineTokenizer"
+]
 
 from cleer.tokenizers.tokenizer import Tokenizer
 

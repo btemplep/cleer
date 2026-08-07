@@ -1,10 +1,10 @@
 """Python paired punctuation tokenizer module."""
 
-__all__ = ["PythonPairedPunctuationTokenizer"]
-
+__all__ = [
+    "PythonPairedPunctuationTokenizer"
+]
 
 import ast
-
 
 from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
@@ -54,9 +54,16 @@ class PythonPairedPunctuationTokenizer(Tokenizer):
         tokens = []
         seen_ranges = set()
 
-        self._walk(tree, lines, line_offsets, document, tokens, seen_ranges)
+        self._walk(
+            tree,
+            lines,
+            line_offsets,
+            document,
+            tokens,
+            seen_ranges
+        )
 
-        tokens.sort(key=lambda t: t["index"])
+        tokens.sort(key=lambda t: t['index'])
 
         return tokens
 
@@ -78,9 +85,20 @@ class PythonPairedPunctuationTokenizer(Tokenizer):
             emitted = False
 
             if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                if child.args.args or child.args.posonlyargs or child.args.kwonlyargs or child.args.vararg or child.args.kwarg:
+                if (
+                    child.args.args
+                    or child.args.posonlyargs
+                    or child.args.kwonlyargs
+                    or child.args.vararg
+                    or child.args.kwarg
+                ):
                     self._emit_funcdef(
-                        child, lines, line_offsets, document, tokens, seen_ranges
+                        child,
+                        lines,
+                        line_offsets,
+                        document,
+                        tokens,
+                        seen_ranges
                     )
                     emitted = True
 
@@ -88,78 +106,160 @@ class PythonPairedPunctuationTokenizer(Tokenizer):
                     for dec in child.decorator_list:
                         if isinstance(dec, ast.Call):
                             self._emit_decorator(
-                                dec, lines, line_offsets, document, tokens, seen_ranges
+                                dec,
+                                lines,
+                                line_offsets,
+                                document,
+                                tokens,
+                                seen_ranges
                             )
 
-                self._walk(child, lines, line_offsets, document, tokens, seen_ranges)
-
+                self._walk(
+                    child,
+                    lines,
+                    line_offsets,
+                    document,
+                    tokens,
+                    seen_ranges
+                )
             elif isinstance(child, ast.ClassDef):
                 if child.decorator_list:
                     for dec in child.decorator_list:
                         if isinstance(dec, ast.Call):
                             self._emit_decorator(
-                                dec, lines, line_offsets, document, tokens, seen_ranges
+                                dec,
+                                lines,
+                                line_offsets,
+                                document,
+                                tokens,
+                                seen_ranges
                             )
 
-                self._walk(child, lines, line_offsets, document, tokens, seen_ranges)
-
+                self._walk(
+                    child,
+                    lines,
+                    line_offsets,
+                    document,
+                    tokens,
+                    seen_ranges
+                )
             elif isinstance(child, (ast.If, ast.While)):
                 if self._is_logic_condition(child):
                     self._emit_condition(
-                        child, lines, line_offsets, document, tokens, seen_ranges
+                        child,
+                        lines,
+                        line_offsets,
+                        document,
+                        tokens,
+                        seen_ranges
                     )
 
-                self._walk(child, lines, line_offsets, document, tokens, seen_ranges)
+                self._walk(
+                    child,
+                    lines,
+                    line_offsets,
+                    document,
+                    tokens,
+                    seen_ranges
+                )
 
                 if isinstance(child, ast.If) and child.orelse:
                     for orelse_child in child.orelse:
                         if isinstance(orelse_child, ast.If):
                             if self._is_logic_condition(orelse_child):
                                 self._emit_condition(
-                                    orelse_child, lines, line_offsets, document,
-                                    tokens, seen_ranges
+                                    orelse_child,
+                                    lines,
+                                    line_offsets,
+                                    document,
+                                    tokens,
+                                    seen_ranges
                                 )
+
                             self._walk(
-                                orelse_child, lines, line_offsets, document,
-                                tokens, seen_ranges
+                                orelse_child,
+                                lines,
+                                line_offsets,
+                                document,
+                                tokens,
+                                seen_ranges
                             )
                         else:
                             self._walk_single(
-                                orelse_child, lines, line_offsets, document,
-                                tokens, seen_ranges
+                                orelse_child,
+                                lines,
+                                line_offsets,
+                                document,
+                                tokens,
+                                seen_ranges
                             )
 
-            elif isinstance(child, ast.Expr) and isinstance(child.value, ast.Call):
+            elif (
+                isinstance(child, ast.Expr)
+                and isinstance(child.value, ast.Call)
+            ):
                 self._emit_statement(
-                    child, lines, line_offsets, document, tokens, seen_ranges
+                    child,
+                    lines,
+                    line_offsets,
+                    document,
+                    tokens,
+                    seen_ranges
                 )
-
             elif isinstance(child, ast.Assign):
                 if self._has_paired_punct_value(child):
                     self._emit_statement(
-                        child, lines, line_offsets, document, tokens, seen_ranges
+                        child,
+                        lines,
+                        line_offsets,
+                        document,
+                        tokens,
+                        seen_ranges
                     )
                     emitted = True
 
             elif isinstance(child, ast.AnnAssign):
                 if child.value and self._node_has_paired_punct(child.value):
                     self._emit_statement(
-                        child, lines, line_offsets, document, tokens, seen_ranges
+                        child,
+                        lines,
+                        line_offsets,
+                        document,
+                        tokens,
+                        seen_ranges
                     )
                     emitted = True
 
             elif isinstance(child, ast.Return):
                 if child.value and self._node_has_paired_punct(child.value):
                     self._emit_statement(
-                        child, lines, line_offsets, document, tokens, seen_ranges
+                        child,
+                        lines,
+                        line_offsets,
+                        document,
+                        tokens,
+                        seen_ranges
                     )
                     emitted = True
 
             elif isinstance(child, (ast.For, ast.AsyncFor)):
-                self._walk(child, lines, line_offsets, document, tokens, seen_ranges)
-
+                self._walk(
+                    child,
+                    lines,
+                    line_offsets,
+                    document,
+                    tokens,
+                    seen_ranges
+                )
             elif not emitted:
-                self._walk(child, lines, line_offsets, document, tokens, seen_ranges)
+                self._walk(
+                    child,
+                    lines,
+                    line_offsets,
+                    document,
+                    tokens,
+                    seen_ranges
+                )
 
 
     def _walk_single(
@@ -172,22 +272,49 @@ class PythonPairedPunctuationTokenizer(Tokenizer):
         seen_ranges: set
     ):
         """Process a single node that may contain paired punctuation."""
-        if isinstance(node, ast.Expr) and isinstance(node.value, ast.Call):
+        if (
+            isinstance(node, ast.Expr)
+            and isinstance(node.value, ast.Call)
+        ):
             self._emit_statement(
-                node, lines, line_offsets, document, tokens, seen_ranges
+                node,
+                lines,
+                line_offsets,
+                document,
+                tokens,
+                seen_ranges
             )
         elif isinstance(node, ast.Assign):
             if self._has_paired_punct_value(node):
                 self._emit_statement(
-                    node, lines, line_offsets, document, tokens, seen_ranges
+                    node,
+                    lines,
+                    line_offsets,
+                    document,
+                    tokens,
+                    seen_ranges
                 )
+
         elif isinstance(node, ast.Return):
             if node.value and self._node_has_paired_punct(node.value):
                 self._emit_statement(
-                    node, lines, line_offsets, document, tokens, seen_ranges
+                    node,
+                    lines,
+                    line_offsets,
+                    document,
+                    tokens,
+                    seen_ranges
                 )
+
         else:
-            self._walk(node, lines, line_offsets, document, tokens, seen_ranges)
+            self._walk(
+                node,
+                lines,
+                line_offsets,
+                document,
+                tokens,
+                seen_ranges
+            )
 
 
     def _is_excluded(self, child, parent) -> bool:
@@ -206,6 +333,7 @@ class PythonPairedPunctuationTokenizer(Tokenizer):
         if isinstance(child, ast.AnnAssign):
             if child.value is None:
                 return True
+
             if isinstance(child.value, ast.Subscript):
                 return True
 

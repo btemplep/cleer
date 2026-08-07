@@ -1,10 +1,10 @@
 """Python import section tokenizer module."""
 
-__all__ = ["PythonImportTokenizer"]
-
+__all__ = [
+    "PythonImportTokenizer"
+]
 
 import ast
-
 
 from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
@@ -151,6 +151,7 @@ class PythonImportTokenizer(Tokenizer):
                     next_start = line_offsets[line_idx + 1] if line_idx + 1 < len(line_offsets) else len(document)
                 else:
                     break
+
         else:
             next_start = len(document)
 

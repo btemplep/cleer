@@ -1,10 +1,10 @@
 """Python comma space tokenizer module."""
 
-__all__ = ["PythonCommaSpaceTokenizer"]
-
+__all__ = [
+    "PythonCommaSpaceTokenizer"
+]
 
 import ast
-
 
 from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
@@ -59,18 +59,37 @@ class PythonCommaSpaceTokenizer(Tokenizer):
 
         for node in ast.walk(tree):
             if isinstance(node, (ast.List, ast.Set)):
-                self._add_sequence_commas(node.elts, document, line_offsets, tokens)
+                self._add_sequence_commas(
+                    node.elts,
+                    document,
+                    line_offsets,
+                    tokens
+                )
             elif isinstance(node, ast.Tuple):
                 if len(node.elts) > 1:
-                    self._add_sequence_commas(node.elts, document, line_offsets, tokens)
+                    self._add_sequence_commas(
+                        node.elts,
+                        document,
+                        line_offsets,
+                        tokens
+                    )
+
             elif isinstance(node, ast.Dict):
                 self._add_dict_commas(node, document, line_offsets, tokens)
             elif isinstance(node, ast.Call):
                 self._add_call_commas(node, document, line_offsets, tokens)
             elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                self._add_funcdef_commas(node, document, line_offsets, tokens)
+                self._add_funcdef_commas(
+                    node,
+                    document,
+                    line_offsets,
+                    tokens
+                )
             elif isinstance(node, ast.For):
-                if isinstance(node.target, ast.Tuple) and len(node.target.elts) > 1:
+                if (
+                    isinstance(node.target, ast.Tuple)
+                    and len(node.target.elts) > 1
+                ):
                     self._add_sequence_commas(
                         node.target.elts,
                         document,
@@ -78,7 +97,7 @@ class PythonCommaSpaceTokenizer(Tokenizer):
                         tokens
                     )
 
-        tokens.sort(key=lambda t: t["index"])
+        tokens.sort(key=lambda t: t['index'])
 
         return self._deduplicate(tokens)
 
@@ -231,22 +250,31 @@ class PythonCommaSpaceTokenizer(Tokenizer):
         items = []
 
         for arg in node.args:
-            items.append((
-                arg.end_lineno,
-                arg.end_col_offset,
-                arg.lineno,
-                arg.col_offset
-            ))
+            items.append(
+                (
+                    arg.end_lineno,
+                    arg.end_col_offset,
+                    arg.lineno,
+                    arg.col_offset
+                )
+            )
 
         for kw in node.keywords:
-            items.append((
-                kw.value.end_lineno,
-                kw.value.end_col_offset,
-                kw.lineno,
-                kw.col_offset
-            ))
+            items.append(
+                (
+                    kw.value.end_lineno,
+                    kw.value.end_col_offset,
+                    kw.lineno,
+                    kw.col_offset
+                )
+            )
 
-        items.sort(key=lambda x: (x[2], x[3]))
+        items.sort(
+            key=lambda x: (
+                x[2],
+                x[3]
+            )
+        )
 
         return items
 
@@ -259,57 +287,76 @@ class PythonCommaSpaceTokenizer(Tokenizer):
         num_kw_defaults = len(args.kw_defaults)
 
         for i, arg in enumerate(args.posonlyargs + args.args):
-            default_idx = i - (len(args.posonlyargs) + len(args.args) - num_defaults)
+            default_idx = i - (
+                len(args.posonlyargs) + len(args.args) - num_defaults
+            )
             if default_idx >= 0 and default_idx < num_defaults:
                 default = args.defaults[default_idx]
-                items.append((
-                    default.end_lineno,
-                    default.end_col_offset,
-                    arg.lineno,
-                    arg.col_offset
-                ))
+                items.append(
+                    (
+                        default.end_lineno,
+                        default.end_col_offset,
+                        arg.lineno,
+                        arg.col_offset
+                    )
+                )
             else:
-                items.append((
-                    arg.end_lineno,
-                    arg.end_col_offset,
-                    arg.lineno,
-                    arg.col_offset
-                ))
+                items.append(
+                    (
+                        arg.end_lineno,
+                        arg.end_col_offset,
+                        arg.lineno,
+                        arg.col_offset
+                    )
+                )
 
         for i, arg in enumerate(args.kwonlyargs):
             if i < num_kw_defaults and args.kw_defaults[i] is not None:
                 default = args.kw_defaults[i]
-                items.append((
-                    default.end_lineno,
-                    default.end_col_offset,
-                    arg.lineno,
-                    arg.col_offset
-                ))
+                items.append(
+                    (
+                        default.end_lineno,
+                        default.end_col_offset,
+                        arg.lineno,
+                        arg.col_offset
+                    )
+                )
             else:
-                items.append((
-                    arg.end_lineno,
-                    arg.end_col_offset,
-                    arg.lineno,
-                    arg.col_offset
-                ))
+                items.append(
+                    (
+                        arg.end_lineno,
+                        arg.end_col_offset,
+                        arg.lineno,
+                        arg.col_offset
+                    )
+                )
 
         if args.vararg:
-            items.append((
-                args.vararg.end_lineno,
-                args.vararg.end_col_offset,
-                args.vararg.lineno,
-                args.vararg.col_offset
-            ))
+            items.append(
+                (
+                    args.vararg.end_lineno,
+                    args.vararg.end_col_offset,
+                    args.vararg.lineno,
+                    args.vararg.col_offset
+                )
+            )
 
         if args.kwarg:
-            items.append((
-                args.kwarg.end_lineno,
-                args.kwarg.end_col_offset,
-                args.kwarg.lineno,
-                args.kwarg.col_offset
-            ))
+            items.append(
+                (
+                    args.kwarg.end_lineno,
+                    args.kwarg.end_col_offset,
+                    args.kwarg.lineno,
+                    args.kwarg.col_offset
+                )
+            )
 
-        items.sort(key=lambda x: (x[2], x[3]))
+        items.sort(
+            key=lambda x: (
+                x[2],
+                x[3]
+            )
+        )
 
         return items
 
@@ -345,8 +392,8 @@ class PythonCommaSpaceTokenizer(Tokenizer):
         result = []
 
         for token in tokens:
-            if token["index"] not in seen:
-                seen.add(token["index"])
+            if token['index'] not in seen:
+                seen.add(token['index'])
                 result.append(token)
 
         return result

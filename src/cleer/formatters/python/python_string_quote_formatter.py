@@ -1,7 +1,8 @@
 """Python string quote formatter module."""
 
-__all__ = ["PythonStringQuoteFormatter"]
-
+__all__ = [
+    "PythonStringQuoteFormatter"
+]
 
 from cleer.formatters.formatter import Formatter
 
@@ -35,8 +36,8 @@ class PythonStringQuoteFormatter(Formatter):
 
     def __init__(
         self,
-        quote: str = '"',
-        multiline_quote: str = '"""'
+        quote: str='"',
+        multiline_quote: str='"""'
     ):
         self._quote = quote
         self._multiline_quote = multiline_quote

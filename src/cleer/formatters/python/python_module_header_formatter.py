@@ -1,7 +1,8 @@
 """Python module header formatter module."""
 
-__all__ = ["PythonModuleHeaderFormatter"]
-
+__all__ = [
+    "PythonModuleHeaderFormatter"
+]
 
 import ast
 
@@ -20,7 +21,7 @@ class PythonModuleHeaderFormatter(Formatter):
     Rules:
     - 1 blank line between adjacent header items
     - 2 blank lines between the last header item and the first
-      module-level code (class, function, assignment, etc.)
+    module-level code (class, function, assignment, etc.)
 
     Examples
     --------
@@ -94,7 +95,10 @@ class PythonModuleHeaderFormatter(Formatter):
             all_ranges.extend(section)
 
         last_header_end = max(end for _, end in all_ranges)
-        first_code_line = self._find_first_code_line(tree, last_header_end)
+        first_code_line = self._find_first_code_line(
+            tree,
+            last_header_end
+        )
 
         result_parts = []
 
@@ -111,18 +115,19 @@ class PythonModuleHeaderFormatter(Formatter):
                 section_lines = []
                 for line_num in range(first_start, last_end):
                     if line_num in all_section_lines:
-                        is_this_section = any(
-                            start <= line_num < end for start, end in section
-                        )
+                        is_this_section = any(start <= line_num < end for start, end in section)
                         if is_this_section:
                             section_lines.append(lines[line_num])
+
                     elif lines[line_num].strip() == "":
                         section_lines.append(lines[line_num])
+
                 section_text = "\n".join(section_lines)
             else:
                 section_lines = []
                 for start, end in section:
                     section_lines.extend(lines[start:end])
+
                 section_text = "\n".join(section_lines)
 
             while section_text.endswith("\n"):
@@ -133,7 +138,11 @@ class PythonModuleHeaderFormatter(Formatter):
         header = "\n\n".join(result_parts)
 
         if first_code_line is not None:
-            rest_start = self._find_rest_start(lines, last_header_end, first_code_line)
+            rest_start = self._find_rest_start(
+                lines,
+                last_header_end,
+                first_code_line
+            )
             rest_lines = lines[rest_start:]
             rest = "\n".join(rest_lines)
 
@@ -174,13 +183,33 @@ class PythonModuleHeaderFormatter(Formatter):
                 and isinstance(node.value, ast.Constant)
                 and isinstance(node.value.value, str)
             ):
-                docstring_ranges.append((node.lineno - 1, node.end_lineno))
+                docstring_ranges.append(
+                    (
+                        node.lineno - 1,
+                        node.end_lineno
+                    )
+                )
             elif self._is_version_assignment(node):
-                version_ranges.append((node.lineno - 1, node.end_lineno))
+                version_ranges.append(
+                    (
+                        node.lineno - 1,
+                        node.end_lineno
+                    )
+                )
             elif self._is_all_assignment(node):
-                all_ranges.append((node.lineno - 1, node.end_lineno))
+                all_ranges.append(
+                    (
+                        node.lineno - 1,
+                        node.end_lineno
+                    )
+                )
             elif isinstance(node, (ast.Import, ast.ImportFrom)):
-                import_ranges.append((node.lineno - 1, node.end_lineno))
+                import_ranges.append(
+                    (
+                        node.lineno - 1,
+                        node.end_lineno
+                    )
+                )
             else:
                 break
 
@@ -201,7 +230,11 @@ class PythonModuleHeaderFormatter(Formatter):
         return sections
 
 
-    def _find_first_code_line(self, tree: ast.Module, last_header_end: int) -> int | None:
+    def _find_first_code_line(
+        self,
+        tree: ast.Module,
+        last_header_end: int
+    ) -> int | None:
         """Find the first line of module code after the header.
 
         Returns 0-indexed line number, or None if no code follows.
@@ -218,7 +251,12 @@ class PythonModuleHeaderFormatter(Formatter):
         return None
 
 
-    def _find_rest_start(self, lines: list, last_header_end: int, first_code_line: int) -> int:
+    def _find_rest_start(
+        self,
+        lines: list,
+        last_header_end: int,
+        first_code_line: int
+    ) -> int:
         """Find the first non-blank line after the header.
 
         Looks between the last header section end and the first AST
@@ -251,7 +289,10 @@ class PythonModuleHeaderFormatter(Formatter):
             return False
 
         for target in node.targets:
-            if isinstance(target, ast.Name) and target.id == "__version__":
+            if (
+                isinstance(target, ast.Name)
+                and target.id == "__version__"
+            ):
                 return True
 
         return False

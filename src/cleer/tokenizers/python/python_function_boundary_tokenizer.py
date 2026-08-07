@@ -1,10 +1,10 @@
 """Python definition boundary tokenizer module."""
 
-__all__ = ["PythonFunctionBoundaryTokenizer"]
-
+__all__ = [
+    "PythonFunctionBoundaryTokenizer"
+]
 
 import ast
-
 
 from cleer.tokenizers.tokenizer import Tokenizer
 
@@ -71,7 +71,12 @@ class PythonFunctionBoundaryTokenizer(Tokenizer):
 
         lines = document.split("\n")
         line_offsets = self._build_line_offsets(document)
-        boundaries = self._collect_boundaries(tree, lines, line_offsets, document)
+        boundaries = self._collect_boundaries(
+            tree,
+            lines,
+            line_offsets,
+            document
+        )
 
         return boundaries
 
@@ -116,7 +121,7 @@ class PythonFunctionBoundaryTokenizer(Tokenizer):
                     seen_ranges
                 )
 
-        tokens.sort(key=lambda t: t["index"])
+        tokens.sort(key=lambda t: t['index'])
 
         return tokens
 
@@ -131,7 +136,11 @@ class PythonFunctionBoundaryTokenizer(Tokenizer):
         seen_ranges: set
     ):
         """Process a body (module or class) for definition boundaries."""
-        target_types = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
+        target_types = (
+            ast.FunctionDef,
+            ast.AsyncFunctionDef,
+            ast.ClassDef
+        )
 
         for i, node in enumerate(body):
             if not isinstance(node, target_types):
@@ -154,7 +163,10 @@ class PythonFunctionBoundaryTokenizer(Tokenizer):
                 start_line
             )
             if token is not None:
-                token_range = (token["index"], token["length"])
+                token_range = (
+                    token['index'],
+                    token['length']
+                )
                 if token_range not in seen_ranges:
                     seen_ranges.add(token_range)
                     tokens.append(token)
@@ -177,7 +189,10 @@ class PythonFunctionBoundaryTokenizer(Tokenizer):
                     )
 
                     if after_token is not None:
-                        token_range = (after_token["index"], after_token["length"])
+                        token_range = (
+                            after_token['index'],
+                            after_token['length']
+                        )
                         if token_range not in seen_ranges:
                             seen_ranges.add(token_range)
                             tokens.append(after_token)
@@ -188,7 +203,10 @@ class PythonFunctionBoundaryTokenizer(Tokenizer):
                 last_func_idx = i
                 break
 
-        if last_func_idx is not None and last_func_idx < len(body) - 1:
+        if (
+            last_func_idx is not None
+            and last_func_idx < len(body) - 1
+        ):
             func_node = body[last_func_idx]
             next_node = body[last_func_idx + 1]
             end_line = func_node.end_lineno
@@ -202,7 +220,10 @@ class PythonFunctionBoundaryTokenizer(Tokenizer):
                     next_start_line
                 )
                 if after_token is not None:
-                    token_range = (after_token["index"], after_token["length"])
+                    token_range = (
+                        after_token['index'],
+                        after_token['length']
+                    )
                     if token_range not in seen_ranges:
                         seen_ranges.add(token_range)
                         tokens.append(after_token)

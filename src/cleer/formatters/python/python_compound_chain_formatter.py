@@ -1,7 +1,8 @@
 """Python compound chain formatter module."""
 
-__all__ = ["PythonCompoundChainFormatter"]
-
+__all__ = [
+    "PythonCompoundChainFormatter"
+]
 
 import ast
 import textwrap
@@ -16,7 +17,7 @@ class PythonCompoundChainFormatter(Formatter):
     - Between compound parts (if→elif, try→except, etc.): no blank line
     - Exception: after return/yield/exit → 1 blank line
     - Exception: after a compound statement (if/for/while/with/try) as
-      the last statement → 1 blank line
+    the last statement → 1 blank line
 
     Examples
     --------
@@ -91,9 +92,14 @@ class PythonCompoundChainFormatter(Formatter):
         while i < len(lines):
             result_lines.append(lines[i])
 
-            boundary = self._boundary_at_line(boundaries, i, base_indent, lines)
+            boundary = self._boundary_at_line(
+                boundaries,
+                i,
+                base_indent,
+                lines
+            )
             if boundary is not None:
-                expected_blanks = boundary["expected_blanks"]
+                expected_blanks = boundary['expected_blanks']
 
                 j = i + 1
                 while j < len(lines) and lines[j].strip() == "":
@@ -104,9 +110,11 @@ class PythonCompoundChainFormatter(Formatter):
                 if actual_blanks != expected_blanks:
                     for _ in range(expected_blanks):
                         result_lines.append("")
+
                     i = j
                 else:
                     i += 1
+
             else:
                 i += 1
 
@@ -161,14 +169,20 @@ class PythonCompoundChainFormatter(Formatter):
         if isinstance(first_else, ast.If):
             connector_line = first_else.lineno
         else:
-            connector_line = self._find_else_line(body_end, first_else.lineno, node)
+            connector_line = self._find_else_line(
+                body_end,
+                first_else.lineno,
+                node
+            )
 
         expected = 1 if self._needs_blank(last_stmt) else 0
-        boundaries.append({
-            "body_end_line": body_end,
-            "connector_line": connector_line,
-            "expected_blanks": expected
-        })
+        boundaries.append(
+            {
+                "body_end_line": body_end,
+                "connector_line": connector_line,
+                "expected_blanks": expected
+            }
+        )
 
         if isinstance(first_else, ast.If):
             self._find_if_boundaries(first_else, boundaries)
@@ -182,11 +196,13 @@ class PythonCompoundChainFormatter(Formatter):
             connector_line = node.handlers[0].lineno
 
             expected = 1 if self._needs_blank(last_stmt) else 0
-            boundaries.append({
-                "body_end_line": body_end,
-                "connector_line": connector_line,
-                "expected_blanks": expected
-            })
+            boundaries.append(
+                {
+                    "body_end_line": body_end,
+                    "connector_line": connector_line,
+                    "expected_blanks": expected
+                }
+            )
 
             for i in range(len(node.handlers) - 1):
                 last_stmt = node.handlers[i].body[-1]
@@ -194,11 +210,13 @@ class PythonCompoundChainFormatter(Formatter):
                 connector_line = node.handlers[i + 1].lineno
 
                 expected = 1 if self._needs_blank(last_stmt) else 0
-                boundaries.append({
-                    "body_end_line": body_end,
-                    "connector_line": connector_line,
-                    "expected_blanks": expected
-                })
+                boundaries.append(
+                    {
+                        "body_end_line": body_end,
+                        "connector_line": connector_line,
+                        "expected_blanks": expected
+                    }
+                )
 
         if node.orelse:
             if node.handlers:
@@ -211,11 +229,13 @@ class PythonCompoundChainFormatter(Formatter):
             connector_line = node.orelse[0].lineno
 
             expected = 1 if self._needs_blank(last_stmt) else 0
-            boundaries.append({
-                "body_end_line": body_end,
-                "connector_line": connector_line,
-                "expected_blanks": expected
-            })
+            boundaries.append(
+                {
+                    "body_end_line": body_end,
+                    "connector_line": connector_line,
+                    "expected_blanks": expected
+                }
+            )
 
         if node.finalbody:
             if node.orelse:
@@ -231,11 +251,13 @@ class PythonCompoundChainFormatter(Formatter):
             connector_line = node.finalbody[0].lineno
 
             expected = 1 if self._needs_blank(last_stmt) else 0
-            boundaries.append({
-                "body_end_line": body_end,
-                "connector_line": connector_line,
-                "expected_blanks": expected
-            })
+            boundaries.append(
+                {
+                    "body_end_line": body_end,
+                    "connector_line": connector_line,
+                    "expected_blanks": expected
+                }
+            )
 
 
     def _find_loop_boundaries(self, node, boundaries: list):
@@ -248,11 +270,13 @@ class PythonCompoundChainFormatter(Formatter):
         connector_line = node.orelse[0].lineno
 
         expected = 1 if self._needs_blank(last_stmt) else 0
-        boundaries.append({
-            "body_end_line": body_end,
-            "connector_line": connector_line,
-            "expected_blanks": expected
-        })
+        boundaries.append(
+            {
+                "body_end_line": body_end,
+                "connector_line": connector_line,
+                "expected_blanks": expected
+            }
+        )
 
 
     def _needs_blank(self, node) -> bool:
@@ -298,7 +322,13 @@ class PythonCompoundChainFormatter(Formatter):
         return body_end + 1
 
 
-    def _boundary_at_line(self, boundaries, line_idx, base_indent, lines) -> dict | None:
+    def _boundary_at_line(
+        self,
+        boundaries,
+        line_idx,
+        base_indent,
+        lines
+    ) -> dict | None:
         """Check if line_idx is the last body line before a boundary.
 
         Converts 1-indexed AST lines to 0-indexed token lines by accounting
@@ -307,7 +337,7 @@ class PythonCompoundChainFormatter(Formatter):
         token_line_num = line_idx + 1
 
         for boundary in boundaries:
-            if boundary["body_end_line"] == token_line_num:
+            if boundary['body_end_line'] == token_line_num:
                 return boundary
 
         return None

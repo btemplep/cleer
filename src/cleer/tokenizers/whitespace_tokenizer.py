@@ -1,7 +1,8 @@
 """Whitespace tokenizer module."""
 
-__all__ = ["WhitespaceTokenizer"]
-
+__all__ = [
+    "WhitespaceTokenizer"
+]
 
 import re
 

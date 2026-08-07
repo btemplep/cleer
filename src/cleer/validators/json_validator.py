@@ -1,7 +1,11 @@
+"""TODO: Add module docstring."""
+
 __all__ = [
     "JSONValidator"
 ]
+
 import json
+
 
 class JSONValidator:
 
@@ -13,4 +17,3 @@ class JSONValidator:
             return f"Failed to parse JSON. [{type(exc).__name__}]: {exc}"
 
         return None
-

@@ -1,10 +1,10 @@
 """Python kwargs space tokenizer module."""
 
-__all__ = ["PythonKwargsSpaceTokenizer"]
-
+__all__ = [
+    "PythonKwargsSpaceTokenizer"
+]
 
 import ast
-
 
 from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
@@ -59,7 +59,7 @@ class PythonKwargsSpaceTokenizer(Tokenizer):
             elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 self._add_defaults(node, document, line_offsets, tokens)
 
-        tokens.sort(key=lambda t: t["index"])
+        tokens.sort(key=lambda t: t['index'])
 
         return tokens
 
@@ -108,11 +108,23 @@ class PythonKwargsSpaceTokenizer(Tokenizer):
         if num_defaults:
             default_args = args.args[-num_defaults:]
             for arg, default in zip(default_args, args.defaults):
-                self._emit_default(arg, default, document, line_offsets, tokens)
+                self._emit_default(
+                    arg,
+                    default,
+                    document,
+                    line_offsets,
+                    tokens
+                )
 
         for arg, default in zip(args.kwonlyargs, args.kw_defaults):
             if default is not None:
-                self._emit_default(arg, default, document, line_offsets, tokens)
+                self._emit_default(
+                    arg,
+                    default,
+                    document,
+                    line_offsets,
+                    tokens
+                )
 
         if args.posonlyargs:
             num_pos_defaults = len(args.defaults) - len(args.args) + len(args.posonlyargs)
@@ -120,7 +132,13 @@ class PythonKwargsSpaceTokenizer(Tokenizer):
                 pos_defaults = args.defaults[:num_pos_defaults]
                 pos_args = args.posonlyargs[-num_pos_defaults:]
                 for arg, default in zip(pos_args, pos_defaults):
-                    self._emit_default(arg, default, document, line_offsets, tokens)
+                    self._emit_default(
+                        arg,
+                        default,
+                        document,
+                        line_offsets,
+                        tokens
+                    )
 
 
     def _emit_default(

@@ -1,7 +1,8 @@
 """Blank line formatter module."""
 
-__all__ = ["BlankLineFormatter"]
-
+__all__ = [
+    "BlankLineFormatter"
+]
 
 from cleer.formatters.formatter import Formatter
 

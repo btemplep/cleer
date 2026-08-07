@@ -1,7 +1,8 @@
 """Python comma space formatter module."""
 
-__all__ = ["PythonCommaSpaceFormatter"]
-
+__all__ = [
+    "PythonCommaSpaceFormatter"
+]
 
 from cleer.formatters.formatter import Formatter
 
@@ -80,6 +81,7 @@ class PythonCommaSpaceFormatter(Formatter):
 
         if "\n" in after:
             newline_idx = after.index("\n")
+
             return before_fixed + "," + after[newline_idx:]
 
         return before_fixed + ", "

@@ -1,16 +1,17 @@
+"""TODO: Add module docstring."""
+
 __all__ = [
     "cleer_default_config"
 ]
-
 
 import json
 
 from loguru import logger
 
-from cleer.formatters import * 
-from cleer.tokenizers import * 
+from cleer.formatters import *
+from cleer.tokenizers import *
+from cleer.types import *
 from cleer.validators import *
-from cleer.types import * 
 
 
 def cleer_default_config(
@@ -54,9 +55,11 @@ def cleer_default_config(
 
     excludes += ["**/.venv*/**", "**/venv*/**"]
     logger.debug(
-        f"Python Packages: {python_packages}\n"
-        f"Internal Python Packages: {python_internal_packages}\n"
-        f" Excludes: {json.dumps(excludes, indent=4)}"
+        (
+            f"Python Packages: {python_packages}\n"
+            f"Internal Python Packages: {python_internal_packages}\n"
+            f" Excludes: {json.dumps(excludes, indent=4)}"
+        )
     )
 
     return {
@@ -133,7 +136,9 @@ def cleer_default_config(
                 ]
             },
             {
-                "includes": ["**/*.py"],
+                "includes": [
+                    "**/*.py"
+                ],
                 "excludes": excludes,
                 "validators": [
                     PythonSyntaxValidator()

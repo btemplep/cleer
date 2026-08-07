@@ -1,8 +1,9 @@
+"""TODO: Add module docstring."""
+
 __all__ = [
     "TokenResult",
     "Tokenizer"
 ]
-
 
 from typing import TypedDict
 

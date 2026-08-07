@@ -1,10 +1,10 @@
 """Python unary operator space tokenizer module."""
 
-__all__ = ["PythonUnaryOperatorSpaceTokenizer"]
-
+__all__ = [
+    "PythonUnaryOperatorSpaceTokenizer"
+]
 
 import ast
-
 
 from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
@@ -67,7 +67,11 @@ class PythonUnaryOperatorSpaceTokenizer(Tokenizer):
 
             token = document[op_start:operand_end]
 
-            if token.startswith("-") and len(token) > 1 and token[1] == " ":
+            if (
+                token.startswith("-")
+                and len(token) > 1
+                and token[1] == " "
+            ):
                 tokens.append(
                     {
                         "token": token,
@@ -76,7 +80,7 @@ class PythonUnaryOperatorSpaceTokenizer(Tokenizer):
                     }
                 )
 
-        tokens.sort(key=lambda t: t["index"])
+        tokens.sort(key=lambda t: t['index'])
 
         return tokens
 

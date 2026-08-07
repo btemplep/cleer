@@ -1,7 +1,8 @@
 """Python binary operator space formatter module."""
 
-__all__ = ["PythonBinaryOperatorSpaceFormatter"]
-
+__all__ = [
+    "PythonBinaryOperatorSpaceFormatter"
+]
 
 from cleer.formatters.formatter import Formatter
 
@@ -22,7 +23,9 @@ class PythonBinaryOperatorSpaceFormatter(Formatter):
     result = formatter.format("  =  ")
     ```
     """
-    accepts_token_types = ["python_binary_operator_space"]
+    accepts_token_types = [
+        "python_binary_operator_space"
+    ]
 
 
     def inspect(self, token: str) -> str | None:

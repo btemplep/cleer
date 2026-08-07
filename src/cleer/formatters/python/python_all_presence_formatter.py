@@ -1,6 +1,8 @@
 """Python __all__ presence formatter module."""
 
-__all__ = ["PythonAllPresenceFormatter"]
+__all__ = [
+    "PythonAllPresenceFormatter"
+]
 
 import ast
 

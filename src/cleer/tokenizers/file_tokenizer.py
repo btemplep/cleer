@@ -1,8 +1,8 @@
 """File tokenizer module."""
 
-__all__ = ["FileTokenizer"]
-
-
+__all__ = [
+    "FileTokenizer"
+]
 
 from cleer.tokenizers.tokenizer import Tokenizer
 
@@ -56,17 +56,15 @@ class FileTokenizer(Tokenizer):
             ```python
             [
                 {
-                    "token": "hello\\nworld\\n", 
-                    "index": 0, 
+                    "token": "hello\\nworld\\n",
+                    "index": 0,
                     "length": 12
                 }
             ]
             ```
         """
-        return [
-            {
-                "token": document,
-                "index": 0,
-                "length": len(document)
-            }
-        ]
+        return [{
+            "token": document,
+            "index": 0,
+            "length": len(document)
+        }]

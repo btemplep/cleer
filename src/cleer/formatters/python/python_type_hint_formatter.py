@@ -1,7 +1,8 @@
 """Python type hint formatter module."""
 
-__all__ = ["PythonTypeHintFormatter"]
-
+__all__ = [
+    "PythonTypeHintFormatter"
+]
 
 import re
 from typing import Tuple
@@ -36,7 +37,11 @@ class PythonTypeHintFormatter(Formatter):
     accepts_token_types = ["python_type_hint"]
 
 
-    def __init__(self, max_length: int = 40, max_depth: int = 2):
+    def __init__(
+        self,
+        max_length: int=40,
+        max_depth: int=2
+    ):
         self._max_length = max_length
         self._max_depth = max_depth
 
@@ -324,6 +329,7 @@ class PythonTypeHintFormatter(Formatter):
                 pos += 1
 
                 return children, pos
+
             elif char == "," and depth == 0:
                 if current_text:
                     current_child.append(current_text)
@@ -335,6 +341,7 @@ class PythonTypeHintFormatter(Formatter):
 
                 if pos < len(text) and text[pos] == " ":
                     pos += 1
+
             else:
                 current_text += char
                 pos += 1
@@ -376,12 +383,7 @@ class PythonTypeHintFormatter(Formatter):
         return "".join(parts)
 
 
-    def _render_node(
-        self,
-        name: str,
-        children: list,
-        base_indent: int
-    ) -> str:
+    def _render_node(self, name: str, children: list, base_indent: int) -> str:
         """Render a subscript node, deciding whether to expand.
 
         Parameters
@@ -405,14 +407,20 @@ class PythonTypeHintFormatter(Formatter):
 
         flat = name + "[" + ", ".join(flat_children) + "]"
 
-        if len(flat) <= self._max_length and self._max_nesting_depth(flat) <= self._max_depth:
+        if (
+            len(flat) <= self._max_length
+            and self._max_nesting_depth(flat) <= self._max_depth
+        ):
             return flat
 
         inner_indent = base_indent + 4
         lines = []
 
         for i, child in enumerate(children):
-            child_text = self._render_child_expanded(child, inner_indent)
+            child_text = self._render_child_expanded(
+                child,
+                inner_indent
+            )
             suffix = "," if i < len(children) - 1 else ""
             lines.append(" " * inner_indent + child_text + suffix)
 
@@ -423,11 +431,7 @@ class PythonTypeHintFormatter(Formatter):
         return result
 
 
-    def _render_child_expanded(
-        self,
-        child: list,
-        base_indent: int
-    ) -> str:
+    def _render_child_expanded(self, child: list, base_indent: int) -> str:
         """Render a single child segment, recursively expanding if needed.
 
         Parameters
@@ -449,7 +453,11 @@ class PythonTypeHintFormatter(Formatter):
                 parts.append(seg)
             else:
                 name, sub_children = seg
-                rendered = self._render_node(name, sub_children, base_indent)
+                rendered = self._render_node(
+                    name,
+                    sub_children,
+                    base_indent
+                )
                 parts.append(rendered)
 
         return "".join(parts)

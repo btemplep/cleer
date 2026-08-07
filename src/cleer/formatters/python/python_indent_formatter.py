@@ -1,7 +1,8 @@
 """Python indent formatter module."""
 
-__all__ = ["PythonIndentFormatter"]
-
+__all__ = [
+    "PythonIndentFormatter"
+]
 
 import ast
 import re
@@ -33,11 +34,10 @@ class PythonIndentFormatter(Formatter):
     ```
     """
     accepts_token_types = ["python_indent"]
-
     _leading_ws = re.compile(r"^([ \t]*)")
 
 
-    def __init__(self, tab_size: int = 4):
+    def __init__(self, tab_size: int=4):
         self._tab_size = tab_size
 
 
@@ -68,12 +68,15 @@ class PythonIndentFormatter(Formatter):
                     if count % 2 == 1:
                         in_triple_quote = True
                         triple_char = "'''"
+
                 elif count % 2 == 1:
                     in_triple_quote = True
                     triple_char = '"""'
+
             else:
                 if triple_char in stripped:
                     in_triple_quote = False
+
                 continue
 
             if not stripped:
@@ -84,10 +87,7 @@ class PythonIndentFormatter(Formatter):
             if not leading:
                 continue
 
-            if (
-                "\t" in leading
-                or len(leading) % self._tab_size != 0
-            ):
+            if "\t" in leading or len(leading) % self._tab_size != 0:
                 return f"Indentation should use spaces with {self._tab_size} spaces per level."
 
         return None
@@ -133,13 +133,17 @@ class PythonIndentFormatter(Formatter):
             if i in indent_map:
                 indent_level = indent_map[i]
                 new_indent = indent_level * self._tab_size
-                old_indent = len(self._get_leading_whitespace(line).replace("\t", " " * self._tab_size))
+                old_indent = len(
+                    self._get_leading_whitespace(line).replace("\t", " " * self._tab_size)
+                )
                 current_shift = new_indent - old_indent
                 content = line.lstrip()
                 result_lines.append(" " * new_indent + content)
             else:
                 leading = self._get_leading_whitespace(line)
-                old_indent = len(leading.replace("\t", " " * self._tab_size))
+                old_indent = len(
+                    leading.replace("\t", " " * self._tab_size)
+                )
                 new_indent = max(0, old_indent + current_shift)
                 content = line.lstrip()
                 result_lines.append(" " * new_indent + content)
@@ -170,7 +174,13 @@ class PythonIndentFormatter(Formatter):
         indent_map: dict[int, int] = {}
         frozen_lines: set = set()
         token_lines = token.split("\n")
-        self._walk_node(tree, 0, indent_map, frozen_lines, token_lines)
+        self._walk_node(
+            tree,
+            0,
+            indent_map,
+            frozen_lines,
+            token_lines
+        )
 
         return indent_map, frozen_lines
 
@@ -192,7 +202,10 @@ class PythonIndentFormatter(Formatter):
             for decorator in node.decorator_list:
                 indent_map[decorator.lineno - 1] = depth
 
-        child_depth = depth if isinstance(node, ast.Module) else depth + 1
+        child_depth = depth if isinstance(
+            node,
+            ast.Module
+        ) else depth + 1
 
         if hasattr(node, "body") and isinstance(node.body, list):
             for i, child in enumerate(node.body):
@@ -208,14 +221,26 @@ class PythonIndentFormatter(Formatter):
                 else:
                     self._freeze_multiline_strings(child, frozen_lines)
 
-                self._walk_node(child, child_depth, indent_map, frozen_lines, token_lines)
+                self._walk_node(
+                    child,
+                    child_depth,
+                    indent_map,
+                    frozen_lines,
+                    token_lines
+                )
 
         if isinstance(node, ast.Try):
             for handler in node.handlers:
                 indent_map[handler.lineno - 1] = depth
                 for child in handler.body:
                     self._freeze_multiline_strings(child, frozen_lines)
-                    self._walk_node(child, child_depth, indent_map, frozen_lines, token_lines)
+                    self._walk_node(
+                        child,
+                        child_depth,
+                        indent_map,
+                        frozen_lines,
+                        token_lines
+                    )
 
             if node.orelse:
                 first_else = node.orelse[0]
@@ -223,18 +248,32 @@ class PythonIndentFormatter(Formatter):
                 lines = None
                 if else_line > 0:
                     indent_map[else_line - 1] = depth
+
                 for child in node.orelse:
                     self._freeze_multiline_strings(child, frozen_lines)
-                    self._walk_node(child, child_depth, indent_map, frozen_lines, token_lines)
+                    self._walk_node(
+                        child,
+                        child_depth,
+                        indent_map,
+                        frozen_lines,
+                        token_lines
+                    )
 
             if node.finalbody:
                 first_finally = node.finalbody[0]
                 finally_line = first_finally.lineno - 1
                 if finally_line > 0:
                     indent_map[finally_line - 1] = depth
+
                 for child in node.finalbody:
                     self._freeze_multiline_strings(child, frozen_lines)
-                    self._walk_node(child, child_depth, indent_map, frozen_lines, token_lines)
+                    self._walk_node(
+                        child,
+                        child_depth,
+                        indent_map,
+                        frozen_lines,
+                        token_lines
+                    )
 
         elif isinstance(node, (ast.If, ast.For, ast.While)):
             if node.orelse:
@@ -245,7 +284,13 @@ class PythonIndentFormatter(Formatter):
                     and len(node.orelse) == 1
                     and first_else.col_offset == node.col_offset
                 ):
-                    self._walk_node(first_else, depth, indent_map, frozen_lines, token_lines)
+                    self._walk_node(
+                        first_else,
+                        depth,
+                        indent_map,
+                        frozen_lines,
+                        token_lines
+                    )
                 else:
                     else_keyword_line = first_else.lineno - 2
                     if else_keyword_line >= 0:
@@ -253,13 +298,28 @@ class PythonIndentFormatter(Formatter):
 
                     for child in node.orelse:
                         self._freeze_multiline_strings(child, frozen_lines)
-                        self._walk_node(child, child_depth, indent_map, frozen_lines, token_lines)
+                        self._walk_node(
+                            child,
+                            child_depth,
+                            indent_map,
+                            frozen_lines,
+                            token_lines
+                        )
 
-        elif hasattr(node, "orelse") and isinstance(node.orelse, list):
+        elif (
+            hasattr(node, "orelse")
+            and isinstance(node.orelse, list)
+        ):
             if node.orelse:
                 for child in node.orelse:
                     self._freeze_multiline_strings(child, frozen_lines)
-                    self._walk_node(child, child_depth, indent_map, frozen_lines, token_lines)
+                    self._walk_node(
+                        child,
+                        child_depth,
+                        indent_map,
+                        frozen_lines,
+                        token_lines
+                    )
 
 
     def _freeze_multiline_strings(self, node, frozen_lines: set):
@@ -285,7 +345,7 @@ class PythonIndentFormatter(Formatter):
         A docstring is either:
         - The first statement in a body (module/class/function docstring)
         - An Expr with string constant immediately after an Assign or
-          AnnAssign (variable docstring)
+        AnnAssign (variable docstring)
         """
         node = body[index]
 
@@ -328,7 +388,10 @@ class PythonIndentFormatter(Formatter):
         token_lines : list[str]
             Lines of the token being processed.
         """
-        if not hasattr(node, "end_lineno") or node.end_lineno is None:
+        if (
+            not hasattr(node, "end_lineno")
+            or node.end_lineno is None
+        ):
             return
 
         start_idx = node.lineno - 1
@@ -366,7 +429,9 @@ class PythonIndentFormatter(Formatter):
                 continue
 
             leading = self._get_leading_whitespace(line)
-            actual_indent = len(leading.replace("\t", " " * self._tab_size))
+            actual_indent = len(
+                leading.replace("\t", " " * self._tab_size)
+            )
             relative = actual_indent - min_indent
             target_indent = expected_base + relative
             target_depth = target_indent // self._tab_size

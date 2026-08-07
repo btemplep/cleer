@@ -1,10 +1,10 @@
 """Python inner max blank lines tokenizer module."""
 
-__all__ = ["PythonInnerMaxBlankLinesTokenizer"]
-
+__all__ = [
+    "PythonInnerMaxBlankLinesTokenizer"
+]
 
 import ast
-
 
 from cleer.tokenizers.tokenizer import Tokenizer
 
@@ -38,7 +38,7 @@ class PythonInnerMaxBlankLinesTokenizer(Tokenizer):
     emits_token_type = "python_inner_max_blank_lines"
 
 
-    def __init__(self, max_blank_lines: int = 1):
+    def __init__(self, max_blank_lines: int=1):
         self._max_blank_lines = max_blank_lines
 
 
@@ -115,7 +115,7 @@ class PythonInnerMaxBlankLinesTokenizer(Tokenizer):
                 }
             )
 
-        tokens.sort(key=lambda t: t["index"])
+        tokens.sort(key=lambda t: t['index'])
 
         return tokens
 
@@ -216,14 +216,24 @@ class PythonInnerMaxBlankLinesTokenizer(Tokenizer):
 
         for range_start, range_end in function_ranges:
             if start >= range_start and end <= range_end:
-                if innermost_func is None or (range_end - range_start) < (innermost_func[1] - innermost_func[0]):
+                if (
+                    innermost_func is None
+                    or (range_end - range_start) < (
+                        innermost_func[1] - innermost_func[0]
+                    )
+                ):
                     innermost_func = (range_start, range_end)
 
         innermost_class = None
 
         for range_start, range_end in self._class_ranges:
             if start >= range_start and end <= range_end:
-                if innermost_class is None or (range_end - range_start) < (innermost_class[1] - innermost_class[0]):
+                if (
+                    innermost_class is None
+                    or (range_end - range_start) < (
+                        innermost_class[1] - innermost_class[0]
+                    )
+                ):
                     innermost_class = (range_start, range_end)
 
         if innermost_func and innermost_class:

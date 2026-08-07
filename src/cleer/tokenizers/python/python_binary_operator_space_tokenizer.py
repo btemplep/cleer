@@ -1,10 +1,10 @@
 """Python binary operator space tokenizer module."""
 
-__all__ = ["PythonBinaryOperatorSpaceTokenizer"]
-
+__all__ = [
+    "PythonBinaryOperatorSpaceTokenizer"
+]
 
 import ast
-
 
 from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
@@ -67,10 +67,13 @@ class PythonBinaryOperatorSpaceTokenizer(Tokenizer):
                 self._add_assign(node, document, line_offsets, tokens)
             elif isinstance(node, ast.AugAssign):
                 self._add_augassign(node, document, line_offsets, tokens)
-            elif isinstance(node, ast.AnnAssign) and node.value is not None:
+            elif (
+                isinstance(node, ast.AnnAssign)
+                and node.value is not None
+            ):
                 self._add_annassign(node, document, line_offsets, tokens)
 
-        tokens.sort(key=lambda t: t["index"])
+        tokens.sort(key=lambda t: t['index'])
 
         return tokens
 

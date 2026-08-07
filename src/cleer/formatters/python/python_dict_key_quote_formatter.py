@@ -1,7 +1,8 @@
 """Python dict key quote formatter module."""
 
-__all__ = ["PythonDictKeyQuoteFormatter"]
-
+__all__ = [
+    "PythonDictKeyQuoteFormatter"
+]
 
 from cleer.formatters.formatter import Formatter
 
@@ -30,7 +31,7 @@ class PythonDictKeyQuoteFormatter(Formatter):
     accepts_token_types = ["python_dict_key_quote"]
 
 
-    def __init__(self, quote: str = "'"):
+    def __init__(self, quote: str="'"):
         self._quote = quote
 
 

@@ -1,7 +1,8 @@
 """Python import section formatter module."""
 
-__all__ = ["PythonImportFormatter"]
-
+__all__ = [
+    "PythonImportFormatter"
+]
 
 import ast
 import sys
@@ -45,8 +46,8 @@ class PythonImportFormatter(Formatter):
 
     def __init__(
         self,
-        internal_packages: list[str] | None = None,
-        current_packages: list[str] | None = None
+        internal_packages: list[str] | None=None,
+        current_packages: list[str] | None=None
     ):
         self._internal_packages = internal_packages or []
         self._current_packages = current_packages or []
@@ -171,6 +172,7 @@ class PythonImportFormatter(Formatter):
                             "names": None
                         }
                     )
+
             elif isinstance(node, ast.ImportFrom):
                 module = node.module or ""
                 level = node.level
@@ -200,10 +202,10 @@ class PythonImportFormatter(Formatter):
 
     def _classify(self, imp: dict) -> str:
         """Classify an import into stdlib, third_party, internal, or current."""
-        if imp["level"] > 0:
+        if imp['level'] > 0:
             return "current"
 
-        root_module = imp["module"].split(".")[0]
+        root_module = imp['module'].split(".")[0]
 
         if root_module in STDLIB_MODULES:
             return "stdlib"
@@ -249,33 +251,35 @@ class PythonImportFormatter(Formatter):
 
     def _format_import(self, imp: dict) -> list[str]:
         """Format a single import entry into one or more lines."""
-        if imp["type"] == "import":
+        if imp['type'] == "import":
             line = f"import {imp['module']}"
 
-            if imp["asname"]:
+            if imp['asname']:
                 line += f" as {imp['asname']}"
 
             return [line]
 
-        prefix = "." * imp["level"]
-        module = imp["module"]
+        prefix = "." * imp['level']
+        module = imp['module']
         full_module = f"{prefix}{module}"
 
-        names = sorted(imp["names"], key=lambda n: n["name"])
+        names = sorted(imp['names'], key=lambda n: n['name'])
         name_parts = []
 
         for n in names:
-            if n["asname"]:
+            if n['asname']:
                 name_parts.append(f"{n['name']} as {n['asname']}")
             else:
-                name_parts.append(n["name"])
+                name_parts.append(n['name'])
 
         single_line = f"from {full_module} import {', '.join(name_parts)}"
 
         if len(name_parts) <= 1 or len(single_line) <= 80:
             return [single_line]
 
-        import_lines = [f"from {full_module} import ("]
+        import_lines = [
+            f"from {full_module} import ("
+        ]
 
         for i, part in enumerate(name_parts):
             if i < len(name_parts) - 1:
@@ -290,9 +294,9 @@ class PythonImportFormatter(Formatter):
 
     def _sort_key(self, imp: dict) -> str:
         """Generate a sort key for an import."""
-        if imp["type"] == "import":
-            return imp["module"]
+        if imp['type'] == "import":
+            return imp['module']
 
-        prefix = "." * imp["level"]
+        prefix = "." * imp['level']
 
         return f"{prefix}{imp['module']}"
