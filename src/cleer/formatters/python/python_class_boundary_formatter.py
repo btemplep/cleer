@@ -131,8 +131,11 @@ class PythonClassBoundaryFormatter(Formatter):
                     result.append(lines[line_idx])
 
             else:
-                result.append("")
-                result.append("")
+                if header_end == -1 and i == 0:
+                    result.append("")
+                else:
+                    result.append("")
+                    result.append("")
 
                 node_start_line = node_start
 

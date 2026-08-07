@@ -237,6 +237,18 @@ class PythonBinaryOperatorSpaceTokenizer(Tokenizer):
             return
 
         token = document[start:end]
+
+        while token and token[0] in ")]}":
+            token = token[1:]
+            start += 1
+
+        while token and token[-1] in "([{":
+            token = token[:-1]
+            end -= 1
+
+        if not token or not token.strip():
+            return
+
         stripped = token.strip()
 
         if not stripped:

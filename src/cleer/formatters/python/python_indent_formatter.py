@@ -141,9 +141,7 @@ class PythonIndentFormatter(Formatter):
                 result_lines.append(" " * new_indent + content)
             else:
                 leading = self._get_leading_whitespace(line)
-                old_indent = len(
-                    leading.replace("\t", " " * self._tab_size)
-                )
+                old_indent = len(leading.replace("\t", " " * self._tab_size))
                 new_indent = max(0, old_indent + current_shift)
                 content = line.lstrip()
                 result_lines.append(" " * new_indent + content)
@@ -202,10 +200,7 @@ class PythonIndentFormatter(Formatter):
             for decorator in node.decorator_list:
                 indent_map[decorator.lineno - 1] = depth
 
-        child_depth = depth if isinstance(
-            node,
-            ast.Module
-        ) else depth + 1
+        child_depth = depth if isinstance(node, ast.Module) else depth + 1
 
         if hasattr(node, "body") and isinstance(node.body, list):
             for i, child in enumerate(node.body):
@@ -429,9 +424,7 @@ class PythonIndentFormatter(Formatter):
                 continue
 
             leading = self._get_leading_whitespace(line)
-            actual_indent = len(
-                leading.replace("\t", " " * self._tab_size)
-            )
+            actual_indent = len(leading.replace("\t", " " * self._tab_size))
             relative = actual_indent - min_indent
             target_indent = expected_base + relative
             target_depth = target_indent // self._tab_size

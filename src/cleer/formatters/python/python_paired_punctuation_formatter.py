@@ -94,6 +94,12 @@ class PythonPairedPunctuationFormatter(Formatter):
         if context == "logic":
             return self._format_logic(token, indent)
 
+        if context == "assignment_logic":
+            return self._format_assignment_logic(token, indent)
+
+        if context == "return_logic":
+            return self._format_return_logic(token, indent)
+
         return self._format_punctuation(token, indent, context)
 
 
@@ -347,17 +353,79 @@ class PythonPairedPunctuationFormatter(Formatter):
         ):
             return "logic"
 
-        if "=" in stripped and not stripped.startswith("return"):
+        if "=" in stripped and not stripped.startswith(("return", "yield")):
             eq_idx = stripped.find("=")
             if eq_idx > 0 and stripped[eq_idx - 1] not in "!<>":
                 after_eq = stripped[eq_idx + 1:].lstrip()
-                if after_eq.startswith(("{", "[", "(")):
+                if after_eq.startswith("("):
+                    close = self._find_matching_close(after_eq, 0)
+                    if close is not None and close == len(after_eq) - 1:
+                        inner = after_eq[1:close]
+                        if self._brackets_balanced(inner):
+                            safe_inner = self._strip_string_contents(inner)
+                            if " or " in safe_inner or " and " in safe_inner:
+                                return "assignment_logic"
+
                     return "assignment"
+
+                if after_eq.startswith(("{", "[")):
+                    return "assignment"
+
+                if self._has_logic_operator(after_eq):
+                    return "assignment_logic"
+
+        if stripped.startswith(("return ", "yield ")):
+            keyword_end = stripped.find(" ") + 1
+            after_kw = stripped[keyword_end:].lstrip()
+            if after_kw.startswith("("):
+                close = self._find_matching_close(after_kw, 0)
+                if close is not None and close == len(after_kw) - 1:
+                    inner = after_kw[1:close]
+                    if self._brackets_balanced(inner):
+                        safe_inner = self._strip_string_contents(inner)
+                        if " or " in safe_inner or " and " in safe_inner:
+                            return "return_logic"
+
+            if self._has_logic_operator(after_kw):
+                return "return_logic"
 
         if self._is_chained_call(stripped):
             return "chained_call"
 
         return "call"
+
+
+    def _is_ternary(self, flat: str) -> bool:
+        """Check if a flat token is a ternary (inline if/else) expression."""
+        stripped = flat.strip()
+        safe = self._strip_string_contents(stripped)
+
+        if " if " not in safe or " else " not in safe:
+            return False
+
+        if_pos = safe.find(" if ")
+        else_pos = safe.find(" else ", if_pos)
+        if else_pos == -1:
+            return False
+
+        depth = 0
+        for ch in safe[:if_pos]:
+            if ch in "([{":
+                depth += 1
+            elif ch in ")]}":
+                depth -= 1
+
+        if depth != 0:
+            return False
+
+        depth = 0
+        for ch in safe[if_pos:else_pos]:
+            if ch in "([{":
+                depth += 1
+            elif ch in ")]}":
+                depth -= 1
+
+        return depth == 0
 
 
     def _has_logic_operator(self, s: str) -> bool:
@@ -434,6 +502,7 @@ class PythonPairedPunctuationFormatter(Formatter):
             rest = rest[:-1].rstrip()
 
         condition = self._flatten_string(rest)
+        condition = self._collapse_paren_spaces(condition)
 
         if condition.startswith("(") and condition.endswith(")"):
             inner = condition[1:-1]
@@ -466,6 +535,132 @@ class PythonPairedPunctuationFormatter(Formatter):
             indent,
             inner_indent
         )
+
+
+    def _format_assignment_logic(self, token: str, indent: str) -> str:
+        """Format an assignment whose value is a logic expression."""
+        stripped = token.strip()
+        flat = self._flatten_string(stripped)
+        flat = self._collapse_paren_spaces(flat)
+
+        eq_idx = flat.find("=")
+        prefix = flat[:eq_idx + 1].rstrip()
+        value = flat[eq_idx + 1:].strip()
+
+        if value.startswith("(") and value.endswith(")"):
+            inner = value[1:-1]
+            if self._brackets_balanced(inner):
+                value = inner.strip()
+
+        inner_indent = indent + "    "
+        statements = self._split_logic_statements(value)
+        parts = self._format_logic_parts(statements, inner_indent)
+
+        needs_expand = self._logic_needs_expand(
+            prefix + " ",
+            parts,
+            indent,
+            inner_indent
+        )
+
+        if not needs_expand:
+            flat_condition = self._join_logic_flat(parts)
+
+            return f"{indent}{prefix} {flat_condition}"
+
+        lines = [f"{indent}{prefix} ("]
+
+        for part in parts:
+            raw_content = part['content']
+            operator = part['operator']
+
+            formatted = self._format_logic_item(
+                raw_content,
+                inner_indent
+            )
+
+            if "\n" in formatted:
+                content_lines = formatted.split("\n")
+                first_line = content_lines[0]
+                if operator:
+                    lines.append(f"{inner_indent}{operator} {first_line}")
+                else:
+                    lines.append(f"{inner_indent}{first_line}")
+
+                for cl in content_lines[1:]:
+                    lines.append(cl)
+            else:
+                if operator:
+                    lines.append(f"{inner_indent}{operator} {formatted}")
+                else:
+                    lines.append(f"{inner_indent}{formatted}")
+
+        lines.append(f"{indent})")
+
+        return "\n".join(lines)
+
+
+    def _format_return_logic(self, token: str, indent: str) -> str:
+        """Format a return/yield statement whose value is a logic expression."""
+        stripped = token.strip()
+        flat = self._flatten_string(stripped)
+        flat = self._collapse_paren_spaces(flat)
+
+        keyword_end = flat.find(" ") + 1
+        keyword = flat[:keyword_end]
+        value = flat[keyword_end:].strip()
+
+        if value.startswith("(") and value.endswith(")"):
+            inner = value[1:-1]
+            if self._brackets_balanced(inner):
+                value = inner.strip()
+
+        inner_indent = indent + "    "
+        statements = self._split_logic_statements(value)
+        parts = self._format_logic_parts(statements, inner_indent)
+
+        needs_expand = self._logic_needs_expand(
+            keyword,
+            parts,
+            indent,
+            inner_indent
+        )
+
+        if not needs_expand:
+            flat_condition = self._join_logic_flat(parts)
+
+            return f"{indent}{keyword}{flat_condition}"
+
+        lines = [f"{indent}{keyword}("]
+
+        for part in parts:
+            raw_content = part['content']
+            operator = part['operator']
+
+            formatted = self._format_logic_item(
+                raw_content,
+                inner_indent
+            )
+
+            if "\n" in formatted:
+                content_lines = formatted.split("\n")
+                first_line = content_lines[0]
+                if operator:
+                    lines.append(f"{inner_indent}{operator} {first_line}")
+                else:
+                    lines.append(f"{inner_indent}{first_line}")
+
+                for cl in content_lines[1:]:
+                    lines.append(cl)
+            else:
+                if operator:
+                    lines.append(f"{inner_indent}{operator} {formatted}")
+                else:
+                    lines.append(f"{inner_indent}{formatted}")
+
+        lines.append(f"{indent})")
+
+        return "\n".join(lines)
 
 
     def _format_logic_parts(self, statements: list, indent: str) -> list:
@@ -794,15 +989,21 @@ class PythonPairedPunctuationFormatter(Formatter):
 
         Splits by 'or' first. If there are no 'or' operators, splits by 'and'.
         Groups 'and' expressions together when mixed with 'or', adding
-        parentheses to clarify precedence.
+        parentheses to clarify precedence only when there are multiple
+        'and'-joined parts.
         """
         or_parts = self._split_by_operator(condition, " or ")
 
         if len(or_parts) > 1:
             result = []
             for i, part in enumerate(or_parts):
-                if self._has_logic_operator_word(part, "and"):
-                    if not (part.startswith("(") and part.endswith(")") and self._brackets_balanced(part[1:-1])):
+                and_subparts = self._split_by_operator(part, " and ")
+                if len(and_subparts) > 1:
+                    if not (
+                        part.startswith("(")
+                        and part.endswith(")")
+                        and self._brackets_balanced(part[1:-1])
+                    ):
                         part = f"({part})"
 
                 result.append(part)
@@ -934,6 +1135,9 @@ class PythonPairedPunctuationFormatter(Formatter):
 
         flat = self._flatten_token(token, indent, context)
 
+        if self._is_ternary(flat):
+            return flat
+
         parsed = self._parse_regions(flat, indent, context)
 
         if parsed is None:
@@ -949,9 +1153,7 @@ class PythonPairedPunctuationFormatter(Formatter):
         stripped = token.strip()
         flat = self._flatten_string(stripped)
 
-        flat = flat.replace("[]", "[]")
-        flat = flat.replace("()", "()")
-        flat = flat.replace("{}", "{}")
+        flat = self._collapse_empty_pairs(flat)
 
         if context == "funcdef":
             flat = re.sub(r"\s*:\s*", ": ", flat)
@@ -964,6 +1166,47 @@ class PythonPairedPunctuationFormatter(Formatter):
 
         return indent + flat
 
+
+    def _collapse_empty_pairs(self, flat: str) -> str:
+        """Collapse '[ ]', '( )', '{ }' to '[]', '()', '{}' outside strings."""
+        pairs = [("[ ]", "[]"), ("( )", "()"), ("{ }", "{}")]
+
+        for old, new in pairs:
+            if old not in flat:
+                continue
+
+            result = []
+            i = 0
+
+            while i < len(flat):
+                if flat[i] in ('"', "'"):
+                    quote = flat[i:i + 3] if flat[i:i + 3] in ('"""', "'''") else flat[i]
+                    result.append(quote)
+                    i += len(quote)
+
+                    while i < len(flat):
+                        if flat[i:i + len(quote)] == quote:
+                            result.append(quote)
+                            i += len(quote)
+                            break
+
+                        if len(quote) == 1 and flat[i] == "\\" and i + 1 < len(flat):
+                            result.append(flat[i:i + 2])
+                            i += 2
+                        else:
+                            result.append(flat[i])
+                            i += 1
+
+                elif flat[i:i + len(old)] == old:
+                    result.append(new)
+                    i += len(old)
+                else:
+                    result.append(flat[i])
+                    i += 1
+
+            flat = "".join(result)
+
+        return flat
 
     def _flatten_string(self, s: str) -> str:
         """Collapse internal whitespace/newlines into single spaces."""
@@ -1390,10 +1633,7 @@ class PythonPairedPunctuationFormatter(Formatter):
                 elif (
                     not triple_quote
                     and s[i] == string_char
-                    and (
-                        i == 0
-                        or s[i - 1] != "\\"
-                    )
+                    and self._is_closing_quote(s, i)
                 ):
                     in_string = False
 
@@ -1436,6 +1676,16 @@ class PythonPairedPunctuationFormatter(Formatter):
                     or before[-1] in ("_", "'", '"', ")")
                 )
             ):
+                word_match = re.search(r"\b(\w+)$", before)
+                if word_match:
+                    word = word_match.group(1)
+                    if word in (
+                        "return", "yield", "in", "not", "and", "or",
+                        "if", "else", "elif", "while", "for", "is",
+                        "del", "assert", "lambda", "raise", "import"
+                    ):
+                        return "list"
+
                 return "subscript"
 
             return "list"
@@ -1491,6 +1741,9 @@ class PythonPairedPunctuationFormatter(Formatter):
             return len(items) > 0
 
         if region_context in ("list", "set", "tuple"):
+            if len(items) == 1 and region_context == "tuple":
+                return False
+
             if is_nested:
                 return len(items) > 0
 
@@ -1570,17 +1823,36 @@ class PythonPairedPunctuationFormatter(Formatter):
             return False
 
         for region in regions:
+            rc = self._region_context(region, item)
+
+            if rc == "subscript":
+                continue
+
             if region['open_char'] == "(":
                 if self._is_string_concat_content(region['content']):
                     return True
 
                 inner_items = self._split_items(region['content'])
-                if len(inner_items) > 1:
-                    return True
 
-                rc = self._region_context(region, item)
                 if rc in ("dict", "list", "set", "tuple"):
                     return True
+
+                if len(inner_items) > 1:
+                    before = item[:region['start']]
+                    after = item[region['end'] + 1:]
+                    full_line_len = (
+                        len(before) + 1
+                        + len(", ".join(inner_items))
+                        + 1 + len(after)
+                    )
+                    if self._should_expand(
+                        inner_items,
+                        region,
+                        rc,
+                        indent,
+                        full_line_len=full_line_len
+                    ):
+                        return True
 
                 if (
                     inner_items
@@ -1670,6 +1942,10 @@ class PythonPairedPunctuationFormatter(Formatter):
                     continue
 
                 if item[i] in self._OPEN_BRACKETS:
+                    if item[i] == "[" and i > 0 and (item[i - 1].isalnum() or item[i - 1] in ("_", "]", ")", "'", '"')):
+                        i += 1
+                        continue
+
                     return True
 
             else:
@@ -2167,6 +2443,7 @@ class PythonPairedPunctuationFormatter(Formatter):
             region['open_char'] == "("
             and len(items) == 1
             and self._region_context(region, stripped) == "tuple"
+            and region['content'].rstrip().endswith(",")
         ):
             inner += ","
 

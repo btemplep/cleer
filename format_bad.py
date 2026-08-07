@@ -1,9 +1,4 @@
-
-
-
-
-
-"""My well formatted python file!"""
+"""My badly formatted python file!"""
 import os
 from cleer import (
     Cleer,
@@ -19,23 +14,22 @@ from some_lib.is_a_really_long.long_long.lots_of_lengthy_words_are_here import (
     a_really_long_here_toooooo)
 
 
-
-# bad stuff 
-tup = (2, )   
+# bad stuff
+tup = (2, )
 thing = {
     "hello"  :"there" ,
     "hi": "now" ,
 }
 find =  [0, 1, 3,4,5,"hello ther lov", "how is all of that",]
 
-thing =[  
+thing =[
     {
         "hello":  [1,2, "hello", "there", "how"],
         "there":  [
-            2  , 
+            2  ,
             7,
             - 1
-        ], 
+        ],
         "now": {
             "there": 103
         }
@@ -76,7 +70,7 @@ def say_hello(hello: str=None, hello_there: int=10, fine_great: str="1234232"):
         return 8
 def say_hello2(hello : str = None,  hello_there: int = 10,  fine_great: str=   "1234232"):
 
-  """_summary_ 
+  """_summary_
 
   Parameters
   ----------
@@ -98,17 +92,17 @@ and here
 say_hello("dkfj" , 1000, "asdflkjasdfkj", "alsdkflksdfj", "asldkfjalskdjflsdf")
 Literal["alsdkfsdfl" , "alskfjslkfdj", "aslkdfjsdfjk", - 1, "evenmore hwerskjfsl"]
 my_type = Dict[
-    str, 
+    str,
     Dict[
-        Literal["asdf", "alsdkflsdkfj", "alskdjflskdfj"], 
+        Literal["asdf", "alsdkflsdkfj", "alskdjflskdfj"],
         Dict[
-            str, 
+            str,
             List[Dict[str, int]]
         ]
     ]
 ]
 my_type2 = Dict[
-    str, 
+    str,
     List[Dict[str, Dict[str, str]]]
 ]
 
@@ -124,7 +118,7 @@ async def hello(
         thing=- 1
         return thing
     print("after")
-    
+
 
     print("one more")
     return 0
@@ -158,7 +152,7 @@ async def my_agen():
 
 def type_creator():
     my_type2 = Dict[
-        str, 
+        str,
         List[Dict[str, Dict[str, str]]]
     ]
     class InternalThing:
@@ -168,13 +162,13 @@ def type_creator():
         var: str
 class MyNewType:
     thing: Dict[
-        str, 
+        str,
         List[Dict[str, Dict[str, str]]]
     ]
     val: Literal["alsdkfsdfl" , "alskfjslkfdj", "aslkdfjsdfjk", - 1, "evenmore hwerskjfsl"]
     def format(
             self, token: str) -> str:
-        
+
         """Replace the token with the configured number of blank lines.
 
         Parameters
@@ -253,13 +247,10 @@ def _keep_result(self,result: Inspection | Formatting | FormattingDocument,
     return False
 
 
-
 my_func_call_herethere(thing="here", that="this", there="now").no_args_call().another_one("hello").last_one([1,2,3])
 my_func_call_herethere(thing="here", that="this").no_args_call().another_one("hello").last_one([1,2,3, {"hello": "there"}])
 my_func_call_herethere(thing="here", that="this").no_args_call()
 my_func_call_herethere(thing="here", that="this").no_args_call().another_one("h")
-
-
 
 
 def config_default():
@@ -487,7 +478,7 @@ class AnotherClass:
                 "index": prev_end,
                 "length": len(token)
             }]
-        
+
         return [
             {
                 "token": token,
@@ -495,8 +486,6 @@ class AnotherClass:
                 "length": len(token)
             }
         ]
-
-
 
 
 flat = flat.replace("[ ]", "[]")
@@ -513,7 +502,6 @@ quote = content[i:i + 3] if content[i:i + 3] in (
     '"""',
     "'''"
 ) else ch
-
 
 
 def return_logic():
@@ -537,3 +525,21 @@ actual_indent = len(leading.replace("\t", " " * self._tab_size))
 actual_indent = len(
     leading.replace("\t", " " * self._tab_size)
 )
+
+if " or " in safe_inner or " and " in safe_inner:
+    print("return_logic")
+elif (
+    not triple_quote
+    and s[i] == string_char
+    and (
+        i == 0
+        or s[i - 1] != "\\"
+    )
+):
+    print("here")
+
+
+
+
+
+    

@@ -639,7 +639,7 @@ class AnotherClass:
         for range_start, range_end in function_ranges:
             if start >= range_start and end <= range_end:
                 if (
-                    innermost_class is None 
+                    innermost_class is None
                     or (range_end - range_start) < (innermost_class[1] - innermost_class[0])
                 ):
                     innermost_func = (range_start, range_end)
@@ -678,7 +678,7 @@ class AnotherClass:
                     "length": len(token)
                 }
             ]
-        
+
         return [
             {
                 "token": token,
@@ -702,19 +702,31 @@ quote = content[i:i + 3] if content[i:i + 3] in ('"""', "'''") else ch
 def return_logic():
     if this:
         return (
-            isinstance(first_node, ast.Expr) 
-            and isinstance(first_node.value, ast.Constant) 
-            and isinstance(first_node.value.value, str)
-        )
-
-    child_depth = depth if isinstance(node,ast.Module) else depth + 1
-
-    return (
             isinstance(first_node, ast.Expr)
             and isinstance(first_node.value, ast.Constant)
             and isinstance(first_node.value.value, str)
         )
 
+    child_depth = depth if isinstance(node, ast.Module) else depth + 1
+
+    return (
+        isinstance(first_node, ast.Expr)
+        and isinstance(first_node.value, ast.Constant)
+        and isinstance(first_node.value.value, str)
+    )
+
 
 actual_indent = len(leading.replace("\t", " " * self._tab_size))
 actual_indent = len(leading.replace("\t", " " * self._tab_size))
+
+if " or " in safe_inner or " and " in safe_inner:
+    print("return_logic")
+elif (
+    not triple_quote
+    and s[i] == string_char
+    and (
+        i == 0
+        or s[i - 1] != "\\"
+    )
+):
+    print("here")

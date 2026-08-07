@@ -289,7 +289,9 @@ class PythonImportFormatter(Formatter):
 
         import_lines.append(")")
 
-        return ["\n".join(import_lines)]
+        return [
+            "\n".join(import_lines)
+        ]
 
 
     def _sort_key(self, imp: dict) -> str:
