@@ -1,5 +1,6 @@
-__all__ = []
+"""Cleer CLI"""
 
+__all__ = []
 
 import argparse
 import importlib
@@ -15,16 +16,16 @@ from cleer.default import cleer_default_config
 
 
 class FMT:
-   purple = "\033[95m"
-   cyan = "\033[96m"
-   dark_cyan = "\033[36m"
-   blue = "\033[94m"
-   green = "\033[92m"
-   yellow = "\033[93m"
-   red = "\033[91m"
-   bold = "\033[1m"
-   underline = "\033[4m"
-   end = "\033[0m"
+    purple = "\033[95m"
+    cyan = "\033[96m"
+    dark_cyan = "\033[36m"
+    blue = "\033[94m"
+    green = "\033[92m"
+    yellow = "\033[93m"
+    red = "\033[91m"
+    bold = "\033[1m"
+    underline = "\033[4m"
+    end = "\033[0m"
 
 
 def main(argv: list[str]=None) -> None:
@@ -42,7 +43,9 @@ def main(argv: list[str]=None) -> None:
         dest="command"
     )
 
-    command_args_parser = argparse.ArgumentParser(add_help=False)
+    command_args_parser = argparse.ArgumentParser(
+        add_help=False
+    )
     command_args_parser.add_argument(
         "-c",
         "--cleer",
@@ -59,7 +62,13 @@ def main(argv: list[str]=None) -> None:
         "--log-level",
         type=str,
         default="ERROR",
-        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        choices=[
+            "DEBUG",
+            "INFO",
+            "WARNING",
+            "ERROR",
+            "CRITICAL"
+        ],
         help=f"{FMT.bold}[default: \"{FMT.end}{FMT.green}CRITICAL{FMT.end}{FMT.bold}\"]{FMT.end} Set logging level."
     )
     command_args_parser.add_argument(

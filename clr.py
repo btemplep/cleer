@@ -9,7 +9,7 @@ clr = Cleer(
         python_internal_packages=[],
         excludes=[
             "**/.nox/**",
-            "**/tests/unit/fixtures/format_*.py",
+            "**/tests/unit/fixtures/format_*.py"
             # "**format_bad.py"
             # "**/format_good.py"
         ]

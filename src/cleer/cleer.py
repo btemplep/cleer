@@ -1,5 +1,8 @@
-__all__ = ["Cleer"]
+"""TODO: Add module docstring."""
 
+__all__ = [
+    "Cleer"
+]
 
 import pathlib
 import re
@@ -8,7 +11,7 @@ from loguru import logger
 
 from cleer import exceptions
 from cleer.glob_to_regex import glob_to_regex
-from cleer.types import * 
+from cleer.types import *
 
 
 class Cleer:
@@ -128,9 +131,15 @@ class Cleer:
         }
         for gi, group in enumerate(self._config['groups']):
             logger.debug(f"Evaluating config groups[{gi}] for '{file_path}'.")
-            include_pattern = self._get_file_pattern_match(file_path, group['includes'])
+            include_pattern = self._get_file_pattern_match(
+                file_path,
+                group['includes']
+            )
             if include_pattern is not None:
-                exclude_pattern = self._get_file_pattern_match(file_path, group['excludes'])
+                exclude_pattern = self._get_file_pattern_match(
+                    file_path,
+                    group['excludes']
+                )
                 if exclude_pattern is not None:
                     logger.debug(f"Excluding '{file_path}' from groups[{gi}] for matching the '{exclude_pattern}' exclude pattern.")
                     inspection['excluded'].append(
@@ -190,7 +199,7 @@ class Cleer:
         Parameters
         ----------
         path : str | pathlib.Path
-            File path that is only used for glob matching. 
+            File path that is only used for glob matching.
             The file is not opened or checked for existence.
         document : str | None, default=None
             String document to inspect.
@@ -198,27 +207,24 @@ class Cleer:
         Returns
         -------
         Inspection
-            Inspection result.  
+            Inspection result.
         """
         file_path = pathlib.Path(file_path)
-        
-        return self._inspect_one(
-            file_path=path, 
-            document=document
-        )
+
+        return self._inspect_one(file_path=path, document=document)
 
 
     def _keep_result(
         self,
         result: Inspection | Formatting | FormattingDocument,
-        keep_only_excluded: bool,
+        keep_excluded: bool,
         keep_not_included: bool
     ) -> bool:
         if (
-            len(result['included']) > 0 
+            len(result['included']) > 0
             or (
                 len(result['excluded']) > 0
-                and keep_only_excluded is True
+                and keep_excluded is True
             )
             or keep_not_included is True
         ):
@@ -228,10 +234,10 @@ class Cleer:
 
 
     def inspect(
-        self, 
+        self,
         path: str | pathlib.Path,
-        keep_only_excluded: bool = False,
-        keep_not_included: bool = False
+        keep_excluded: bool=False,
+        keep_not_included=False
     ) -> list[Inspection]:
         """Inspect a file or directory for violations.
 
@@ -239,22 +245,23 @@ class Cleer:
         ----------
         path : str | pathlib.Path
             File or dir path.
-        keep_excluded_only : bool, default=False
-            Keep inspections for files that matched one or more groups
-            Default is to not return these.
+        keep_excluded : bool, default=False
+            Keep results for files that matched at least one group, but were excluded from all matches.
+            By default, these are not included in the results.
         keep_not_included : bool, default=False
-            Keep inspections for files that did not match any groups.
+            Keep results for files that did not match any groups.
+            By default, these are not included in the results.
 
         Returns
         -------
         list[Inspection]
-            List of inspections for the file or directory. 
-            By default, it only includes files that matched at least one group that they were not also excluded from.
-        
+            List of inspections for the file or directory.
+            By default, it does not include results that did not match any groups, or were excluded from all groups.
+
         Raises
         ------
         cleer.exceptions.BadPathError
-            If the given path is not a file or directory.    
+            If the given path is not a file or directory.
         """
         path = pathlib.Path(path).resolve()
         if path.is_file() is True:
@@ -263,8 +270,8 @@ class Cleer:
                 document=None
             )
             if self._keep_result(
-                result=inspection, 
-                keep_only_excluded=keep_only_excluded,
+                result=inspection,
+                keep_excluded=keep_excluded,
                 keep_not_included=keep_not_included
             ) is False:
                 return []
@@ -275,13 +282,10 @@ class Cleer:
             inspections = []
             for p in path.rglob("*"):
                 if p.is_file() is True:
-                    inspection = self._inspect_one(
-                        file_path=p,
-                        document=None
-                    )
+                    inspection = self._inspect_one(file_path=p, document=None)
                     if self._keep_result(
-                        result=inspection, 
-                        keep_only_excluded=keep_only_excluded,
+                        result=inspection,
+                        keep_excluded=keep_excluded,
                         keep_not_included=keep_not_included
                     ) is True:
                         inspections.append(inspection)
@@ -290,7 +294,6 @@ class Cleer:
 
         else:
             raise exceptions.BadPathError(f"Path '{path}' must be a file or directory.")
-
 
 
     def _format_one(
@@ -307,9 +310,15 @@ class Cleer:
         }
         for gi, group in enumerate(self._config['groups']):
             logger.debug(f"Evaluating config groups[{gi}] for '{file_path}'.")
-            include_pattern = self._get_file_pattern_match(file_path, group['includes'])
+            include_pattern = self._get_file_pattern_match(
+                file_path,
+                group['includes']
+            )
             if include_pattern is not None:
-                exclude_pattern = self._get_file_pattern_match(file_path, group['excludes'])
+                exclude_pattern = self._get_file_pattern_match(
+                    file_path,
+                    group['excludes']
+                )
                 if exclude_pattern is not None:
                     logger.debug(f"Excluding '{file_path}' from groups[{gi}] for matching the '{exclude_pattern}' exclude pattern.")
                     formatting['excluded'].append(
@@ -365,13 +374,17 @@ class Cleer:
         return formatting
 
 
-    def formats(self, path: str | pathlib.Path, document: str) -> FormattingDocument:
+    def formats(
+        self,
+        path: str | pathlib.Path,
+        document: str
+    ) -> FormattingDocument:
         """Format a document string.
 
         Parameters
         ----------
         path : str | pathlib.Path
-            File path that is only used for glob matching. 
+            File path that is only used for glob matching.
             The file is not opened or checked for existence.
         document : str | None, default=None
             String document to format.
@@ -383,51 +396,45 @@ class Cleer:
         """
         file_path = pathlib.Path(file_path)
 
-        return self._format_one(
-            file_path=path, 
-            document=document
-        )
+        return self._format_one(file_path=path, document=document)
 
 
     def format(
-        self, 
+        self,
         path: str | pathlib.Path,
-        keep_only_excluded: bool = False,
-        keep_not_included: bool = False
+        keep_excluded: bool=False,
+        keep_not_included: bool=False
     ) -> list[Formatting]:
         """Format a file or directory of files.
-
 
         Parameters
         ----------
         path : str | pathlib.Path
             File or dir path.
-        keep_excluded_only : bool, default=False
-            Keep results for files that matched one or more groups
-            Default is to not return these.
+        keep_excluded : bool, default=False
+            Keep results for files that matched at least one group, but were excluded from all matches.
+            By default these are not included in the result.
         keep_not_included : bool, default=False
             Keep results for files that did not match any groups.
+            By default, these are not included in the results.
 
         Returns
         -------
         list[Formatting]
-            List of formatting results for the file or directory. 
-            By default, it only includes files that matched at least one group that they were not also excluded from.
-        
+            List of formatting results for the file or directory.
+            By default, it does not include results that did not match any groups, or were excluded from all groups.
+
         Raises
         ------
         cleer.exceptions.BadPathError
-            If the given path is not a file or directory.    
+            If the given path is not a file or directory.
         """
         path = pathlib.Path(path).resolve()
         if path.is_file() is True:
-            formatting = self._format_one(
-                file_path=path,
-                document=None
-            )
+            formatting = self._format_one(file_path=path, document=None)
             if self._keep_result(
-                result=formatting, 
-                keep_only_excluded=keep_only_excluded,
+                result=formatting,
+                keep_excluded=keep_excluded,
                 keep_not_included=keep_not_included
             ) is False:
                 return []
@@ -440,13 +447,10 @@ class Cleer:
             formattings = []
             for p in path.rglob("*"):
                 if p.is_file() is True:
-                    formatting = self._format_one(
-                        file_path=p,
-                        document=None
-                    )
+                    formatting = self._format_one(file_path=p, document=None)
                     if self._keep_result(
-                        result=formatting, 
-                        keep_only_excluded=keep_only_excluded,
+                        result=formatting,
+                        keep_excluded=keep_excluded,
                         keep_not_included=keep_not_included
                     ) is True:
                         formatting.pop("document")

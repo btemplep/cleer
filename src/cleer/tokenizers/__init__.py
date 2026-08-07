@@ -16,7 +16,8 @@ from cleer.tokenizers.line_tokenizer import LineTokenizer
 from cleer.tokenizers.non_ascii_whitespace_tokenizer import NonAsciiWhitespaceTokenizer
 from cleer.tokenizers.python import *
 from cleer.tokenizers.python import __all__ as python_all
-__all__ += python_all
 from cleer.tokenizers.tokenizer import Tokenizer
 from cleer.tokenizers.trailing_whitespace_tokenizer import TrailingWhitespaceTokenizer
 from cleer.tokenizers.whitespace_tokenizer import WhitespaceTokenizer
+
+__all__ += python_all

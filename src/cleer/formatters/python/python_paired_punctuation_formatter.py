@@ -911,12 +911,36 @@ class PythonPairedPunctuationFormatter(Formatter):
                     is_raw = raw
                     result.append(s[prefix_start:i + 1])
                     i += 1
+                elif i < len(s) and s[i] == "#":
+                    if prefix_start < i:
+                        result.append(s[prefix_start:i])
+                    nl_pos = s.find("\n", i)
+                    if nl_pos == -1:
+                        result.append(s[i:])
+                        break
+                    result.append(s[i:nl_pos + 1])
+                    i = nl_pos + 1
+                    indent_start = i
+                    while i < len(s) and s[i] in (" ", "\t"):
+                        i += 1
+                    if indent_start < i:
+                        result.append(s[indent_start:i])
                 elif i < len(s) and s[i] in (" ", "\t", "\n", "\r"):
                     if prefix_start < i:
                         result.append(s[prefix_start:i])
-                    if result and result[-1] != " ":
-                        result.append(" ")
-                    i += 1
+                    has_newline = False
+                    ws_start = i
+                    while i < len(s) and s[i] in (" ", "\t", "\n", "\r"):
+                        if s[i] == "\n":
+                            has_newline = True
+                        i += 1
+                    if has_newline and i < len(s) and s[i] == "#":
+                        last_nl = s.rfind("\n", ws_start, i)
+                        result.append(s[last_nl:i])
+                    else:
+                        if result and result[-1] != " ":
+                            result.append(" ")
+                    
                 elif i < len(s):
                     result.append(s[prefix_start:i + 1])
                     i += 1

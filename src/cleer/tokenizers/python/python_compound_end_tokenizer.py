@@ -89,7 +89,7 @@ class PythonCompoundEndTokenizer(Tokenizer):
                     continue
 
                 if attr == "orelse" and isinstance(node, ast.If):
-                    if body and isinstance(body[0], ast.If):
+                    if len(body) == 1 and isinstance(body[0], ast.If):
                         continue
 
                 self._check_body(body, document, line_offsets, tokens, seen)
