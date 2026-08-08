@@ -134,6 +134,13 @@ def say_hello2(
      and here
 and here
 """
+    bad_var = [
+        "alsdkfsdfl",
+        "alskfjslkfdj",
+        "aslkdfjsdfjk",
+        -1,
+        "evenmore hwerskjfsl"
+    ]
 
     pass
 

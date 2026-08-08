@@ -93,6 +93,7 @@ def say_hello2(hello : str = None,  hello_there: int = 10,  fine_great: str=   "
      and here
 and here
 """
+  bad_var = ["alsdkfsdfl" , "alskfjslkfdj", "aslkdfjsdfjk", - 1, "evenmore hwerskjfsl"]
 
   pass
 say_hello("dkfj" , 1000, "asdflkjasdfkj", "alsdkflksdfj", "asldkfjalskdjflsdf")

@@ -118,7 +118,96 @@ class PythonIndentTokenizer(Tokenizer):
         if self._has_bad_docstring_indent(block):
             return True
 
+        if self._has_bad_semantic_indent(block):
+            return True
+
         return False
+
+
+    def _has_bad_semantic_indent(self, block: str) -> bool:
+        """Check if any statement line has wrong indent depth per AST."""
+        try:
+            tree = ast.parse(block)
+        except SyntaxError:
+            return False
+
+        lines = block.split("\n")
+        indent_map: dict[int, int] = {}
+
+        self._walk_for_indent_check(tree, 0, indent_map)
+
+        for line_idx, expected_depth in indent_map.items():
+            if line_idx >= len(lines):
+                continue
+
+            line = lines[line_idx]
+
+            if not line.strip():
+                continue
+
+            leading = self._get_leading_whitespace(line)
+            actual_indent = len(leading.replace("\t", " " * self._tab_size))
+            expected_indent = expected_depth * self._tab_size
+
+            if actual_indent != expected_indent:
+                return True
+
+        return False
+
+
+    def _walk_for_indent_check(
+        self,
+        node,
+        depth: int,
+        indent_map: dict[int, int]
+    ):
+        """Walk AST to build indent map for semantic checking."""
+        if hasattr(node, "lineno"):
+            indent_map[node.lineno - 1] = depth
+
+        if hasattr(node, "decorator_list"):
+            for decorator in node.decorator_list:
+                indent_map[decorator.lineno - 1] = depth
+
+        child_depth = depth if isinstance(node, ast.Module) else depth + 1
+
+        if hasattr(node, "body") and isinstance(node.body, list):
+            for child in node.body:
+                self._walk_for_indent_check(child, child_depth, indent_map)
+
+        if isinstance(node, ast.Try):
+            for handler in node.handlers:
+                indent_map[handler.lineno - 1] = depth
+                for child in handler.body:
+                    self._walk_for_indent_check(child, child_depth, indent_map)
+
+            if node.orelse:
+                for child in node.orelse:
+                    self._walk_for_indent_check(child, child_depth, indent_map)
+
+            if node.finalbody:
+                for child in node.finalbody:
+                    self._walk_for_indent_check(child, child_depth, indent_map)
+
+        elif isinstance(node, (ast.If, ast.For, ast.While)):
+            if node.orelse:
+                first_else = node.orelse[0]
+
+                if (
+                    isinstance(first_else, ast.If)
+                    and len(node.orelse) == 1
+                    and first_else.col_offset == node.col_offset
+                ):
+                    self._walk_for_indent_check(first_else, depth, indent_map)
+                else:
+                    for child in node.orelse:
+                        self._walk_for_indent_check(
+                            child, child_depth, indent_map
+                        )
+
+        elif hasattr(node, "orelse") and isinstance(node.orelse, list):
+            for child in node.orelse:
+                self._walk_for_indent_check(child, child_depth, indent_map)
 
 
     def _has_bad_docstring_indent(self, block: str) -> bool:
