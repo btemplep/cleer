@@ -5,7 +5,9 @@ __all__ = [
 ]
 
 import ast
+import io
 import re
+import tokenize
 
 from cleer.formatters.formatter import Formatter
 
@@ -1948,9 +1950,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
     def _split_concat_strings(self, content: str) -> list[str]:
         """Split a string concatenation into individual string tokens."""
-        import tokenize
-        import io
-
         try:
             tokens = list(
                 tokenize.generate_tokens(io.StringIO(content).readline)
@@ -2831,8 +2830,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
     def _normalize_operators(self, text: str) -> str:
         """Ensure 'and' and 'or' keywords have spaces around them."""
-        import re
-
         text = re.sub(r"\)or\(", ") or (", text)
         text = re.sub(r"\)or ", ") or ", text)
         text = re.sub(r" or\(", " or (", text)
@@ -2878,9 +2875,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
         Uses the tokenize module to detect adjacent STRING tokens.
         """
-        import tokenize
-        import io
-
         paren_start = flat.find("(")
         if paren_start == -1:
             return False
@@ -2901,9 +2895,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
     def _is_string_concat(self, content: str) -> bool:
         """Check if content is implicit string concatenation using tokenize."""
-        import tokenize
-        import io
-
         try:
             tokens = list(
                 tokenize.generate_tokens(io.StringIO(content).readline)
