@@ -269,12 +269,7 @@ class PythonCommaSpaceTokenizer(Tokenizer):
                 )
             )
 
-        items.sort(
-            key=lambda x: (
-                x[2],
-                x[3]
-            )
-        )
+        items.sort(key=lambda x: (x[2], x[3]))
 
         return items
 
@@ -287,9 +282,7 @@ class PythonCommaSpaceTokenizer(Tokenizer):
         num_kw_defaults = len(args.kw_defaults)
 
         for i, arg in enumerate(args.posonlyargs + args.args):
-            default_idx = i - (
-                len(args.posonlyargs) + len(args.args) - num_defaults
-            )
+            default_idx = i - (len(args.posonlyargs) + len(args.args) - num_defaults)
             if default_idx >= 0 and default_idx < num_defaults:
                 default = args.defaults[default_idx]
                 items.append(
@@ -351,12 +344,7 @@ class PythonCommaSpaceTokenizer(Tokenizer):
                 )
             )
 
-        items.sort(
-            key=lambda x: (
-                x[2],
-                x[3]
-            )
-        )
+        items.sort(key=lambda x: (x[2], x[3]))
 
         return items
 

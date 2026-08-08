@@ -606,6 +606,9 @@ class JSONValidator:
         except Exception as exc:
             return f"Failed to parse JSON. [{type(exc).__name__}]: {exc}"
 
+        logger.debug(
+                f"Excluding '{file_path}' from groups[{gi}] for matching the '{exclude_pattern}' exclude pattern."
+            )
         old_indent = len(
                 self._get_leading_whitespace(line).replace("\t", " " * self._tab_size)
             )

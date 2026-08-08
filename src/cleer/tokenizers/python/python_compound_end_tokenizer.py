@@ -85,7 +85,11 @@ class PythonCompoundEndTokenizer(Tokenizer):
     ):
         """Walk all bodies and check compound statements within them."""
         for node in ast.walk(tree):
-            for attr in ("body", "orelse", "finalbody"):
+            for attr in (
+                "body",
+                "orelse",
+                "finalbody"
+            ):
                 body = getattr(node, attr, None)
 
                 if not isinstance(body, list):
@@ -151,10 +155,7 @@ class PythonCompoundEndTokenizer(Tokenizer):
                 end = line_offsets[next_start_line - 1]
                 token = document[start:end]
 
-                token_key = (
-                    start,
-                    len(token)
-                )
+                token_key = (start, len(token))
 
                 if token_key in seen:
                     continue

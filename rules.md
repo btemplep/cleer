@@ -139,6 +139,11 @@
             - any inner paired punct is expanded
             - more than 2 args with at least one given as a kwarg
         - never split empty args, ie don't split the function call parenthesis to a new line
+        - never split if it is a single arg that a string
+            - must be non-kwarg
+            - does not include chained functions with one str arg
+            - single arg does not include string concats
+            - Useful for logging and raising exceptions
         - if any are expanded then they all are expanded, unless empty
     - chained function calls
         - First flatten 

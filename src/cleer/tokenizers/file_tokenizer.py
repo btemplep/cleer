@@ -63,8 +63,10 @@ class FileTokenizer(Tokenizer):
             ]
             ```
         """
-        return [{
-            "token": document,
-            "index": 0,
-            "length": len(document)
-        }]
+        return [
+            {
+                "token": document,
+                "index": 0,
+                "length": len(document)
+            }
+        ]

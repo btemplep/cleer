@@ -218,9 +218,7 @@ class PythonInnerMaxBlankLinesTokenizer(Tokenizer):
             if start >= range_start and end <= range_end:
                 if (
                     innermost_func is None
-                    or (range_end - range_start) < (
-                        innermost_func[1] - innermost_func[0]
-                    )
+                    or (range_end - range_start) < (innermost_func[1] - innermost_func[0])
                 ):
                     innermost_func = (range_start, range_end)
 
@@ -230,9 +228,7 @@ class PythonInnerMaxBlankLinesTokenizer(Tokenizer):
             if start >= range_start and end <= range_end:
                 if (
                     innermost_class is None
-                    or (range_end - range_start) < (
-                        innermost_class[1] - innermost_class[0]
-                    )
+                    or (range_end - range_start) < (innermost_class[1] - innermost_class[0])
                 ):
                     innermost_class = (range_start, range_end)
 

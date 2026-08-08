@@ -79,7 +79,11 @@ class PythonReturnYieldTokenizer(Tokenizer):
             elif isinstance(node, ast.ClassDef):
                 self._walk(node.body, line_offsets, document, results)
             else:
-                for field_name in ("body", "orelse", "finalbody"):
+                for field_name in (
+                    "body",
+                    "orelse",
+                    "finalbody"
+                ):
                     child = getattr(node, field_name, None)
 
                     if child and isinstance(child, list):

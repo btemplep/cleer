@@ -66,13 +66,7 @@ class PythonTypeHintTokenizer(Tokenizer):
                     tokens
                 )
             elif (
-                isinstance(
-                    node,
-                    (
-                        ast.FunctionDef,
-                        ast.AsyncFunctionDef
-                    )
-                )
+                isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
                 and node.returns
             ):
                 self._maybe_add(
@@ -83,12 +77,12 @@ class PythonTypeHintTokenizer(Tokenizer):
                 )
             elif (
                 isinstance(node, ast.Assign)
-                and isinstance( node.value, ast.Subscript )
+                and isinstance(node.value, ast.Subscript)
             ):
                 self._maybe_add(node.value, document, line_offsets, tokens)
             elif (
                 isinstance(node, ast.Expr)
-                and isinstance( node.value, ast.Subscript )
+                and isinstance(node.value, ast.Subscript)
             ):
                 self._maybe_add(node.value, document, line_offsets, tokens)
 

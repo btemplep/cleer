@@ -94,7 +94,14 @@ class PythonDecoratorBoundaryTokenizer(Tokenizer):
     ):
         """Walk the AST to find all decorated functions/methods."""
         for node in ast.walk(tree):
-            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            if not isinstance(
+                node,
+                (
+                    ast.FunctionDef,
+                    ast.AsyncFunctionDef,
+                    ast.ClassDef
+                )
+            ):
                 continue
 
             if not node.decorator_list:

@@ -97,12 +97,7 @@ class PythonStringQuoteTokenizer(Tokenizer):
                 isinstance(slice_node, ast.Constant)
                 and isinstance(slice_node.value, str)
             ):
-                positions.add(
-                    (
-                        slice_node.lineno,
-                        slice_node.col_offset
-                    )
-                )
+                positions.add((slice_node.lineno, slice_node.col_offset))
 
         return positions
 
@@ -127,12 +122,7 @@ class PythonStringQuoteTokenizer(Tokenizer):
                     isinstance(child, ast.Constant)
                     and hasattr(child, "lineno")
                 ):
-                    positions.add(
-                        (
-                            child.lineno,
-                            child.col_offset
-                        )
-                    )
+                    positions.add((child.lineno, child.col_offset))
 
         return positions
 
@@ -234,10 +224,40 @@ class PythonStringQuoteTokenizer(Tokenizer):
             return False
 
         for prefix in (
-            "f", "F", "r", "R", "b", "B", "u", "U", "t", "T",
-            "rb", "rB", "Rb", "RB", "br", "bR", "Br", "BR",
-            "fr", "fR", "Fr", "FR", "rf", "rF", "Rf", "RF",
-            "tr", "tR", "Tr", "TR", "rt", "rT", "Rt", "RT"
+            "f",
+            "F",
+            "r",
+            "R",
+            "b",
+            "B",
+            "u",
+            "U",
+            "t",
+            "T",
+            "rb",
+            "rB",
+            "Rb",
+            "RB",
+            "br",
+            "bR",
+            "Br",
+            "BR",
+            "fr",
+            "fR",
+            "Fr",
+            "FR",
+            "rf",
+            "rF",
+            "Rf",
+            "RF",
+            "tr",
+            "tR",
+            "Tr",
+            "TR",
+            "rt",
+            "rT",
+            "Rt",
+            "RT"
         ):
             if (
                 stripped.startswith(prefix)

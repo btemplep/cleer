@@ -95,10 +95,7 @@ class PythonModuleHeaderFormatter(Formatter):
             all_ranges.extend(section)
 
         last_header_end = max(end for _, end in all_ranges)
-        first_code_line = self._find_first_code_line(
-            tree,
-            last_header_end
-        )
+        first_code_line = self._find_first_code_line(tree, last_header_end)
 
         result_parts = []
 
@@ -183,33 +180,13 @@ class PythonModuleHeaderFormatter(Formatter):
                 and isinstance(node.value, ast.Constant)
                 and isinstance(node.value.value, str)
             ):
-                docstring_ranges.append(
-                    (
-                        node.lineno - 1,
-                        node.end_lineno
-                    )
-                )
+                docstring_ranges.append((node.lineno - 1, node.end_lineno))
             elif self._is_version_assignment(node):
-                version_ranges.append(
-                    (
-                        node.lineno - 1,
-                        node.end_lineno
-                    )
-                )
+                version_ranges.append((node.lineno - 1, node.end_lineno))
             elif self._is_all_assignment(node):
-                all_ranges.append(
-                    (
-                        node.lineno - 1,
-                        node.end_lineno
-                    )
-                )
+                all_ranges.append((node.lineno - 1, node.end_lineno))
             elif isinstance(node, (ast.Import, ast.ImportFrom)):
-                import_ranges.append(
-                    (
-                        node.lineno - 1,
-                        node.end_lineno
-                    )
-                )
+                import_ranges.append((node.lineno - 1, node.end_lineno))
             else:
                 break
 

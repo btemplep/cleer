@@ -51,11 +51,7 @@ class PythonDictKeyQuoteTokenizer(Tokenizer):
         tree = ast.parse(document)
 
         line_offsets = self._build_line_offsets(document)
-        tokens = self._collect_dict_keys(
-            tree,
-            document,
-            line_offsets
-        )
+        tokens = self._collect_dict_keys(tree, document, line_offsets)
 
         tokens.sort(key=lambda t: t['index'])
 

@@ -155,12 +155,7 @@ class PythonIndentTokenizer(Tokenizer):
         return False
 
 
-    def _walk_for_indent_check(
-        self,
-        node,
-        depth: int,
-        indent_map: dict[int, int]
-    ):
+    def _walk_for_indent_check(self, node, depth: int, indent_map: dict[int, int]):
         """Walk AST to build indent map for semantic checking."""
         if hasattr(node, "lineno"):
             indent_map[node.lineno - 1] = depth
@@ -202,10 +197,15 @@ class PythonIndentTokenizer(Tokenizer):
                 else:
                     for child in node.orelse:
                         self._walk_for_indent_check(
-                            child, child_depth, indent_map
+                            child,
+                            child_depth,
+                            indent_map
                         )
 
-        elif hasattr(node, "orelse") and isinstance(node.orelse, list):
+        elif (
+            hasattr(node, "orelse")
+            and isinstance(node.orelse, list)
+        ):
             for child in node.orelse:
                 self._walk_for_indent_check(child, child_depth, indent_map)
 
@@ -282,7 +282,11 @@ class PythonIndentTokenizer(Tokenizer):
 
                 break
 
-            for attr in ("handlers", "orelse", "finalbody"):
+            for attr in (
+                "handlers",
+                "orelse",
+                "finalbody"
+            ):
                 items = getattr(parent, attr, None)
 
                 if isinstance(items, list) and node in items:

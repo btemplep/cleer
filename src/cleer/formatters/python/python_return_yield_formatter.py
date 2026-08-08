@@ -88,7 +88,10 @@ class PythonReturnYieldFormatter(Formatter):
         func_node = tree.body[0]
 
         if not isinstance(
-            func_node, (ast.FunctionDef, ast.AsyncFunctionDef)
+            func_node, (
+                ast.FunctionDef,
+                ast.AsyncFunctionDef
+            )
         ):
             return token
 
@@ -165,7 +168,11 @@ class PythonReturnYieldFormatter(Formatter):
                 ):
                     edits.append((end_line_idx, "add_after"))
 
-            for field_name in ("body", "orelse", "finalbody"):
+            for field_name in (
+                "body",
+                "orelse",
+                "finalbody"
+            ):
                 child = getattr(node, field_name, None)
 
                 if child and isinstance(child, list):
@@ -203,7 +210,7 @@ class PythonReturnYieldFormatter(Formatter):
 
         if (
             isinstance(node, ast.Expr)
-            and isinstance( node.value, (ast.Yield, ast.YieldFrom) )
+            and isinstance(node.value, (ast.Yield, ast.YieldFrom))
         ):
             return True
 

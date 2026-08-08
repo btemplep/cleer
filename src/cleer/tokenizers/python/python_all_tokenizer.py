@@ -65,11 +65,13 @@ class PythonAllTokenizer(Tokenizer):
         )
         token = document[prev_end:next_start]
 
-        return [{
-            "token": token,
-            "index": prev_end,
-            "length": len(token)
-        }]
+        return [
+            {
+                "token": token,
+                "index": prev_end,
+                "length": len(token)
+            }
+        ]
 
 
     def _find_first_all(self, tree: ast.Module):

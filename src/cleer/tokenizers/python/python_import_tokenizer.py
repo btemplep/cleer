@@ -56,12 +56,7 @@ class PythonImportTokenizer(Tokenizer):
         results = []
 
         for section in sections:
-            prev_end, next_start = self._find_boundaries(
-                tree,
-                section,
-                document,
-                line_offsets
-            )
+            prev_end, next_start = self._find_boundaries(tree, section, document, line_offsets)
             token = document[prev_end:next_start]
             results.append(
                 {

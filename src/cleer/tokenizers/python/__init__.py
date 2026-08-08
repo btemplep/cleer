@@ -51,4 +51,3 @@ from cleer.tokenizers.python.python_string_quote_tokenizer import PythonStringQu
 from cleer.tokenizers.python.python_trailing_comma_tokenizer import PythonTrailingCommaTokenizer
 from cleer.tokenizers.python.python_type_hint_tokenizer import PythonTypeHintTokenizer
 from cleer.tokenizers.python.python_unary_operator_space_tokenizer import PythonUnaryOperatorSpaceTokenizer
-

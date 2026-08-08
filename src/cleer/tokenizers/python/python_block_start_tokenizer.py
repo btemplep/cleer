@@ -86,7 +86,15 @@ class PythonBlockStartTokenizer(Tokenizer):
                         seen
                     )
 
-            if isinstance(node, (ast.If, ast.For, ast.AsyncFor, ast.While)):
+            if isinstance(
+                node,
+                (
+                    ast.If,
+                    ast.For,
+                    ast.AsyncFor,
+                    ast.While
+                )
+            ):
                 if node.orelse:
                     first_else = node.orelse[0]
                     if not isinstance(first_else, ast.If):
@@ -187,10 +195,7 @@ class PythonBlockStartTokenizer(Tokenizer):
         token = document[start:end]
 
         if not token.strip():
-            token_key = (
-                start,
-                len(token)
-            )
+            token_key = (start, len(token))
 
             if token_key not in seen:
                 seen.add(token_key)
@@ -261,10 +266,7 @@ class PythonBlockStartTokenizer(Tokenizer):
         token = document[start:end]
 
         if not token.strip():
-            token_key = (
-                start,
-                len(token)
-            )
+            token_key = (start, len(token))
 
             if token_key not in seen:
                 seen.add(token_key)
@@ -300,10 +302,7 @@ class PythonBlockStartTokenizer(Tokenizer):
         token = document[start:end]
 
         if not token.strip():
-            token_key = (
-                start,
-                len(token)
-            )
+            token_key = (start, len(token))
 
             if token_key not in seen:
                 seen.add(token_key)

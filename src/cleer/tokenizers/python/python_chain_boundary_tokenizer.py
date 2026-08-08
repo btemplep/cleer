@@ -282,10 +282,7 @@ class PythonChainBoundaryTokenizer(Tokenizer):
         token = document[start:end]
 
         if not token.strip():
-            token_key = (
-                start,
-                len(token)
-            )
+            token_key = (start, len(token))
 
             if token_key in seen:
                 return
@@ -344,15 +341,18 @@ class PythonChainBoundaryTokenizer(Tokenizer):
             ):
                 return True
 
-        if isinstance(node, (
-            ast.If,
-            ast.For,
-            ast.AsyncFor,
-            ast.While,
-            ast.With,
-            ast.AsyncWith,
-            ast.Try
-        )):
+        if isinstance(
+            node,
+            (
+                ast.If,
+                ast.For,
+                ast.AsyncFor,
+                ast.While,
+                ast.With,
+                ast.AsyncWith,
+                ast.Try
+            )
+        ):
             return True
 
         return False

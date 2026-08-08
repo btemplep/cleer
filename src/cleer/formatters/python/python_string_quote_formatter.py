@@ -156,4 +156,9 @@ class PythonStringQuoteFormatter(Formatter):
         else:
             return (None, None, None, None)
 
-        return (prefix, quote_char, content, is_multiline)
+        return (
+            prefix,
+            quote_char,
+            content,
+            is_multiline
+        )

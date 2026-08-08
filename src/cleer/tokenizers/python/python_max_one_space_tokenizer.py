@@ -141,9 +141,9 @@ class PythonMaxOneSpaceTokenizer(Tokenizer):
                 and node.end_lineno is not None
                     and node.end_col_offset is not None
             ):
-                    start = line_offsets[node.lineno - 1] + node.col_offset
-                    end = line_offsets[node.end_lineno - 1] + node.end_col_offset
-                    ranges.append((start, end))
+                start = line_offsets[node.lineno - 1] + node.col_offset
+                end = line_offsets[node.end_lineno - 1] + node.end_col_offset
+                ranges.append((start, end))
 
         return ranges
 

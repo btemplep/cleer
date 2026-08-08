@@ -417,10 +417,7 @@ class PythonTypeHintFormatter(Formatter):
         lines = []
 
         for i, child in enumerate(children):
-            child_text = self._render_child_expanded(
-                child,
-                inner_indent
-            )
+            child_text = self._render_child_expanded(child, inner_indent)
             suffix = "," if i < len(children) - 1 else ""
             lines.append(" " * inner_indent + child_text + suffix)
 
@@ -453,11 +450,7 @@ class PythonTypeHintFormatter(Formatter):
                 parts.append(seg)
             else:
                 name, sub_children = seg
-                rendered = self._render_node(
-                    name,
-                    sub_children,
-                    base_indent
-                )
+                rendered = self._render_node(name, sub_children, base_indent)
                 parts.append(rendered)
 
         return "".join(parts)

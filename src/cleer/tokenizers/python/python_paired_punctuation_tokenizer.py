@@ -327,7 +327,15 @@ class PythonPairedPunctuationTokenizer(Tokenizer):
             if isinstance(child.value, ast.Subscript):
                 return True
 
-            if isinstance(child.value, (ast.ListComp, ast.SetComp, ast.DictComp, ast.GeneratorExp)):
+            if isinstance(
+                child.value,
+                (
+                    ast.ListComp,
+                    ast.SetComp,
+                    ast.DictComp,
+                    ast.GeneratorExp
+                )
+            ):
                 return True
 
         if isinstance(child, ast.AnnAssign):
@@ -363,7 +371,16 @@ class PythonPairedPunctuationTokenizer(Tokenizer):
 
     def _node_has_paired_punct(self, node) -> bool:
         """Check if an AST node contains paired punctuation."""
-        if isinstance(node, (ast.Dict, ast.List, ast.Set, ast.Tuple, ast.Call)):
+        if isinstance(
+            node,
+            (
+                ast.Dict,
+                ast.List,
+                ast.Set,
+                ast.Tuple,
+                ast.Call
+            )
+        ):
             return True
 
         if isinstance(node, ast.BoolOp):
@@ -406,7 +423,10 @@ class PythonPairedPunctuationTokenizer(Tokenizer):
 
     def _find_funcdef_end(self, node, lines: list[str]) -> int:
         """Find the line where the function def's colon is."""
-        for line_idx in range(node.lineno - 1, min(node.end_lineno, len(lines))):
+        for line_idx in range(
+            node.lineno - 1,
+            min(node.end_lineno, len(lines))
+        ):
             line = lines[line_idx]
             stripped = line.rstrip()
             if stripped.endswith(":"):
