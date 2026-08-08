@@ -47,7 +47,11 @@ class PythonClassBoundaryFormatter(Formatter):
         formatted = self.format(token)
 
         if formatted != token:
-            return "Class body spacing is incorrect."
+            return (
+                "Class body spacing should have no blank lines between class declaration, docstring, class vars, or pass. "
+                "There should be two blank lines between those and the first method."
+
+            )
 
         return None
 

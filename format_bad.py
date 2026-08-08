@@ -621,5 +621,18 @@ class JSONValidator:
             ]
         }
         content_len = len(region['open_char']) + len(", ".join(items)) + len(region['close_charsherer'])
+        if (
+            before != before.rstrip(" \t")
+            or (
+                after != " " and not after.startswith("\n"))
+        ):
+            return "thing"
+        if formatted != token:
+            return (
+                "Class body spacing should have no blank lines between class declaration, docstring, class vars, or pass. "
+                "There should be two blank lines between those and the first method."
+
+            )
+
 
         return None

@@ -30,6 +30,14 @@ class PythonPairedPunctuationFormatter(Formatter):
         Maximum flat call length (excluding indent) before expansion.
     max_funcdef_flat : int, default=80
         Maximum flat function def length (excluding indent) before expansion.
+    max_container_flat : int, default=30
+        Maximum flat container (list, set, tuple) literal length before expansion.
+    max_boolop_flat : int, default=60
+        Maximum flat boolean expression length (excluding indent) before expansion.
+    max_args : int, default=4
+        Maximum number of arguments before expansion is triggered.
+    max_args_with_kwargs : int, default=2
+        Maximum number of arguments when kwargs are present before expansion.
     """
     accepts_token_types = ["file"]
 
@@ -38,11 +46,19 @@ class PythonPairedPunctuationFormatter(Formatter):
         self,
         max_line: int=80,
         max_call_flat: int=60,
-        max_funcdef_flat: int=80
+        max_funcdef_flat: int=80,
+        max_container_flat: int=30,
+        max_boolop_flat: int=60,
+        max_args: int=4,
+        max_args_with_kwargs: int=2
     ):
         self._MAX_LINE = max_line
         self._MAX_CALL_FLAT = max_call_flat
         self._MAX_FUNCDEF_FLAT = max_funcdef_flat
+        self._MAX_CONTAINER_FLAT = max_container_flat
+        self._MAX_BOOLOP_FLAT = max_boolop_flat
+        self._MAX_ARGS = max_args
+        self._MAX_ARGS_WITH_KWARGS = max_args_with_kwargs
 
 
     def inspect(self, token: str) -> str | None:
@@ -130,6 +146,8 @@ class PythonPairedPunctuationFormatter(Formatter):
                 formatted = self._format_funcdef(node, current_text, indent)
             elif node_type == "subscript":
                 formatted = self._format_subscript(node, current_text, indent)
+            elif node_type == "string_concat":
+                formatted = self._format_string_concat(node, current_text, indent)
             else:
                 continue
 
@@ -203,10 +221,21 @@ class PythonPairedPunctuationFormatter(Formatter):
         elif isinstance(node, ast.Assign):
             if isinstance(node.value, ast.BoolOp):
                 self._add_assign_boolop(node, document, nodes, depth)
+            elif (
+                isinstance(node.value, ast.Constant)
+                and isinstance(node.value.value, str)
+            ):
+                self._add_string_concat(node, document, nodes, depth)
 
         elif isinstance(node, ast.Return):
             if node.value and isinstance(node.value, ast.BoolOp):
                 self._add_return_boolop(node, document, nodes, depth)
+            elif (
+                node.value
+                and isinstance(node.value, ast.Constant)
+                and isinstance(node.value.value, str)
+            ):
+                self._add_string_concat(node, document, nodes, depth)
 
         elif isinstance(node, ast.Call):
             if self._is_chain_end(node, parent):
@@ -366,6 +395,44 @@ class PythonPairedPunctuationFormatter(Formatter):
             {
                 "node": node,
                 "type": "return_boolop",
+                "start": start,
+                "end": end,
+                "depth": depth
+            }
+        )
+
+
+    def _add_string_concat(
+        self,
+        node: ast.AST,
+        document: str,
+        nodes: list,
+        depth: int
+    ):
+        """Add a statement containing implicit string concatenation."""
+        if not hasattr(node, "lineno"):
+            return
+
+        start = self._offset(document, node.lineno, node.col_offset)
+        end = self._offset(document, node.end_lineno, node.end_col_offset)
+
+        text = document[start:end]
+        if "(" not in text:
+            return
+
+        paren_start = text.find("(")
+        paren_end = self._find_matching_paren(text, paren_start)
+        if paren_end is None:
+            return
+
+        content = text[paren_start + 1:paren_end].strip()
+        if not self._is_string_concat(content):
+            return
+
+        nodes.append(
+            {
+                "node": node,
+                "type": "string_concat",
                 "start": start,
                 "end": end,
                 "depth": depth
@@ -652,53 +719,27 @@ class PythonPairedPunctuationFormatter(Formatter):
 
         should_expand = (
             num_parts > 2
-            or flat_len > 60
+            or flat_len > self._MAX_BOOLOP_FLAT
             or flat_len + indent_len > self._MAX_LINE
         )
 
         if not should_expand:
-            if "\n" not in current_text:
-                return current_text
-
             return flat
 
-        if "\n" in current_text:
-            return current_text
-
-        return current_text
-
-
-    def _is_correctly_expanded_boolop(
-        self,
-        text: str,
-        indent: str,
-        op_str: str
-    ) -> bool:
-        """Check if a BoolOp is already correctly expanded."""
-        if "\n" not in text:
-            return False
-
         inner_indent = indent + "    "
-        lines = text.split("\n")
+        parts = self._split_boolop_by_op(flat, op_str)
 
-        for line in lines:
-            if not line.strip():
-                continue
+        if not parts:
+            return flat
 
-            if not line.startswith(inner_indent):
-                return False
+        lines = []
+        for i, part in enumerate(parts):
+            if i == 0:
+                lines.append(f"{indent}{part}")
+            else:
+                lines.append(f"{indent}{op_str} {part}")
 
-            content = line[len(inner_indent):]
-            if not (
-                content == content.lstrip()
-                or content.startswith(f"{op_str} ")
-                or content.startswith("and ")
-                or content.startswith("or ")
-                or content.startswith("    ")
-            ):
-                return False
-
-        return True
+        return "\n".join(lines)
 
 
     def _get_boolop_parts(self, node: ast.BoolOp, current_text: str) -> list[str]:
@@ -922,10 +963,10 @@ class PythonPairedPunctuationFormatter(Formatter):
 
         has_kwargs = any(self._is_kwarg_str(a) for a in args)
 
-        if has_kwargs and len(args) > 2:
+        if has_kwargs and len(args) > self._MAX_ARGS_WITH_KWARGS:
             return True
 
-        if len(args) > 4:
+        if len(args) > self._MAX_ARGS:
             return True
 
         for a in args:
@@ -1032,7 +1073,7 @@ class PythonPairedPunctuationFormatter(Formatter):
 
         should_expand = (
             num_parts > 2
-            or flat_len > 60
+            or flat_len > self._MAX_BOOLOP_FLAT
             or flat_len + indent_len > self._MAX_LINE
         )
 
@@ -1063,8 +1104,19 @@ class PythonPairedPunctuationFormatter(Formatter):
                                 has_bad_ops = True
                                 break
 
-                    if not has_bad_ops:
-                        return current_text
+                if not has_bad_ops:
+                    other_op = "and" if op_str == "or" else "or"
+                    for line in current_text.split("\n")[1:-1]:
+                        stripped = line.strip()
+                        if not stripped:
+                            continue
+                        if f" {other_op} " in stripped:
+                            if not stripped.startswith(f"{other_op} "):
+                                has_bad_ops = True
+                                break
+
+                if not has_bad_ops:
+                    return current_text
 
         keyword = "if"
         if isinstance(parent_node, ast.While):
@@ -1208,7 +1260,7 @@ class PythonPairedPunctuationFormatter(Formatter):
 
         should_expand = (
             num_parts > 2
-            or flat_len > 60
+            or flat_len > self._MAX_BOOLOP_FLAT
             or flat_len + indent_len > self._MAX_LINE
         )
 
@@ -1272,7 +1324,7 @@ class PythonPairedPunctuationFormatter(Formatter):
 
         should_expand = (
             num_parts > 2
-            or flat_len > 60
+            or flat_len > self._MAX_BOOLOP_FLAT
             or flat_len + indent_len > self._MAX_LINE
         )
 
@@ -1348,10 +1400,10 @@ class PythonPairedPunctuationFormatter(Formatter):
                 seg_len = len(seg['method']) + 1 + len(args_str) + 1
                 if (
                     seg_len > self._MAX_CALL_FLAT
-                    or len(seg['args']) > 4
+                    or len(seg['args']) > self._MAX_ARGS
                     or (
                         any(self._is_kwarg_str(a) for a in seg['args'])
-                        and len(seg['args']) > 2
+                        and len(seg['args']) > self._MAX_ARGS_WITH_KWARGS
                     )
                 ):
                     any_needs_expand = True
@@ -1597,10 +1649,10 @@ class PythonPairedPunctuationFormatter(Formatter):
         should_expand = (
             content_len > self._MAX_CALL_FLAT
             or content_len + indent_len > self._MAX_LINE
-            or len(all_args) > 4
+            or len(all_args) > self._MAX_ARGS
             or (
             any(self._is_kwarg_str(a) for a in all_args)
-            and len(all_args) > 2
+            and len(all_args) > self._MAX_ARGS_WITH_KWARGS
             )
             or self._any_arg_is_expanded(node)
         )
@@ -1682,7 +1734,7 @@ class PythonPairedPunctuationFormatter(Formatter):
         should_expand = (
             is_nested
             or has_nested_children
-            or content_len > 30
+            or content_len > self._MAX_CONTAINER_FLAT
             or content_len + indent_len > self._MAX_LINE
         )
 
@@ -1787,32 +1839,13 @@ class PythonPairedPunctuationFormatter(Formatter):
 
         literal = flat[paren_start:paren_end + 1]
 
-        if len(literal) <= 30:
+        if len(literal) <= self._MAX_CONTAINER_FLAT:
             return flat
 
         items = self._split_by_commas(literal[1:-1])
 
         if not items:
             return flat
-
-        if self._is_correctly_expanded(
-            current_text,
-            items,
-            indent,
-            "(",
-            ")"
-        ):
-            return current_text
-
-        inner_indent = indent + "    "
-        lines = ["("]
-        for i, item in enumerate(items):
-            comma = "," if i < len(items) - 1 else ""
-            lines.append(f"{inner_indent}{item.strip()}{comma}")
-
-        lines.append(f"{indent})")
-
-        return "\n".join(lines)
 
         if self._is_correctly_expanded(
             current_text,
@@ -1983,10 +2016,10 @@ class PythonPairedPunctuationFormatter(Formatter):
         should_expand = (
             flat_len > self._MAX_FUNCDEF_FLAT
             or flat_len + len(indent) > 100
-            or len(params) > 4
+            or len(params) > self._MAX_ARGS
             or (
             any("=" in p for p in params)
-            and len(params) > 2
+            and len(params) > self._MAX_ARGS_WITH_KWARGS
             )
         )
 
@@ -2077,6 +2110,71 @@ class PythonPairedPunctuationFormatter(Formatter):
         lines.append(f"{indent}]")
 
         return "\n".join(lines)
+
+
+    def _format_string_concat(
+        self,
+        node: ast.AST,
+        current_text: str,
+        indent: str
+    ) -> str:
+        """Format a statement containing implicit string concatenation.
+
+        Flattens first, then expands with one string per line inside parens.
+        """
+        if self._has_comment(current_text):
+            return current_text
+
+        flat = self._flatten(current_text)
+
+        paren_start = flat.find("(")
+        if paren_start == -1:
+            return current_text
+
+        paren_end = self._find_matching_paren(flat, paren_start)
+        if paren_end is None:
+            return current_text
+
+        content = flat[paren_start + 1:paren_end].strip()
+
+        if content.startswith("("):
+            inner_end = self._find_matching_paren(content, 0)
+            if inner_end is not None and inner_end == len(content) - 1:
+                content = content[1:-1].strip()
+                has_inner_parens = True
+            else:
+                has_inner_parens = False
+        else:
+            has_inner_parens = False
+
+        strings = self._split_concat_strings(content)
+        if len(strings) < 2:
+            return current_text
+
+        prefix = flat[:paren_start]
+        suffix = flat[paren_end + 1:]
+        inner_indent = indent + "    "
+
+        if has_inner_parens:
+            lines = [f"{prefix}("]
+            lines.append(f"{inner_indent}(")
+            str_indent = inner_indent + "    "
+            for s in strings:
+                lines.append(f"{str_indent}{s}")
+            lines.append(f"{inner_indent})")
+            lines.append(f"{indent}){suffix}")
+        else:
+            lines = [f"{prefix}("]
+            for s in strings:
+                lines.append(f"{inner_indent}{s}")
+            lines.append(f"{indent}){suffix}")
+
+        result = "\n".join(lines)
+
+        if result == current_text:
+            return current_text
+
+        return result
 
 
     def _offset(self, document: str, lineno: int, col_offset: int) -> int:
@@ -2306,6 +2404,9 @@ class PythonPairedPunctuationFormatter(Formatter):
         return "\n".join(result)
 
 
+
+
+
     def _collapse_short_parens(self, doc: str) -> str:
         """Collapse multi-line parenthesized expressions that fit on one line.
 
@@ -2371,7 +2472,7 @@ class PythonPairedPunctuationFormatter(Formatter):
                     ):
                         collapsed = f"{stripped}{content}{close_suffix}"
                         if len(collapsed) <= 120:
-                            if "," in content and len(f"({content})") > 30:
+                            if "," in content and len(f"({content})") > self._MAX_CONTAINER_FLAT:
                                 result.append(line)
                                 i += 1
                                 continue
@@ -2737,7 +2838,7 @@ class PythonPairedPunctuationFormatter(Formatter):
         ):
             return None
 
-        if len(stripped) <= 30:
+        if len(stripped) <= self._MAX_CONTAINER_FLAT:
             return None
 
         inner = stripped[1:-1].strip()
@@ -2910,13 +3011,23 @@ class PythonPairedPunctuationFormatter(Formatter):
         if len(string_tokens) < 2:
             return False
 
+        lines = content.split("\n")
+
         for i in range(len(string_tokens) - 1):
             cur = string_tokens[i]
             nxt = string_tokens[i + 1]
 
-            between = content[cur.end[1]:nxt.start[1]]
             if cur.end[0] == nxt.start[0]:
+                between = content[cur.end[1]:nxt.start[1]]
                 stripped = between.strip()
+                if stripped == "" or stripped == "\\":
+                    return True
+            else:
+                between_lines = lines[cur.end[0] - 1][cur.end[1]:]
+                for line_idx in range(cur.end[0], nxt.start[0] - 1):
+                    between_lines += "\n" + lines[line_idx]
+                between_lines += "\n" + lines[nxt.start[0] - 1][:nxt.start[1]]
+                stripped = between_lines.strip()
                 if stripped == "" or stripped == "\\":
                     return True
 
@@ -3071,17 +3182,17 @@ class PythonPairedPunctuationFormatter(Formatter):
                 return True
 
             flat_inner = ", ".join(ast.unparse(e) for e in elts)
-            if len(flat_inner) + 2 > 30:
+            if len(flat_inner) + 2 > self._MAX_CONTAINER_FLAT:
                 return True
 
             return False
 
         if isinstance(arg, ast.Call):
             inner_args = len(arg.args) + len(arg.keywords)
-            if inner_args > 4:
+            if inner_args > self._MAX_ARGS:
                 return True
 
-            if inner_args > 2 and any(kw for kw in arg.keywords):
+            if inner_args > self._MAX_ARGS_WITH_KWARGS and any(kw for kw in arg.keywords):
                 return True
 
             return False

@@ -114,31 +114,39 @@
         - for loop variables like `x` and `y` in `for x,y in thing:`
     - first step of all paired punctuation is to flatten it. 
     - no space between paired punctuation and inner values if they are on the same line
+    - configurable thresholds (class parameters with defaults):
+        - max_line: 80
+        - max_call_flat: 60
+        - max_funcdef_flat: 80
+        - max_container_flat: 30
+        - max_boolop_flat: 60
+        - max_args: 4
+        - max_args_with_kwargs: 2
     - dicts that have more than 0 items, are always expanded
     - Lists, sets, or tuples that are not nested, 
         - should be flattened
-        - if the list, set, or tuple itself is over 30 chars, then expand. Only count length of list/set/tuple literal.
+        - if the list, set, or tuple itself is over max_container_flat (30) chars, then expand. Only count length of list/set/tuple literal.
     - nested lists, sets, or tuples (inside of another list, dict, set, tuple) are expanded if more than 0 items
         - if any are nested are expanded then they all are expanded, unless empty
     - function definitions
         - first flatten
         - expand if any of the following
-            - over 80 characters not including indent
+            - over max_funcdef_flat (80) characters not including indent
             - over 100 chars including indent
-            - over 4 args
+            - over max_args (4) args
             - any inner paired punctuation args are expanded
-            - more than 2 args with at least one given as a kwarg
+            - more than max_args_with_kwargs (2) args with at least one given as a kwarg
         - if any sub items are expanded
         - never split empty args, ie don't split the function def parenthesis to a new line
         - if any are expanded then they all are expanded, unless empty
     - function calls
         - first flatten
         - expand if any of the following
-            - over 60 characters not including indent
-            - over 80 chars including indent
-            - over 4 args, now kwargs
+            - over max_call_flat (60) characters not including indent
+            - over max_line (80) chars including indent
+            - over max_args (4) args
             - any inner paired punct is expanded
-            - more than 2 args with at least one given as a kwarg
+            - more than max_args_with_kwargs (2) args with at least one given as a kwarg
         - never split empty args, ie don't split the function call parenthesis to a new line
         - never split if it is a single arg that a string
             - must be non-kwarg
@@ -150,15 +158,16 @@
         - First flatten 
         - Expand all, except calls with 0 args, if:
             - any of the chained function calls, meet any of the function call conditions for expansion,  
-            - The flattened length is > 80 chars
+            - The flattened length is > max_line (80) chars
     - decorators
+        - Are treated as function calls (same rules and thresholds)
         - flatten first
         - expand if any of the following
-            - Over 4 args,
-            - more than 60 chars not including indent
-            - over 80 chars including indent
+            - over max_args (4) args
+            - more than max_call_flat (60) chars not including indent
+            - over max_line (80) chars including indent
             - any inner paired punct is expanded
-            - more than one arg with at least one given as a kwarg
+            - more than max_args_with_kwargs (2) args with at least one given as a kwarg
         - never split empty args, ie don't split the decorator parenthesis to a new line
         - if any are expanded then they all are expanded, unless empty
     - logic blocks
@@ -168,15 +177,16 @@
         - Add parenthesis to clarify order of operations as well
         - expand if any of the following
             - more than 2 statements
-            - length is over 60 without indent
-            - length is over 80 with indent
+            - length is over max_boolop_flat (60) without indent
+            - length is over max_line (80) with indent
             - any inner paired punct is expanded
             - any other logic block is expanded.
         - if expanded should add parenthesis around them
     - native strings concatenation, with () or without
         - flatten first, as usual
         - should always be multiline, and surrounded by parenthesis for themselves
-        - fully expand everything that it is in per usual. 
+        - fully expand everything that it is in per usual.
+        - applies to return statements and assignments as well as function call args
     - dictionary key notation
         - always flatten
         - never expand
