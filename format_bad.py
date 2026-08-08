@@ -612,5 +612,13 @@ class JSONValidator:
         old_indent = len(
                 self._get_leading_whitespace(line).replace("\t", " " * self._tab_size)
             )
+        unchanged = {
+            "this": [
+                {
+                    # it does this
+                    "that": "thing"},
+                {"that": "there"}
+            ]
+        }
 
         return None

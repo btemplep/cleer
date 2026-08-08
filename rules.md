@@ -107,6 +107,7 @@
         - If multiple end at different levels, and there is no blank line, then it should only be one blank line total.
     - no blank lines between indent block (if, for, while, with, etc) and first line of inner code
 - [x] paired punctuation
+    - any paired punctuation with comments inside of it is not formatted.
     - excludes:
         - __all__
         - type hints

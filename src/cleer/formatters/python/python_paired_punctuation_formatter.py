@@ -638,6 +638,9 @@ class PythonPairedPunctuationFormatter(Formatter):
         This handles standalone BoolOps (in assignments, returns, etc.)
         The parent context provides the wrapping parens.
         """
+        if self._has_comment(current_text):
+            return current_text
+
         op_str = "or" if isinstance(node.op, ast.Or) else "and"
         num_parts = len(node.values)
 
@@ -1015,6 +1018,9 @@ class PythonPairedPunctuationFormatter(Formatter):
         parent_node: ast.AST
     ) -> str:
         """Format a BoolOp that is the condition of if/elif/while."""
+        if self._has_comment(current_text):
+            return current_text
+
         flat = self._flatten(current_text)
         flat_len = len(flat)
         indent_len = len(indent)
@@ -1187,6 +1193,9 @@ class PythonPairedPunctuationFormatter(Formatter):
         indent: str
     ) -> str:
         """Format an assignment whose value is a BoolOp."""
+        if self._has_comment(current_text):
+            return current_text
+
         boolop = node.value
         op_str = "or" if isinstance(boolop.op, ast.Or) else "and"
         num_parts = len(boolop.values)
@@ -1248,6 +1257,9 @@ class PythonPairedPunctuationFormatter(Formatter):
         indent: str
     ) -> str:
         """Format a return statement whose value is a BoolOp."""
+        if self._has_comment(current_text):
+            return current_text
+
         boolop = node.value
         op_str = "or" if isinstance(boolop.op, ast.Or) else "and"
         num_parts = len(boolop.values)
@@ -1314,6 +1326,9 @@ class PythonPairedPunctuationFormatter(Formatter):
         - Expand all (except 0-arg calls) if any call meets expansion
         criteria or total > 80 chars
         """
+        if self._has_comment(current_text):
+            return current_text
+
         flat = self._flatten(current_text)
         flat = self._collapse_paren_spaces(flat)
         flat_len = len(flat)
@@ -1520,6 +1535,9 @@ class PythonPairedPunctuationFormatter(Formatter):
 
     def _format_call(self, node: ast.Call, current_text: str, indent: str) -> str:
         """Format a function call."""
+        if self._has_comment(current_text):
+            return current_text
+
         num_args = len(node.args) + len(node.keywords)
         if self._contains_ternary(node) and num_args <= 1:
             if "\n" not in current_text:
@@ -1629,6 +1647,9 @@ class PythonPairedPunctuationFormatter(Formatter):
         if not elts:
             return current_text
 
+        if self._has_comment(current_text):
+            return current_text
+
         if self._is_comprehension_node(node):
             return self._flatten(current_text)
 
@@ -1711,6 +1732,9 @@ class PythonPairedPunctuationFormatter(Formatter):
         if not node.keys:
             return current_text
 
+        if self._has_comment(current_text):
+            return current_text
+
         flat = self._flatten(current_text)
         flat_items = self._split_by_commas(
             flat[flat.find("{") + 1:self._find_matching_paren(flat, flat.find("{"))]
@@ -1743,6 +1767,9 @@ class PythonPairedPunctuationFormatter(Formatter):
     def _format_tuple(self, node: ast.Tuple, current_text: str, indent: str) -> str:
         """Format a tuple per rules: flatten, expand if >30 chars literal."""
         if "(" not in current_text:
+            return current_text
+
+        if self._has_comment(current_text):
             return current_text
 
         flat = self._flatten(current_text)
@@ -1941,6 +1968,9 @@ class PythonPairedPunctuationFormatter(Formatter):
 
     def _format_funcdef(self, node: ast.AST, current_text: str, indent: str) -> str:
         """Format a function definition signature."""
+        if self._has_comment(current_text):
+            return current_text
+
         flat = self._flatten(current_text)
         flat = self._collapse_paren_spaces(flat)
         flat_len = len(flat)
@@ -1995,6 +2025,9 @@ class PythonPairedPunctuationFormatter(Formatter):
     ) -> str:
         """Format a subscript (type annotation like Dict[str, int])."""
         if not isinstance(node.slice, ast.Tuple):
+            return current_text
+
+        if self._has_comment(current_text):
             return current_text
 
         flat = self._flatten(current_text)
@@ -2925,6 +2958,48 @@ class PythonPairedPunctuationFormatter(Formatter):
             return flat
 
         return flat[:paren_start]
+
+
+    def _has_comment(self, text: str) -> bool:
+        """Check if text contains a comment outside of string literals."""
+        in_string = False
+        string_char = ""
+        i = 0
+
+        while i < len(text):
+            ch = text[i]
+
+            if not in_string:
+                if ch == "#":
+                    return True
+
+                if ch in ('"', "'"):
+                    if text[i:i + 3] in ('"""', "'''"):
+                        in_string = True
+                        string_char = text[i:i + 3]
+                        i += 3
+                        continue
+                    else:
+                        in_string = True
+                        string_char = ch
+            else:
+                if (
+                    len(string_char) == 3
+                    and text[i:i + 3] == string_char
+                ):
+                    in_string = False
+                    i += 3
+                    continue
+                elif (
+                    len(string_char) == 1
+                    and ch == string_char
+                    and (i == 0 or text[i - 1] != "\\")
+                ):
+                    in_string = False
+
+            i += 1
+
+        return False
 
 
     def _is_single_string_arg(self, node: ast.Call) -> bool:
