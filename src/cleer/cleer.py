@@ -218,7 +218,7 @@ class Cleer:
         self,
         result: Inspection | Formatting | FormattingDocument,
         keep_excluded: bool,
-        keep_not_included: bool
+        keep_no_match: bool
     ) -> bool:
         if (
             len(result['included']) > 0
@@ -226,7 +226,7 @@ class Cleer:
                 len(result['excluded']) > 0
                 and keep_excluded is True
             )
-            or keep_not_included is True
+            or keep_no_match is True
         ):
             return True
 
@@ -237,7 +237,7 @@ class Cleer:
         self,
         path: str | pathlib.Path,
         keep_excluded: bool=False,
-        keep_not_included=False
+        keep_no_match=False
     ) -> list[Inspection]:
         """Inspect a file or directory for violations.
 
@@ -248,7 +248,7 @@ class Cleer:
         keep_excluded : bool, default=False
             Keep results for files that matched at least one group, but were excluded from all matches.
             By default, these are not included in the results.
-        keep_not_included : bool, default=False
+        keep_no_match : bool, default=False
             Keep results for files that did not match any groups.
             By default, these are not included in the results.
 
@@ -272,7 +272,7 @@ class Cleer:
             if self._keep_result(
                 result=inspection,
                 keep_excluded=keep_excluded,
-                keep_not_included=keep_not_included
+                keep_no_match=keep_no_match
             ) is False:
                 return []
 
@@ -286,7 +286,7 @@ class Cleer:
                     if self._keep_result(
                         result=inspection,
                         keep_excluded=keep_excluded,
-                        keep_not_included=keep_not_included
+                        keep_no_match=keep_no_match
                     ) is True:
                         inspections.append(inspection)
 
@@ -403,7 +403,7 @@ class Cleer:
         self,
         path: str | pathlib.Path,
         keep_excluded: bool=False,
-        keep_not_included: bool=False
+        keep_no_match: bool=False
     ) -> list[Formatting]:
         """Format a file or directory of files.
 
@@ -414,7 +414,7 @@ class Cleer:
         keep_excluded : bool, default=False
             Keep results for files that matched at least one group, but were excluded from all matches.
             By default these are not included in the result.
-        keep_not_included : bool, default=False
+        keep_no_match : bool, default=False
             Keep results for files that did not match any groups.
             By default, these are not included in the results.
 
@@ -435,7 +435,7 @@ class Cleer:
             if self._keep_result(
                 result=formatting,
                 keep_excluded=keep_excluded,
-                keep_not_included=keep_not_included
+                keep_no_match=keep_no_match
             ) is False:
                 return []
 
@@ -451,7 +451,7 @@ class Cleer:
                     if self._keep_result(
                         result=formatting,
                         keep_excluded=keep_excluded,
-                        keep_not_included=keep_not_included
+                        keep_no_match=keep_no_match
                     ) is True:
                         formatting.pop("document")
                         formattings.append(formatting)

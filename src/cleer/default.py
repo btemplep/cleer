@@ -173,7 +173,7 @@ def cleer_default_config(
                         ]
                     },
                     {
-                        "tokenizer": PythonPairedPunctuationTokenizer(),
+                        "tokenizer": FileTokenizer(),
                         "formatters": [
                             PythonPairedPunctuationFormatter()
                         ]
