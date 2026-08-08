@@ -602,6 +602,7 @@ clr = Cleer(
 
 class AnotherClass:
 
+
     def _is_inside_function(
         self,
         start: int,
@@ -733,7 +734,7 @@ elif (
 
 
 if isinstance(
-    node, 
+    node,
     (
         ast.If,
         ast.For,
@@ -776,25 +777,25 @@ class AnotherOne:
                 segments.append([name, children])
                 if node.orelse:
                     else_line = self._find_keyword_line(
-                        document, 
-                        line_offsets, 
-                        node.handlers[-1].end_lineno if node.handlers else node.body[-1].end_lineno, 
+                        document,
+                        line_offsets,
+                        node.handlers[-1].end_lineno if node.handlers else node.body[-1].end_lineno,
                         node.orelse[0].lineno
                     )
 
                 if not isinstance(
                     node,
                     (
-                        ast.FunctionDef, 
-                        ast.AsyncFunctionDef, 
+                        ast.FunctionDef,
+                        ast.AsyncFunctionDef,
                         ast.ClassDef
                     )
                 ):
                     print("hello")
 
                 target_types = (
-                    ast.FunctionDef, 
-                    ast.AsyncFunctionDef, 
+                    ast.FunctionDef,
+                    ast.AsyncFunctionDef,
                     ast.ClassDef
                 )
 

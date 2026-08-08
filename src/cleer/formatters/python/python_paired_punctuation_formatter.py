@@ -476,6 +476,9 @@ class PythonPairedPunctuationFormatter(Formatter):
         if not node.elts:
             return
 
+        if isinstance(parent, ast.Subscript):
+            return
+
         start = self._offset(document, node.lineno, node.col_offset)
         end = self._offset(document, node.end_lineno, node.end_col_offset)
 
@@ -1428,7 +1431,8 @@ class PythonPairedPunctuationFormatter(Formatter):
         indent: str
     ) -> str:
         """Format a function call."""
-        if self._contains_ternary(node):
+        num_args = len(node.args) + len(node.keywords)
+        if self._contains_ternary(node) and num_args <= 1:
             if "\n" not in current_text:
                 return current_text
 
@@ -1617,19 +1621,54 @@ class PythonPairedPunctuationFormatter(Formatter):
         current_text: str,
         indent: str
     ) -> str:
-        """Format a tuple — collapse if short enough, don't expand."""
-        if "\n" not in current_text:
+        """Format a tuple per rules: flatten, expand if >30 chars literal."""
+        if "(" not in current_text:
             return current_text
 
         flat = self._flatten(current_text)
         flat = self._collapse_paren_spaces(flat)
-        flat_len = len(flat)
-        indent_len = len(indent)
 
-        if flat_len + indent_len <= self._MAX_LINE:
+        paren_start = flat.find("(")
+        if paren_start < 0:
+            return current_text
+
+        paren_end = self._find_matching_paren(flat, paren_start)
+        if paren_end is None:
+            return current_text
+
+        literal = flat[paren_start:paren_end + 1]
+
+        if len(literal) <= 30:
             return flat
 
-        return current_text
+        items = self._split_by_commas(literal[1:-1])
+
+        if not items:
+            return flat
+
+        if self._is_correctly_expanded(current_text, items, indent, "(", ")"):
+            return current_text
+
+        inner_indent = indent + "    "
+        lines = ["("]
+        for i, item in enumerate(items):
+            comma = "," if i < len(items) - 1 else ""
+            lines.append(f"{inner_indent}{item.strip()}{comma}")
+        lines.append(f"{indent})")
+
+        return "\n".join(lines)
+
+        if self._is_correctly_expanded(current_text, items, indent, "(", ")"):
+            return current_text
+
+        inner_indent = indent + "    "
+        lines = ["("]
+        for i, item in enumerate(items):
+            comma = "," if i < len(items) - 1 else ""
+            lines.append(f"{inner_indent}{item.strip()}{comma}")
+        lines.append(f"{indent})")
+
+        return "\n".join(lines)
 
 
     def _format_call_with_string_concat(
@@ -2143,6 +2182,10 @@ class PythonPairedPunctuationFormatter(Formatter):
                     ):
                         collapsed = f"{stripped}{content}{close_suffix}"
                         if len(collapsed) <= 120:
+                            if "," in content and len(f"({content})") > 30:
+                                result.append(line)
+                                i += 1
+                                continue
                             result.append(f"{line[:open_indent]}{stripped.lstrip()}{content}{close_suffix}")
                             i = close_idx + 1
                             continue
@@ -2217,12 +2260,8 @@ class PythonPairedPunctuationFormatter(Formatter):
                     j = i + 1
                     while j < len(line) and line[j] == " ":
                         j += 1
-                    if j < len(line) and line[j] in ")]}":
-                        result.append(ch)
-                        i = j
-                        continue
                     result.append(ch)
-                    i += 1
+                    i = j
                     continue
 
                 if (
@@ -2392,7 +2431,7 @@ class PythonPairedPunctuationFormatter(Formatter):
         current_text: str,
         inner_indent: str
     ) -> list[str]:
-        """Get arg strings, with inner expansions applied for dicts/lists."""
+        """Get arg strings, with inner expansions applied for dicts/lists/tuples."""
         flat_args = self._get_call_args(node, current_text)
         all_ast_args = list(node.args) + [kw.value for kw in node.keywords]
 
@@ -2402,6 +2441,11 @@ class PythonPairedPunctuationFormatter(Formatter):
 
             if ast_arg and isinstance(ast_arg, ast.Dict) and ast_arg.keys:
                 expanded = self._expand_dict_inline(arg_str, inner_indent)
+                if expanded:
+                    result.append(expanded)
+                    continue
+            elif ast_arg and isinstance(ast_arg, ast.Tuple) and ast_arg.elts:
+                expanded = self._expand_tuple_inline(arg_str, inner_indent)
                 if expanded:
                     result.append(expanded)
                     continue
@@ -2445,6 +2489,33 @@ class PythonPairedPunctuationFormatter(Formatter):
             comma = "," if i < len(items) - 1 else ""
             lines.append(f"{inner_indent}{item.strip()}{comma}")
         lines.append(f"{indent}}}")
+
+        return "\n".join(lines)
+
+
+    def _expand_tuple_inline(self, arg_str: str, indent: str) -> str | None:
+        """Expand a tuple arg string into multi-line format if >30 chars."""
+        stripped = arg_str.strip()
+        if not stripped.startswith("(") or not stripped.endswith(")"):
+            return None
+
+        if len(stripped) <= 30:
+            return None
+
+        inner = stripped[1:-1].strip()
+        if not inner:
+            return None
+
+        items = self._split_by_commas(inner)
+        if not items:
+            return None
+
+        inner_indent = indent + "    "
+        lines = ["("]
+        for i, item in enumerate(items):
+            comma = "," if i < len(items) - 1 else ""
+            lines.append(f"{inner_indent}{item.strip()}{comma}")
+        lines.append(f"{indent})")
 
         return "\n".join(lines)
 
@@ -2691,10 +2762,27 @@ class PythonPairedPunctuationFormatter(Formatter):
 
         arg = node.args[0]
 
-        if isinstance(arg, (ast.Dict, ast.List, ast.Set)):
-            elts = getattr(arg, 'elts', None) or getattr(arg, 'keys', None)
-            if elts:
+        if isinstance(arg, ast.Dict) and arg.keys:
+            return True
+
+        if isinstance(arg, (ast.List, ast.Set)):
+            elts = getattr(arg, 'elts', [])
+            if not elts:
+                return False
+
+            has_nested = any(
+                isinstance(e, (ast.Dict, ast.List, ast.Set, ast.Tuple))
+                and self._node_has_content(e)
+                for e in elts
+            )
+            if has_nested:
                 return True
+
+            flat_inner = ", ".join(ast.unparse(e) for e in elts)
+            if len(flat_inner) + 2 > 30:
+                return True
+
+            return False
 
         if isinstance(arg, ast.Call):
             inner_args = len(arg.args) + len(arg.keywords)
@@ -2844,7 +2932,7 @@ class PythonPairedPunctuationFormatter(Formatter):
 
         last_line = lines[-1].rstrip()
         expected_close = f"{indent}{close_char}"
-        if last_line != expected_close and not last_line.endswith(f"{indent}{close_char}"):
+        if last_line != expected_close:
             return False
 
         for line in lines[1:-1]:
