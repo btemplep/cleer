@@ -1272,7 +1272,6 @@ class PythonPairedPunctuationFormatter(Formatter):
         should_expand = (
             any_needs_expand
             or flat_len > self._MAX_LINE
-            or flat_len + indent_len > self._MAX_LINE
         )
 
         if not should_expand:
@@ -1288,15 +1287,16 @@ class PythonPairedPunctuationFormatter(Formatter):
 
         for i, seg in enumerate(segments):
             if i == 0:
+                prefix = seg.get('prefix', '')
                 if not seg['args']:
-                    result_parts.append(f"{seg['method']}()")
+                    result_parts.append(f"{prefix}{seg['method']}()")
                 else:
                     args_str = ", ".join(seg['args'])
-                    seg_flat_len = len(seg['method']) + 1 + len(args_str) + 1
+                    seg_flat_len = len(prefix) + len(seg['method']) + 1 + len(args_str) + 1
                     if seg_flat_len <= self._MAX_CALL_FLAT and not any(self._is_kwarg_str(a) for a in seg['args']):
-                        result_parts.append(f"{seg['method']}({args_str})")
+                        result_parts.append(f"{prefix}{seg['method']}({args_str})")
                     else:
-                        lines = [f"{seg['method']}("]
+                        lines = [f"{prefix}{seg['method']}("]
                         for j, arg in enumerate(seg['args']):
                             comma = "," if j < len(seg['args']) - 1 else ""
                             lines.append(f"{inner_indent}{arg}{comma}")
@@ -1314,7 +1314,12 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _get_chain_segments(self, node: ast.Call, indent: str="") -> list[dict]:
-        """Extract chain segments from outermost to innermost call."""
+        """Extract chain segments from outermost to innermost call.
+
+        Returns segments in order from first call to last. The first
+        segment includes a 'prefix' key with any base expression
+        (e.g., 'self.' or 'obj.').
+        """
         inner_indent = indent + "    "
         segments = []
         current = node
@@ -1329,7 +1334,8 @@ class PythonPairedPunctuationFormatter(Formatter):
                     segments.append(
                         {
                             "method": method_name,
-                            "args": args
+                            "args": args,
+                            "prefix": ""
                         }
                     )
                     current = current.func.value
@@ -1338,13 +1344,16 @@ class PythonPairedPunctuationFormatter(Formatter):
                     segments.append(
                         {
                             "method": current.func.id,
-                            "args": args
+                            "args": args,
+                            "prefix": ""
                         }
                     )
                     break
                 else:
                     break
             else:
+                if segments:
+                    segments[-1]["prefix"] = ast.unparse(current) + "."
                 break
 
         segments.reverse()
@@ -1458,7 +1467,12 @@ class PythonPairedPunctuationFormatter(Formatter):
             return current_text
 
         if len(all_args) == 1 and not self._is_kwarg_str(all_args[0]):
-            if not self._inner_would_expand(node, indent + "    "):
+            flat_len = len(flat)
+            if (
+                not self._inner_would_expand(node, indent + "    ")
+                and flat_len <= self._MAX_CALL_FLAT
+                and flat_len + len(indent) <= self._MAX_LINE
+            ):
                 return flat
 
         func_text = self._get_func_text(node, current_text)

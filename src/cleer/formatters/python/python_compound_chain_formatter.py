@@ -92,12 +92,7 @@ class PythonCompoundChainFormatter(Formatter):
         while i < len(lines):
             result_lines.append(lines[i])
 
-            boundary = self._boundary_at_line(
-                boundaries,
-                i,
-                base_indent,
-                lines
-            )
+            boundary = self._boundary_at_line(boundaries, i, base_indent, lines)
             if boundary is not None:
                 expected_blanks = boundary['expected_blanks']
 
@@ -169,11 +164,7 @@ class PythonCompoundChainFormatter(Formatter):
         if isinstance(first_else, ast.If):
             connector_line = first_else.lineno
         else:
-            connector_line = self._find_else_line(
-                body_end,
-                first_else.lineno,
-                node
-            )
+            connector_line = self._find_else_line(body_end, first_else.lineno, node)
 
         expected = 1 if self._needs_blank(last_stmt) else 0
         boundaries.append(
@@ -298,15 +289,18 @@ class PythonCompoundChainFormatter(Formatter):
             ):
                 return True
 
-        if isinstance(node, (
-            ast.If,
-            ast.For,
-            ast.AsyncFor,
-            ast.While,
-            ast.With,
-            ast.AsyncWith,
-            ast.Try
-        )):
+        if isinstance(
+            node,
+            (
+                ast.If,
+                ast.For,
+                ast.AsyncFor,
+                ast.While,
+                ast.With,
+                ast.AsyncWith,
+                ast.Try
+            )
+        ):
             return True
 
         return False

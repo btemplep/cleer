@@ -606,4 +606,8 @@ class JSONValidator:
         except Exception as exc:
             return f"Failed to parse JSON. [{type(exc).__name__}]: {exc}"
 
+        old_indent = len(
+                self._get_leading_whitespace(line).replace("\t", " " * self._tab_size)
+            )
+
         return None

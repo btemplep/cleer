@@ -33,7 +33,7 @@ class MaxBlankLinesFormatter(Formatter):
 
     def __init__(self, max_blank_lines: int=2):
         self._max_blank_lines = max_blank_lines
-        self._replacement = "\n" * ( max_blank_lines + 1)
+        self._replacement = "\n" * (max_blank_lines + 1)
 
 
     def _count_blank_lines(self, token: str) -> int:
