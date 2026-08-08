@@ -53,7 +53,10 @@ def cleer_default_config(
     if excludes is None:
         excludes = []
 
-    excludes += ["**/.venv*/**", "**/venv*/**"]
+    excludes += [
+        "**/.venv*/**",
+        "**/venv*/**"
+    ]
     logger.debug(
         (
             f"Python Packages: {python_packages}\n"
@@ -93,30 +96,6 @@ def cleer_default_config(
                         "formatters": [
                             NonAsciiWhitespaceFormatter()
                         ]
-                    },
-                    {
-                        "tokenizer": TrailingWhitespaceTokenizer(),
-                        "formatters": [
-                            TrailingWhitespaceFormatter()
-                        ]
-                    },
-                    {
-                        "tokenizer": FileStartWhitespaceTokenizer(),
-                        "formatters": [
-                            FileStartWhitespaceFormatter()
-                        ]
-                    },
-                    {
-                        "tokenizer": WhitespaceTokenizer(),
-                        "formatters": [
-                            MaxBlankLinesFormatter()
-                        ]
-                    },
-                    {
-                        "tokenizer": FileEndWhitespaceTokenizer(),
-                        "formatters": [
-                            FileEndWhitespaceFormatter()
-                        ]
                     }
                 ]
             },
@@ -151,16 +130,17 @@ def cleer_default_config(
                         ]
                     },
                     {
-                        "tokenizer": PythonAllTokenizer(),
+                        "tokenizer": FileTokenizer(),
                         "formatters": [
-                            PythonAllFormatter()
+                            PythonPairedPunctuationFormatter(),
+                            PythonModuleDocstringPresenceFormatter(),
+                            PythonModuleHeaderFormatter()
                         ]
                     },
                     {
-                        "tokenizer": FileTokenizer(),
+                        "tokenizer": PythonAllTokenizer(),
                         "formatters": [
-                            PythonModuleDocstringPresenceFormatter(),
-                            PythonModuleHeaderFormatter()
+                            PythonAllFormatter()
                         ]
                     },
                     {
@@ -170,12 +150,6 @@ def cleer_default_config(
                                 internal_packages=python_internal_packages,
                                 current_packages=python_packages
                             )
-                        ]
-                    },
-                    {
-                        "tokenizer": FileTokenizer(),
-                        "formatters": [
-                            PythonPairedPunctuationFormatter()
                         ]
                     },
                     {
@@ -308,6 +282,30 @@ def cleer_default_config(
                         "tokenizer": PythonTrailingCommaTokenizer(),
                         "formatters": [
                             PythonTrailingCommaFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": TrailingWhitespaceTokenizer(),
+                        "formatters": [
+                            TrailingWhitespaceFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": FileStartWhitespaceTokenizer(),
+                        "formatters": [
+                            FileStartWhitespaceFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": WhitespaceTokenizer(),
+                        "formatters": [
+                            MaxBlankLinesFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": FileEndWhitespaceTokenizer(),
+                        "formatters": [
+                            FileEndWhitespaceFormatter()
                         ]
                     }
                 ]

@@ -730,3 +730,82 @@ elif (
     )
 ):
     print("here")
+
+
+if isinstance(
+    node, 
+    (
+        ast.If,
+        ast.For,
+        ast.AsyncFor,
+        ast.While,
+        ast.With,
+        ast.AsyncWith,
+        ast.Try
+    )
+):
+    print(True)
+
+
+def another_one():
+    return ["\n".join(import_lines)]
+
+
+class AnotherOne:
+
+
+    def _parse_at(self, text: str, pos: int) -> tuple[list, int]:
+        """Parse segments starting at position.
+
+        Returns
+        -------
+        tuple[list, int]
+            Parsed segments and the position after parsing.
+        """
+        segments = []
+        current = ""
+
+        while pos < len(text):
+            char = text[pos]
+
+            if char == "[":
+                name = current
+                current = ""
+                pos += 1
+                children, pos = self._parse_children(text, pos)
+                segments.append([name, children])
+                if node.orelse:
+                    else_line = self._find_keyword_line(
+                        document, 
+                        line_offsets, 
+                        node.handlers[-1].end_lineno if node.handlers else node.body[-1].end_lineno, 
+                        node.orelse[0].lineno
+                    )
+
+                if not isinstance(
+                    node,
+                    (
+                        ast.FunctionDef, 
+                        ast.AsyncFunctionDef, 
+                        ast.ClassDef
+                    )
+                ):
+                    print("hello")
+
+                target_types = (
+                    ast.FunctionDef, 
+                    ast.AsyncFunctionDef, 
+                    ast.ClassDef
+                )
+
+
+class JSONValidator:
+
+
+    def validate(self, document: str) -> str | None:
+        try:
+            json.loads(document)
+        except Exception as exc:
+            return f"Failed to parse JSON. [{type(exc).__name__}]: {exc}"
+
+        return None

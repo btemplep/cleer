@@ -131,15 +131,9 @@ class Cleer:
         }
         for gi, group in enumerate(self._config['groups']):
             logger.debug(f"Evaluating config groups[{gi}] for '{file_path}'.")
-            include_pattern = self._get_file_pattern_match(
-                file_path,
-                group['includes']
-            )
+            include_pattern = self._get_file_pattern_match(file_path, group['includes'])
             if include_pattern is not None:
-                exclude_pattern = self._get_file_pattern_match(
-                    file_path,
-                    group['excludes']
-                )
+                exclude_pattern = self._get_file_pattern_match(file_path, group['excludes'])
                 if exclude_pattern is not None:
                     logger.debug(f"Excluding '{file_path}' from groups[{gi}] for matching the '{exclude_pattern}' exclude pattern.")
                     inspection['excluded'].append(
@@ -265,10 +259,7 @@ class Cleer:
         """
         path = pathlib.Path(path).resolve()
         if path.is_file() is True:
-            inspection = self._inspect_one(
-                file_path=path,
-                document=None
-            )
+            inspection = self._inspect_one(file_path=path, document=None)
             if self._keep_result(
                 result=inspection,
                 keep_excluded=keep_excluded,
@@ -310,15 +301,9 @@ class Cleer:
         }
         for gi, group in enumerate(self._config['groups']):
             logger.debug(f"Evaluating config groups[{gi}] for '{file_path}'.")
-            include_pattern = self._get_file_pattern_match(
-                file_path,
-                group['includes']
-            )
+            include_pattern = self._get_file_pattern_match(file_path, group['includes'])
             if include_pattern is not None:
-                exclude_pattern = self._get_file_pattern_match(
-                    file_path,
-                    group['excludes']
-                )
+                exclude_pattern = self._get_file_pattern_match(file_path, group['excludes'])
                 if exclude_pattern is not None:
                     logger.debug(f"Excluding '{file_path}' from groups[{gi}] for matching the '{exclude_pattern}' exclude pattern.")
                     formatting['excluded'].append(

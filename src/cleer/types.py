@@ -129,15 +129,16 @@ class Inspection(TypedDict):
     included : list[Included]
         Config groups the file was included in.
     excluded : list[Excluded]
-        Config groups the file was explicitly excluded from.
-    violations : list[Violation]
-        List of violations for the file.
+        Config groups the file was explicitly excluded from..
     invalidations : list[Invalidation]
         Any times the file was found to be invalid for a group.
+    violations : list[Violation]
+        List of violations for the file
     """
     path: pathlib.Path
     included: list[Included]
     excluded: list[Excluded]
+    invalidations: list[Invalidation]
     violations: list[Violation]
 
 

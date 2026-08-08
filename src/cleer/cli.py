@@ -38,14 +38,9 @@ def main(argv: list[str]=None) -> None:
         action="version",
         version=cleer_version
     )
-    sub_parsers = parser.add_subparsers(
-        title="commands",
-        dest="command"
-    )
+    sub_parsers = parser.add_subparsers(title="commands", dest="command")
 
-    command_args_parser = argparse.ArgumentParser(
-        add_help=False
-    )
+    command_args_parser = argparse.ArgumentParser(add_help=False)
     command_args_parser.add_argument(
         "-c",
         "--cleer",
@@ -69,7 +64,25 @@ def main(argv: list[str]=None) -> None:
             "ERROR",
             "CRITICAL"
         ],
-        help=f"{FMT.bold}[default: \"{FMT.end}{FMT.green}CRITICAL{FMT.end}{FMT.bold}\"]{FMT.end} Set logging level."
+        help=f"{FMT.bold}[default: \"{FMT.end}{FMT.green}ERROR{FMT.end}{FMT.bold}\"]{FMT.end} Set logging level."
+    )
+    command_args_parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="Verbose output includes all fields from results: included, excluded, and invalidations. "
+    )
+    command_args_parser.add_argument(
+        "-e",
+        "--keep-excluded",
+        action="store_true",
+        help="Keep results for files that matched at least one group, but were excluded from all matches."
+    )
+    command_args_parser.add_argument(
+        "-n",
+        "--keep-no-match",
+        action="store_true",
+        help="Keep results for files that did not match any groups."
     )
     command_args_parser.add_argument(
         "path",
@@ -140,13 +153,10 @@ def main(argv: list[str]=None) -> None:
     if args.command == "inspect":
         logger.info("Running inspect command...")
         try:
-            print(
-                json.dumps(
-                    clr.inspect(args.path),
-                    indent=4,
-                    default=str
-                ),
-                flush=True
+            result = clr.inspect(
+                path=args.path,
+                keep_excluded=args.keep_excluded,
+                keep_no_match=args.keep_no_match
             )
             logger.info("Inspect command complete!")
         except Exception as exc:
@@ -160,13 +170,10 @@ def main(argv: list[str]=None) -> None:
     elif args.command == "format":
         logger.info("Running format command...")
         try:
-            print(
-                json.dumps(
-                    clr.format(args.path),
-                    indent=4,
-                    default=str
-                ),
-                flush=True
+            result = clr.format(
+                path=args.path,
+                keep_excluded=args.keep_excluded,
+                keep_no_match=args.keep_no_match
             )
             logger.info("Format command complete!")
         except Exception as exc:
@@ -177,5 +184,19 @@ def main(argv: list[str]=None) -> None:
             )
             exit(1)
 
+    if args.verbose is False:
+        for r in result:
+            r.pop("included")
+            r.pop("excluded")
+            r.pop("invalidations")
+
+    print(
+        json.dumps(
+            result,
+            indent=4,
+            default=str
+        ),
+        flush=True
+    )
     logger.info("Exiting.")
     exit(0)

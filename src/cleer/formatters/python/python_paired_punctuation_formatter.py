@@ -155,6 +155,10 @@ class PythonPairedPunctuationFormatter(Formatter):
                     elif other['end'] > start:
                         other['end'] += size_diff
 
+        doc = self._collapse_inline_spaces(doc)
+        doc = self._collapse_short_parens(doc)
+        doc = self._normalize_paren_indent(doc)
+
         return doc
 
 
@@ -718,6 +722,8 @@ class PythonPairedPunctuationFormatter(Formatter):
         else:
             inner_content = stripped
 
+        inner_content = self._normalize_operators(inner_content)
+
         sub_parts = []
         remaining = inner_content
         op_pattern = f" {inner_op} "
@@ -763,12 +769,168 @@ class PythonPairedPunctuationFormatter(Formatter):
 
         lines = ["("]
         for j, sp in enumerate(sub_parts):
+            prefix = "" if j == 0 else f"{inner_op} "
+            if self._is_subgroup_inner_boolop(sp):
+                inner_sub = self._expand_inner_subgroup(sp, inner_indent, inner_op)
+                lines.append(f"{inner_indent}{prefix}{inner_sub}")
+            else:
+                lines.append(f"{inner_indent}{prefix}{sp}")
+
+        lines.append(f"{indent})")
+
+        return "\n".join(lines)
+
+
+    def _is_subgroup_inner_boolop(self, part: str) -> bool:
+        """Check if a subgroup part is itself a parenthesized BoolOp."""
+        stripped = part.strip()
+        if not stripped.startswith("(") or not stripped.endswith(")"):
+            return False
+
+        inner = stripped[1:-1].strip()
+        if " or " in inner or " and " in inner:
+            return True
+
+        return False
+
+
+    def _expand_inner_subgroup(
+        self,
+        part: str,
+        indent: str,
+        op_str: str
+    ) -> str:
+        """Expand an inner parenthesized BoolOp subgroup."""
+        stripped = part.strip()
+        inner = stripped[1:-1].strip()
+        inner_indent = indent + "    "
+
+        inner_op = None
+        if " or " in inner:
+            inner_op = "or"
+        elif " and " in inner:
+            inner_op = "and"
+
+        if not inner_op:
+            return part
+
+        sub_parts = self._split_boolop_by_op(inner, inner_op)
+
+        if len(sub_parts) <= 1:
+            return part
+
+        lines = ["("]
+        for j, sp in enumerate(sub_parts):
             if j == 0:
                 lines.append(f"{inner_indent}{sp}")
             else:
                 lines.append(f"{inner_indent}{inner_op} {sp}")
-
         lines.append(f"{indent})")
+
+        return "\n".join(lines)
+
+
+    def _call_should_expand_in_boolop(self, part: str) -> bool:
+        """Check if a call text inside a BoolOp should be expanded."""
+        paren_start = part.find("(")
+        if paren_start == -1:
+            return False
+
+        paren_end = self._find_matching_paren(part, paren_start)
+        if paren_end is None:
+            return False
+
+        args_str = part[paren_start + 1:paren_end]
+        args = self._split_by_commas(args_str)
+
+        if not args:
+            return False
+
+        has_kwargs = any(self._is_kwarg_str(a) for a in args)
+
+        if has_kwargs and len(args) > 2:
+            return True
+
+        if len(args) > 4:
+            return True
+
+        for a in args:
+            stripped = a.strip()
+            if stripped.startswith("{") and stripped.endswith("}"):
+                inner = stripped[1:-1].strip()
+                if inner:
+                    return True
+            if stripped.startswith("[") and stripped.endswith("]"):
+                inner = stripped[1:-1].strip()
+                items = self._split_by_commas(inner)
+                if len(items) > 1:
+                    return True
+
+        content_len = len(part)
+        if content_len > self._MAX_CALL_FLAT:
+            any_complex = any(
+                "{" in a or "[" in a or "(" in a
+                for a in args
+            )
+            if any_complex or has_kwargs:
+                return True
+
+        return False
+
+
+    def _expand_call_in_boolop(self, part: str, indent: str) -> str:
+        """Expand a function call inside a BoolOp condition."""
+        paren_start = part.find("(")
+        if paren_start == -1:
+            return part
+
+        paren_end = self._find_matching_paren(part, paren_start)
+        if paren_end is None:
+            return part
+
+        func_name = part[:paren_start]
+        args_str = part[paren_start + 1:paren_end]
+        suffix = part[paren_end + 1:]
+        args = self._split_by_commas(args_str)
+
+        inner_indent = indent + "    "
+        lines = [f"{func_name}("]
+
+        for i, arg in enumerate(args):
+            comma = "," if i < len(args) - 1 else ""
+            arg_stripped = arg.strip()
+            if "{" in arg_stripped and "}" in arg_stripped:
+                expanded_arg = self._try_expand_dict_arg(arg_stripped, inner_indent)
+                if expanded_arg:
+                    lines.append(f"{inner_indent}{expanded_arg}{comma}")
+                else:
+                    lines.append(f"{inner_indent}{arg_stripped}{comma}")
+            else:
+                lines.append(f"{inner_indent}{arg_stripped}{comma}")
+
+        lines.append(f"{indent}){suffix}")
+
+        return "\n".join(lines)
+
+
+    def _try_expand_dict_arg(self, arg: str, indent: str) -> str | None:
+        """Try to expand a dict argument in a call."""
+        stripped = arg.strip()
+        if not stripped.startswith("{") or not stripped.endswith("}"):
+            return None
+
+        inner = stripped[1:-1].strip()
+        items = self._split_by_commas(inner)
+
+        if not items or len(items) < 1:
+            return None
+
+        inner_indent = indent + "    "
+        lines = ["{"]
+        for i, item in enumerate(items):
+            comma = "," if i < len(items) - 1 else ""
+            lines.append(f"{inner_indent}{item.strip()}{comma}")
+        lines.append(f"{indent}}}")
 
         return "\n".join(lines)
 
@@ -801,7 +963,26 @@ class PythonPairedPunctuationFormatter(Formatter):
             first_line = current_text.split("\n")[0].strip()
             last_line = current_text.split("\n")[-1].strip()
             if first_line.endswith("(") and last_line == "):":
-                return current_text
+                inner_text = "\n".join(current_text.split("\n")[1:-1])
+                has_bad_ops = (
+                    "or(" in inner_text
+                    or ")or " in inner_text
+                    or "and(" in inner_text
+                    or ")and " in inner_text
+                )
+                if not has_bad_ops:
+                    for line in current_text.split("\n")[1:-1]:
+                        stripped = line.strip()
+                        if not stripped:
+                            continue
+                        if f" {op_str} " in stripped:
+                            idx = stripped.find(f" {op_str} ")
+                            after = stripped[idx + len(op_str) + 2:]
+                            if after and not after.startswith("("):
+                                has_bad_ops = True
+                                break
+                    if not has_bad_ops:
+                        return current_text
 
         keyword = "if"
         if isinstance(parent_node, ast.While):
@@ -837,16 +1018,19 @@ class PythonPairedPunctuationFormatter(Formatter):
         result_lines = [f"{keyword} ("]
 
         for i, part in enumerate(cond_parts):
-            if i == 0:
-                result_lines.append(f"{inner_indent}{part}")
+            prefix = "" if i == 0 else f"{op_str} "
+            ast_value = node.values[i] if i < len(node.values) else None
+
+            if ast_value and self._is_subgroup_boolop(ast_value, node.op):
+                sub_formatted = self._format_boolop_subgroup(
+                    ast_value, part, inner_indent, op_str
+                )
+                result_lines.append(f"{inner_indent}{prefix}{sub_formatted}")
+            elif ast_value and isinstance(ast_value, ast.Call) and self._call_should_expand_in_boolop(part):
+                expanded = self._expand_call_in_boolop(part, inner_indent)
+                result_lines.append(f"{inner_indent}{prefix}{expanded}")
             else:
-                if self._is_subgroup_boolop(node.values[i], node.op):
-                    sub_formatted = self._format_boolop_subgroup(
-                        node.values[i], part, inner_indent, op_str
-                    )
-                    result_lines.append(f"{inner_indent}{op_str} {sub_formatted}")
-                else:
-                    result_lines.append(f"{inner_indent}{op_str} {part}")
+                result_lines.append(f"{inner_indent}{prefix}{part}")
 
         result_lines.append(f"{indent}):")
 
@@ -1000,7 +1184,22 @@ class PythonPairedPunctuationFormatter(Formatter):
             first_line = current_text.split("\n")[0].strip()
             last_line = current_text.split("\n")[-1].strip()
             if first_line.endswith("(") and last_line == ")":
-                return current_text
+                inner_lines = current_text.split("\n")[1:-1]
+                inner_indent = indent + "    "
+                all_correct = all(
+                    l.strip().startswith(f"{op_str} ") or i == 0
+                    for i, l in enumerate(inner_lines)
+                    if l.strip()
+                )
+                indent_correct = all(
+                    l.startswith(inner_indent) and (
+                        l[len(inner_indent):len(inner_indent) + 1] != " "
+                    )
+                    for l in inner_lines
+                    if l.strip()
+                )
+                if all_correct and indent_correct and len(inner_lines) >= num_parts:
+                    return current_text
 
         value_text = flat[len("return "):].strip()
 
@@ -1046,7 +1245,7 @@ class PythonPairedPunctuationFormatter(Formatter):
         flat_len = len(flat)
         indent_len = len(indent)
 
-        segments = self._get_chain_segments(node)
+        segments = self._get_chain_segments(node, indent)
 
         if not segments:
             return current_text
@@ -1111,8 +1310,9 @@ class PythonPairedPunctuationFormatter(Formatter):
         return "".join(result_parts)
 
 
-    def _get_chain_segments(self, node: ast.Call) -> list[dict]:
+    def _get_chain_segments(self, node: ast.Call, indent: str="") -> list[dict]:
         """Extract chain segments from outermost to innermost call."""
+        inner_indent = indent + "    "
         segments = []
         current = node
 
@@ -1121,7 +1321,7 @@ class PythonPairedPunctuationFormatter(Formatter):
                 if isinstance(current.func, ast.Attribute):
                     method_name = current.func.attr
                     args = [
-                        a for a in self._get_call_arg_strs(current)
+                        a for a in self._get_call_arg_strs(current, inner_indent)
                     ]
                     segments.append(
                         {
@@ -1131,7 +1331,7 @@ class PythonPairedPunctuationFormatter(Formatter):
                     )
                     current = current.func.value
                 elif isinstance(current.func, ast.Name):
-                    args = self._get_call_arg_strs(current)
+                    args = self._get_call_arg_strs(current, inner_indent)
                     segments.append(
                         {
                             "method": current.func.id,
@@ -1149,20 +1349,76 @@ class PythonPairedPunctuationFormatter(Formatter):
         return segments
 
 
-    def _get_call_arg_strs(self, node: ast.Call) -> list[str]:
-        """Get string representations of a call's arguments from AST."""
+    def _get_call_arg_strs(self, node: ast.Call, indent: str="") -> list[str]:
+        """Get string representations of a call's arguments from AST.
+
+        Expands dicts and nested lists inline per formatting rules.
+        """
         result = []
+        inner_indent = indent + "    " if indent else "    "
 
         for arg in node.args:
-            result.append(ast.unparse(arg))
+            if isinstance(arg, ast.Dict) and arg.keys:
+                expanded = self._expand_ast_dict(arg, indent)
+                result.append(expanded)
+            elif isinstance(arg, ast.List) and arg.elts:
+                has_dict = any(
+                    isinstance(e, ast.Dict) and e.keys
+                    for e in arg.elts
+                )
+                if has_dict or len(arg.elts) > 3:
+                    expanded = self._expand_ast_list(arg, indent)
+                    result.append(expanded)
+                else:
+                    result.append(ast.unparse(arg))
+            else:
+                result.append(ast.unparse(arg))
 
         for kw in node.keywords:
             if kw.arg:
-                result.append(f"{kw.arg}={ast.unparse(kw.value)}")
+                if isinstance(kw.value, ast.Dict) and kw.value.keys:
+                    expanded = self._expand_ast_dict(kw.value, indent)
+                    result.append(f"{kw.arg}={expanded}")
+                else:
+                    result.append(f"{kw.arg}={ast.unparse(kw.value)}")
             else:
                 result.append(f"**{ast.unparse(kw.value)}")
 
         return result
+
+
+    def _expand_ast_dict(self, node: ast.Dict, indent: str) -> str:
+        """Expand an AST Dict node to multi-line string."""
+        inner_indent = indent + "    " if indent else "        "
+        items = []
+        for k, v in zip(node.keys, node.values):
+            items.append(f"{ast.unparse(k)}: {ast.unparse(v)}")
+
+        lines = ["{"]
+        for i, item in enumerate(items):
+            comma = "," if i < len(items) - 1 else ""
+            lines.append(f"{inner_indent}{item}{comma}")
+        lines.append(f"{indent}    }}" if not indent else f"{indent}}}")
+
+        return "\n".join(lines)
+
+
+    def _expand_ast_list(self, node: ast.List, indent: str) -> str:
+        """Expand an AST List node to multi-line string."""
+        inner_indent = indent + "    " if indent else "        "
+        lines = ["["]
+
+        for i, elt in enumerate(node.elts):
+            comma = "," if i < len(node.elts) - 1 else ""
+            if isinstance(elt, ast.Dict) and elt.keys:
+                dict_expanded = self._expand_ast_dict(elt, inner_indent)
+                lines.append(f"{inner_indent}{dict_expanded}{comma}")
+            else:
+                lines.append(f"{inner_indent}{ast.unparse(elt)}{comma}")
+
+        lines.append(f"{indent}    ]" if not indent else f"{indent}]")
+
+        return "\n".join(lines)
 
 
     def _format_call(
@@ -1188,10 +1444,9 @@ class PythonPairedPunctuationFormatter(Formatter):
         flat = self._collapse_paren_spaces(flat)
 
         if self._has_string_concat_arg(flat):
-            if self._is_correctly_expanded(current_text, [], indent, "(", ")"):
-                return current_text
-
-            return current_text
+            return self._format_call_with_string_concat(
+                node, current_text, flat, indent
+            )
 
         all_args = self._get_call_args(node, current_text)
 
@@ -1303,6 +1558,19 @@ class PythonPairedPunctuationFormatter(Formatter):
 
         for i, item in enumerate(items):
             comma = "," if i < len(items) - 1 else ""
+            ast_elt = elts[i] if i < len(elts) else None
+
+            if ast_elt and isinstance(ast_elt, ast.Dict) and ast_elt.keys:
+                expanded = self._expand_dict_inline(item, inner_indent)
+                if expanded and "\n" in expanded:
+                    exp_lines = expanded.split("\n")
+                    lines.append(f"{inner_indent}{exp_lines[0]}")
+                    for el in exp_lines[1:]:
+                        lines.append(el)
+                    if comma:
+                        lines[-1] = lines[-1] + comma
+                    continue
+
             lines.append(f"{inner_indent}{item}{comma}")
 
         lines.append(f"{indent}{close_char}")
@@ -1349,8 +1617,152 @@ class PythonPairedPunctuationFormatter(Formatter):
         current_text: str,
         indent: str
     ) -> str:
-        """Format a tuple — generally don't expand unless it's a container."""
+        """Format a tuple — collapse if short enough, don't expand."""
+        if "\n" not in current_text:
+            return current_text
+
+        flat = self._flatten(current_text)
+        flat = self._collapse_paren_spaces(flat)
+        flat_len = len(flat)
+        indent_len = len(indent)
+
+        if flat_len + indent_len <= self._MAX_LINE:
+            return flat
+
         return current_text
+
+
+    def _format_call_with_string_concat(
+        self,
+        node: ast.Call,
+        current_text: str,
+        flat: str,
+        indent: str
+    ) -> str:
+        """Format a call that has string concatenation as an argument.
+
+        Wraps the concatenated strings in (...) and expands the call.
+        """
+        inner_indent = indent + "    "
+        str_indent = inner_indent + "    "
+
+        all_args = self._get_call_args(node, current_text)
+        func_text = self._get_func_text(node, current_text)
+
+        if not all_args:
+            return current_text
+
+        concat_idx = None
+        for i, arg in enumerate(all_args):
+            if self._is_string_concat(arg):
+                concat_idx = i
+                break
+
+        if concat_idx is None:
+            return current_text
+
+        concat_arg = all_args[concat_idx]
+        strings = self._split_concat_strings(concat_arg)
+
+        if not strings:
+            return current_text
+
+        if len(all_args) == 1:
+            str_lines = [f"{inner_indent}("]
+            for s in strings:
+                str_lines.append(f"{str_indent}{s}")
+            str_lines.append(f"{inner_indent})")
+
+            wrapped_lines = "\n".join(str_lines)
+
+            if self._is_correctly_expanded_concat(current_text, indent):
+                return current_text
+
+            lines = [f"{func_text}("]
+            lines.append(wrapped_lines)
+            lines.append(f"{indent})")
+
+            return "\n".join(lines)
+        else:
+            kwarg_prefix = ""
+            if self._is_kwarg_str(all_args[concat_idx]):
+                eq_pos = all_args[concat_idx].find("=")
+                kwarg_prefix = all_args[concat_idx][:eq_pos + 1]
+
+            wrapped_str_lines = [f"{kwarg_prefix}("]
+            for s in strings:
+                wrapped_str_lines.append(f"{str_indent}{s}")
+            wrapped_str_lines.append(f"{inner_indent})")
+            wrapped_arg = "\n".join(wrapped_str_lines)
+
+            if self._is_correctly_expanded_concat(current_text, indent):
+                return current_text
+
+            lines = [f"{func_text}("]
+            for i, arg in enumerate(all_args):
+                comma = "," if i < len(all_args) - 1 else ""
+                if i == concat_idx:
+                    lines.append(f"{inner_indent}{wrapped_arg}{comma}")
+                else:
+                    lines.append(f"{inner_indent}{arg}{comma}")
+            lines.append(f"{indent})")
+
+            return "\n".join(lines)
+
+
+    def _is_correctly_expanded_concat(
+        self,
+        text: str,
+        indent: str
+    ) -> bool:
+        """Check if a call with string concat is already correctly expanded."""
+        lines = text.split("\n")
+        if len(lines) < 3:
+            return False
+
+        inner_indent = indent + "    "
+        str_indent = inner_indent + "    "
+
+        first = lines[0].strip()
+        last = lines[-1].strip()
+
+        if not first.endswith("(") or last != ")":
+            return False
+
+        has_inner_paren = False
+        for line in lines[1:-1]:
+            stripped = line.strip()
+            if stripped == "(":
+                has_inner_paren = True
+                expected_indent = inner_indent + "("
+                if line.rstrip() != expected_indent.rstrip():
+                    return False
+                break
+
+        if not has_inner_paren:
+            return False
+
+        return True
+
+
+    def _split_concat_strings(self, content: str) -> list[str]:
+        """Split a string concatenation into individual string tokens."""
+        import tokenize
+        import io
+
+        try:
+            tokens = list(
+                tokenize.generate_tokens(io.StringIO(content).readline)
+            )
+        except tokenize.TokenError:
+            return []
+
+        strings = []
+        for t in tokens:
+            if t.type == tokenize.STRING:
+                strings.append(t.string)
+
+        return strings
 
 
     def _format_funcdef(
@@ -1600,6 +2012,253 @@ class PythonPairedPunctuationFormatter(Formatter):
         return num_backslashes % 2 == 0
 
 
+    def _collapse_inline_spaces(self, doc: str) -> str:
+        """Collapse ( x, ) to (x,) and [ ] to [] on single lines."""
+        lines = doc.split("\n")
+        result = []
+
+        for line in lines:
+            new_line = self._collapse_paren_spaces_line(line)
+            result.append(new_line)
+
+        return "\n".join(result)
+
+
+    def _normalize_paren_indent(self, doc: str) -> str:
+        """Normalize inconsistent indentation inside = ( ... ) blocks.
+
+        Fixes cases where lines inside a paren block have different indent
+        levels when they should all be at indent + 4.
+        """
+        lines = doc.split("\n")
+        result = []
+        i = 0
+
+        while i < len(lines):
+            line = lines[i]
+            stripped = line.rstrip()
+
+            if (
+                stripped.endswith("(")
+                and "=" in stripped
+                and not self._is_call_paren(stripped.lstrip())
+                and not self._is_keyword_paren(stripped.lstrip())
+            ):
+                base_indent = len(line) - len(line.lstrip())
+                expected_inner = base_indent + 4
+
+                close_idx = None
+                inner_lines = []
+                for j in range(i + 1, min(i + 20, len(lines))):
+                    j_stripped = lines[j].strip()
+                    if j_stripped in (")", ")," ):
+                        close_idx = j
+                        break
+                    inner_lines.append(j)
+
+                if close_idx is not None and inner_lines:
+                    needs_fix = False
+                    for j in inner_lines:
+                        l = lines[j]
+                        if l.strip():
+                            actual = len(l) - len(l.lstrip())
+                            if actual != expected_inner:
+                                needs_fix = True
+                                break
+
+                    if needs_fix:
+                        result.append(line)
+                        for j in inner_lines:
+                            l = lines[j]
+                            if l.strip():
+                                result.append(" " * expected_inner + l.lstrip())
+                            else:
+                                result.append(l)
+                        result.append(lines[close_idx])
+                        i = close_idx + 1
+                        continue
+
+            result.append(line)
+            i += 1
+
+        return "\n".join(result)
+
+
+    def _collapse_short_parens(self, doc: str) -> str:
+        """Collapse multi-line parenthesized expressions that fit on one line.
+
+        Targets: expressions like 'x = y - (\n    ...\n)' where the content
+        is a simple arithmetic expression that fits within MAX_LINE.
+        Does NOT collapse if content looks like a BoolOp, function args,
+        container, or string concat.
+        """
+        lines = doc.split("\n")
+        result = []
+        i = 0
+
+        while i < len(lines):
+            line = lines[i]
+            stripped = line.rstrip()
+
+            if (
+                stripped.endswith("(")
+                and not stripped.endswith(":(")
+                and not self._is_keyword_paren(stripped)
+                and not self._is_call_paren(stripped)
+            ):
+                open_indent = len(line) - len(line.lstrip())
+                close_idx = None
+                content_lines = []
+
+                for j in range(i + 1, min(i + 5, len(lines))):
+                    j_stripped = lines[j].strip()
+                    if j_stripped in (")", "),"):
+                        close_indent = len(lines[j]) - len(lines[j].lstrip())
+                        if close_indent >= open_indent:
+                            close_idx = j
+                            break
+                    elif "(" in j_stripped or "{" in j_stripped or "[" in j_stripped:
+                        if j_stripped.count("(") != j_stripped.count(")"):
+                            break
+                        if j_stripped.count("[") != j_stripped.count("]"):
+                            break
+                        if j_stripped.count("{") != j_stripped.count("}"):
+                            break
+                    content_lines.append(j_stripped)
+
+                if close_idx is not None and content_lines:
+                    content = " ".join(content_lines)
+                    close_suffix = lines[close_idx].strip()
+
+                    if (
+                        " or " not in content
+                        and " and " not in content
+                        and not any(
+                            c.startswith("f\"") or c.startswith("f'")
+                            or c.startswith("\"") or c.startswith("'")
+                            or c.startswith("b\"") or c.startswith("b'")
+                            for c in content_lines
+                        )
+                        and not any("=" in c and not any(op in c for op in ["==", "!=", "<=", ">="]) for c in content_lines)
+                    ):
+                        collapsed = f"{stripped}{content}{close_suffix}"
+                        if len(collapsed) <= 120:
+                            result.append(f"{line[:open_indent]}{stripped.lstrip()}{content}{close_suffix}")
+                            i = close_idx + 1
+                            continue
+
+            result.append(line)
+            i += 1
+
+        return "\n".join(result)
+
+
+    def _is_call_paren(self, stripped: str) -> bool:
+        """Check if a line ending with ( is a function/method call."""
+        if not stripped.endswith("("):
+            return False
+
+        prefix = stripped[:-1].rstrip()
+        if not prefix:
+            return False
+
+        if prefix[-1] in "_)":
+            return True
+
+        if prefix[-1].isalnum():
+            keywords = ("in", "not", "and", "or", "is", "return", "yield", "assert", "del", "lambda")
+            for kw in keywords:
+                if prefix == kw or prefix.endswith(f" {kw}"):
+                    return False
+
+            return True
+
+        return False
+
+
+    def _is_keyword_paren(self, stripped: str) -> bool:
+        """Check if a line ending with ( is a keyword paren (if/elif/while/def/class)."""
+        keywords = ("if ", "elif ", "while ", "def ", "class ", "if(", "elif(")
+
+        for kw in keywords:
+            if stripped.startswith(kw) or stripped == "if":
+                return True
+
+        return False
+
+
+    def _collapse_paren_spaces_line(self, line: str) -> str:
+        """Collapse spaces after openers and before closers on a single line.
+
+        Only collapses when the space is adjacent to content (not leading indent).
+        e.g. '( 2, )' -> '(2,)' but '        ],' stays unchanged.
+        """
+        result = []
+        i = 0
+        in_string = False
+        string_char = ""
+
+        while i < len(line):
+            ch = line[i]
+
+            if not in_string:
+                if ch in ('"', "'"):
+                    if line[i:i + 3] in ('"""', "'''"):
+                        in_string = True
+                        string_char = line[i:i + 3]
+                        result.append(line[i:i + 3])
+                        i += 3
+                        continue
+                    else:
+                        in_string = True
+                        string_char = ch
+
+                if ch in "([{" and i + 1 < len(line) and line[i + 1] == " ":
+                    j = i + 1
+                    while j < len(line) and line[j] == " ":
+                        j += 1
+                    if j < len(line) and line[j] in ")]}":
+                        result.append(ch)
+                        i = j
+                        continue
+                    result.append(ch)
+                    i += 1
+                    continue
+
+                if (
+                    ch == " "
+                    and i + 1 < len(line)
+                    and line[i + 1] in ")]}"
+                    and result
+                    and result[-1] not in " \t"
+                ):
+                    i += 1
+                    continue
+
+                result.append(ch)
+            else:
+                if (
+                    len(string_char) == 3
+                    and line[i:i + 3] == string_char
+                ):
+                    in_string = False
+                    result.append(line[i:i + 3])
+                    i += 3
+                    continue
+                elif (
+                    len(string_char) == 1
+                    and ch == string_char
+                    and self._is_closing_quote(line, i)
+                ):
+                    in_string = False
+
+                result.append(ch)
+
+            i += 1
+
+        return "".join(result)
+
+
     def _collapse_paren_spaces(self, flat: str) -> str:
         """Remove spaces after ( [ { and before ) ] } outside strings."""
         result = []
@@ -1733,8 +2392,116 @@ class PythonPairedPunctuationFormatter(Formatter):
         current_text: str,
         inner_indent: str
     ) -> list[str]:
-        """Get arg strings, with inner expansions applied."""
-        return self._get_call_args(node, current_text)
+        """Get arg strings, with inner expansions applied for dicts/lists."""
+        flat_args = self._get_call_args(node, current_text)
+        all_ast_args = list(node.args) + [kw.value for kw in node.keywords]
+
+        result = []
+        for i, arg_str in enumerate(flat_args):
+            ast_arg = all_ast_args[i] if i < len(all_ast_args) else None
+
+            if ast_arg and isinstance(ast_arg, ast.Dict) and ast_arg.keys:
+                expanded = self._expand_dict_inline(arg_str, inner_indent)
+                if expanded:
+                    result.append(expanded)
+                    continue
+            elif ast_arg and isinstance(ast_arg, (ast.List, ast.Set)):
+                elts = getattr(ast_arg, 'elts', [])
+                if len(elts) > 1:
+                    has_nested = any(
+                        isinstance(e, (ast.Dict, ast.List, ast.Set, ast.Call))
+                        for e in elts
+                    )
+                    if has_nested or len(elts) > 3:
+                        expanded = self._expand_container_inline(
+                            arg_str, inner_indent, ast_arg
+                        )
+                        if expanded:
+                            result.append(expanded)
+                            continue
+
+            result.append(arg_str)
+
+        return result
+
+
+    def _expand_dict_inline(self, arg_str: str, indent: str) -> str | None:
+        """Expand a dict arg string into multi-line format."""
+        stripped = arg_str.strip()
+        if not stripped.startswith("{") or not stripped.endswith("}"):
+            return None
+
+        inner = stripped[1:-1].strip()
+        if not inner:
+            return None
+
+        items = self._split_by_commas(inner)
+        if not items:
+            return None
+
+        inner_indent = indent + "    "
+        lines = ["{"]
+        for i, item in enumerate(items):
+            comma = "," if i < len(items) - 1 else ""
+            lines.append(f"{inner_indent}{item.strip()}{comma}")
+        lines.append(f"{indent}}}")
+
+        return "\n".join(lines)
+
+
+    def _expand_container_inline(
+        self,
+        arg_str: str,
+        indent: str,
+        node: ast.AST
+    ) -> str | None:
+        """Expand a list/set arg string into multi-line format."""
+        stripped = arg_str.strip()
+        if isinstance(node, ast.List):
+            open_ch, close_ch = "[", "]"
+        else:
+            open_ch, close_ch = "{", "}"
+
+        if not stripped.startswith(open_ch) or not stripped.endswith(close_ch):
+            return None
+
+        inner = stripped[1:-1].strip()
+        if not inner:
+            return None
+
+        items = self._split_by_commas(inner)
+        if not items:
+            return None
+
+        inner_indent = indent + "    "
+        lines = [open_ch]
+
+        for i, item in enumerate(items):
+            comma = "," if i < len(items) - 1 else ""
+            item_stripped = item.strip()
+
+            if item_stripped.startswith("{") and item_stripped.endswith("}"):
+                inner_dict = item_stripped[1:-1].strip()
+                if inner_dict:
+                    dict_items = self._split_by_commas(inner_dict)
+                    if dict_items:
+                        dict_inner_indent = inner_indent + "    "
+                        dict_lines = ["{"]
+                        for j, di in enumerate(dict_items):
+                            d_comma = "," if j < len(dict_items) - 1 else ""
+                            dict_lines.append(
+                                f"{dict_inner_indent}{di.strip()}{d_comma}"
+                            )
+                        dict_lines.append(f"{inner_indent}}}")
+                        expanded_item = "\n".join(dict_lines)
+                        lines.append(f"{inner_indent}{expanded_item}{comma}")
+                        continue
+
+            lines.append(f"{inner_indent}{item_stripped}{comma}")
+
+        lines.append(f"{indent}{close_ch}")
+
+        return "\n".join(lines)
 
 
     def _is_generator_call(self, node: ast.Call) -> bool:
@@ -2084,6 +2851,14 @@ class PythonPairedPunctuationFormatter(Formatter):
             if line.strip():
                 if not line.startswith(inner_indent):
                     return False
+
+        if flat_items and len(flat_items) > 1:
+            content_lines = [l for l in lines[1:-1] if l.strip()]
+            if len(content_lines) < len(flat_items):
+                return False
+
+        if len(lines) >= 3 and not lines[-2].strip():
+            return False
 
         return True
 
