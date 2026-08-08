@@ -830,5 +830,6 @@ class JSONValidator:
                 }
             ]
         }
+        content_len = len(region['open_char']) + len(", ".join(items)) + len(region['close_charsherer'])
 
         return None
