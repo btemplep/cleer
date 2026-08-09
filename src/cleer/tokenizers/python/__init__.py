@@ -23,7 +23,6 @@ __all__ = [
     "PythonReturnYieldTokenizer",
     "PythonStringQuoteTokenizer",
     "PythonTrailingCommaTokenizer",
-    "PythonTypeHintTokenizer",
     "PythonUnaryOperatorSpaceTokenizer"
 ]
 
@@ -49,5 +48,4 @@ from cleer.tokenizers.python.python_paired_punctuation_tokenizer import PythonPa
 from cleer.tokenizers.python.python_return_yield_tokenizer import PythonReturnYieldTokenizer
 from cleer.tokenizers.python.python_string_quote_tokenizer import PythonStringQuoteTokenizer
 from cleer.tokenizers.python.python_trailing_comma_tokenizer import PythonTrailingCommaTokenizer
-from cleer.tokenizers.python.python_type_hint_tokenizer import PythonTypeHintTokenizer
 from cleer.tokenizers.python.python_unary_operator_space_tokenizer import PythonUnaryOperatorSpaceTokenizer

@@ -63,7 +63,7 @@ class PythonTypeHintFormatter(Formatter):
         formatted = self.format(token)
 
         if formatted != token:
-            return "Type hint should be formatted according to length and depth rules."
+            return "Type annotations should be flattened then expanded based on length and nesting depth thresholds."
 
         return None
 

@@ -24,47 +24,96 @@ class PythonPairedPunctuationFormatter(Formatter):
 
     Parameters
     ----------
-    max_line : int, default=80
-        Maximum line length before expansion is triggered.
-    max_call_flat : int, default=60
-        Maximum flat call length (excluding indent) before expansion.
-    max_funcdef_flat : int, default=80
-        Maximum flat function def length (excluding indent) before expansion.
-    max_container_flat : int, default=30
-        Maximum flat container (list, set, tuple) literal length before expansion.
-    max_boolop_flat : int, default=60
-        Maximum flat boolean expression length (excluding indent) before expansion.
-    max_args : int, default=4
-        Maximum number of arguments before expansion is triggered.
-    max_args_with_kwargs : int, default=2
-        Maximum number of arguments when kwargs are present before expansion.
+    def_max_len : int, default=80
+        Maximum flattened function definition length before expansion,
+        excluding indent.
+    def_max_line_len : int, default=100
+        Maximum function definition length including indent before expansion.
+    def_max_args : int, default=4
+        Maximum number of function definition parameters before expansion.
+    def_max_args_kw : int, default=2
+        Maximum number of function definition parameters when defaults are
+        present before expansion.
+    call_max_len : int, default=60
+        Maximum flattened call length before expansion, excluding indent.
+        Also used for boolean expressions and individual chain segments.
+    call_max_line_len : int, default=80
+        Maximum call length including indent before expansion.
+        Also used for boolean expressions.
+    call_max_args : int, default=4
+        Maximum number of call arguments before expansion.
+        Also used for chain segments.
+    call_max_args_kw : int, default=2
+        Maximum number of call arguments when kwargs are present before
+        expansion. Also used for chain segments.
+    chain_call_max_len : int, default=80
+        Maximum total flattened chain call length before expansion,
+        excluding indent.
+    chain_call_max_line_len : int, default=100
+        Maximum total chain call length including indent before expansion.
+    lst_max_len : int, default=30
+        Maximum flattened container (list, set, tuple) literal length before
+        expansion. Only includes the container itself.
+    lst_max_line_len : int, default=80
+        Maximum container length including indent before expansion.
+    lst_max_num : int, default=3
+        Maximum number of items in a list/set before expansion when inline
+        within call arguments.
+    annotation_max_len : int, default=40
+        Maximum flattened type annotation length before expansion,
+        excluding indent.
+    annotation_max_line_len : int, default=80
+        Maximum type annotation length including indent before expansion.
+    annotation_max_depth : int, default=2
+        Maximum bracket nesting depth in type annotations before expansion.
     """
     accepts_token_types = ["file"]
 
 
     def __init__(
         self,
-        max_line: int=80,
-        max_call_flat: int=60,
-        max_funcdef_flat: int=80,
-        max_container_flat: int=30,
-        max_boolop_flat: int=60,
-        max_args: int=4,
-        max_args_with_kwargs: int=2
+        def_max_len: int=80,
+        def_max_line_len: int=100,
+        def_max_args: int=4,
+        def_max_args_kw: int=2,
+        call_max_len: int=60,
+        call_max_line_len: int=80,
+        call_max_args: int=4,
+        call_max_args_kw: int=2,
+        chain_call_max_len: int=80,
+        chain_call_max_line_len: int=100,
+        lst_max_len: int=30,
+        lst_max_line_len: int=80,
+        lst_max_num: int=3,
+        annotation_max_len: int=40,
+        annotation_max_line_len: int=80,
+        annotation_max_depth: int=2
     ):
-        self._MAX_LINE = max_line
-        self._MAX_CALL_FLAT = max_call_flat
-        self._MAX_FUNCDEF_FLAT = max_funcdef_flat
-        self._MAX_CONTAINER_FLAT = max_container_flat
-        self._MAX_BOOLOP_FLAT = max_boolop_flat
-        self._MAX_ARGS = max_args
-        self._MAX_ARGS_WITH_KWARGS = max_args_with_kwargs
+        self._def_max_len = def_max_len
+        self._def_max_line_len = def_max_line_len
+        self._def_max_args = def_max_args
+        self._def_max_args_kw = def_max_args_kw
+        self._call_max_len = call_max_len
+        self._call_max_line_len = call_max_line_len
+        self._call_max_args = call_max_args
+        self._call_max_args_kw = call_max_args_kw
+        self._chain_call_max_len = chain_call_max_len
+        self._chain_call_max_line_len = chain_call_max_line_len
+        self._lst_max_len = lst_max_len
+        self._lst_max_line_len = lst_max_line_len
+        self._lst_max_num = lst_max_num
+        self._annotation_max_len = annotation_max_len
+        self._annotation_max_line_len = annotation_max_line_len
+        self._annotation_max_depth = annotation_max_depth
 
 
     def inspect(self, token: str) -> str | None:
         formatted = self.format(token)
         if formatted != token:
-            return "Paired punctuation formatting incorrect."
+            return (
+                "Paired punctuation should be flattened first, then expanded based on length and argument thresholds. "
+                "No space between openers/closers and inner values on the same line."
+            )
 
         return None
 
@@ -672,14 +721,8 @@ class PythonPairedPunctuationFormatter(Formatter):
         depth: int,
         parent: ast.AST=None
     ):
-        """Add a Subscript node for formatting (type annotations like Dict[...])."""
+        """Add a Subscript node for formatting (type annotations)."""
         if not hasattr(node, "lineno"):
-            return
-
-        if not isinstance(node.slice, ast.Tuple):
-            return
-
-        if not node.slice.elts:
             return
 
         start = self._offset(document, node.lineno, node.col_offset)
@@ -719,8 +762,8 @@ class PythonPairedPunctuationFormatter(Formatter):
 
         should_expand = (
             num_parts > 2
-            or flat_len > self._MAX_BOOLOP_FLAT
-            or flat_len + indent_len > self._MAX_LINE
+            or flat_len > self._call_max_len
+            or flat_len + indent_len > self._call_max_line_len
         )
 
         if not should_expand:
@@ -963,10 +1006,10 @@ class PythonPairedPunctuationFormatter(Formatter):
 
         has_kwargs = any(self._is_kwarg_str(a) for a in args)
 
-        if has_kwargs and len(args) > self._MAX_ARGS_WITH_KWARGS:
+        if has_kwargs and len(args) > self._call_max_args_kw:
             return True
 
-        if len(args) > self._MAX_ARGS:
+        if len(args) > self._call_max_args:
             return True
 
         for a in args:
@@ -983,7 +1026,7 @@ class PythonPairedPunctuationFormatter(Formatter):
                     return True
 
         content_len = len(part)
-        if content_len > self._MAX_CALL_FLAT:
+        if content_len > self._call_max_len:
             any_complex = any("{" in a or "[" in a or "(" in a for a in args)
             if any_complex or has_kwargs:
                 return True
@@ -1073,8 +1116,8 @@ class PythonPairedPunctuationFormatter(Formatter):
 
         should_expand = (
             num_parts > 2
-            or flat_len > self._MAX_BOOLOP_FLAT
-            or flat_len + indent_len > self._MAX_LINE
+            or flat_len > self._call_max_len
+            or flat_len + indent_len > self._call_max_line_len
         )
 
         if not should_expand:
@@ -1260,8 +1303,8 @@ class PythonPairedPunctuationFormatter(Formatter):
 
         should_expand = (
             num_parts > 2
-            or flat_len > self._MAX_BOOLOP_FLAT
-            or flat_len + indent_len > self._MAX_LINE
+            or flat_len > self._call_max_len
+            or flat_len + indent_len > self._call_max_line_len
         )
 
         if not should_expand:
@@ -1324,8 +1367,8 @@ class PythonPairedPunctuationFormatter(Formatter):
 
         should_expand = (
             num_parts > 2
-            or flat_len > self._MAX_BOOLOP_FLAT
-            or flat_len + indent_len > self._MAX_LINE
+            or flat_len > self._call_max_len
+            or flat_len + indent_len > self._call_max_line_len
         )
 
         if not should_expand:
@@ -1399,18 +1442,20 @@ class PythonPairedPunctuationFormatter(Formatter):
                 args_str = ", ".join(seg['args'])
                 seg_len = len(seg['method']) + 1 + len(args_str) + 1
                 if (
-                    seg_len > self._MAX_CALL_FLAT
-                    or len(seg['args']) > self._MAX_ARGS
+                    seg_len > self._call_max_len
+                    or len(seg['args']) > self._call_max_args
                     or (
                         any(self._is_kwarg_str(a) for a in seg['args'])
-                        and len(seg['args']) > self._MAX_ARGS_WITH_KWARGS
+                        and len(seg['args']) > self._call_max_args_kw
                     )
                 ):
                     any_needs_expand = True
                     break
 
         should_expand = (
-            any_needs_expand or flat_len > self._MAX_LINE
+            any_needs_expand
+            or flat_len > self._chain_call_max_len
+            or flat_len + indent_len > self._chain_call_max_line_len
         )
 
         if not should_expand:
@@ -1433,7 +1478,7 @@ class PythonPairedPunctuationFormatter(Formatter):
                     args_str = ", ".join(seg['args'])
                     seg_flat_len = len(prefix) + len(seg['method']) + 1 + len(args_str) + 1
                     if (
-                        seg_flat_len <= self._MAX_CALL_FLAT
+                        seg_flat_len <= self._call_max_len
                         and not any(self._is_kwarg_str(a) for a in seg['args'])
                     ):
                         result_parts.append(f"{prefix}{seg['method']}({args_str})")
@@ -1529,7 +1574,7 @@ class PythonPairedPunctuationFormatter(Formatter):
                 result.append(expanded)
             elif isinstance(arg, ast.List) and arg.elts:
                 has_dict = any(isinstance(e, ast.Dict) and e.keys for e in arg.elts)
-                if has_dict or len(arg.elts) > 3:
+                if has_dict or len(arg.elts) > self._lst_max_num:
                     expanded = self._expand_ast_list(arg, indent)
                     result.append(expanded)
                 else:
@@ -1637,8 +1682,8 @@ class PythonPairedPunctuationFormatter(Formatter):
             flat_len = len(flat)
             if (
                 not self._inner_would_expand(node, indent + "    ")
-                and flat_len <= self._MAX_CALL_FLAT
-                and flat_len + len(indent) <= self._MAX_LINE
+                and flat_len <= self._call_max_len
+                and flat_len + len(indent) <= self._call_max_line_len
             ):
                 return flat
 
@@ -1647,12 +1692,12 @@ class PythonPairedPunctuationFormatter(Formatter):
         indent_len = len(indent)
 
         should_expand = (
-            content_len > self._MAX_CALL_FLAT
-            or content_len + indent_len > self._MAX_LINE
-            or len(all_args) > self._MAX_ARGS
+            content_len > self._call_max_len
+            or content_len + indent_len > self._call_max_line_len
+            or len(all_args) > self._call_max_args
             or (
             any(self._is_kwarg_str(a) for a in all_args)
-            and len(all_args) > self._MAX_ARGS_WITH_KWARGS
+            and len(all_args) > self._call_max_args_kw
             )
             or self._any_arg_is_expanded(node)
         )
@@ -1734,8 +1779,8 @@ class PythonPairedPunctuationFormatter(Formatter):
         should_expand = (
             is_nested
             or has_nested_children
-            or content_len > self._MAX_CONTAINER_FLAT
-            or content_len + indent_len > self._MAX_LINE
+            or content_len > self._lst_max_len
+            or content_len + indent_len > self._lst_max_line_len
         )
 
         if not should_expand:
@@ -1839,7 +1884,7 @@ class PythonPairedPunctuationFormatter(Formatter):
 
         literal = flat[paren_start:paren_end + 1]
 
-        if len(literal) <= self._MAX_CONTAINER_FLAT:
+        if len(literal) <= self._lst_max_len:
             return flat
 
         items = self._split_by_commas(literal[1:-1])
@@ -2014,12 +2059,12 @@ class PythonPairedPunctuationFormatter(Formatter):
             return current_text
 
         should_expand = (
-            flat_len > self._MAX_FUNCDEF_FLAT
-            or flat_len + len(indent) > 100
-            or len(params) > self._MAX_ARGS
+            flat_len > self._def_max_len
+            or flat_len + len(indent) > self._def_max_line_len
+            or len(params) > self._def_max_args
             or (
             any("=" in p for p in params)
-            and len(params) > self._MAX_ARGS_WITH_KWARGS
+            and len(params) > self._def_max_args_kw
             )
         )
 
@@ -2056,9 +2101,6 @@ class PythonPairedPunctuationFormatter(Formatter):
         indent: str
     ) -> str:
         """Format a subscript (type annotation like Dict[str, int])."""
-        if not isinstance(node.slice, ast.Tuple):
-            return current_text
-
         if self._has_comment(current_text):
             return current_text
 
@@ -2077,14 +2119,19 @@ class PythonPairedPunctuationFormatter(Formatter):
         items = self._split_by_commas(content)
 
         if not items:
-            return current_text
+            return flat
 
-        has_nested = any(isinstance(elt, ast.Subscript) and self._subscript_is_complex(elt) for elt in node.slice.elts)
+        nesting_depth = self._subscript_nesting_depth(node)
+        has_nested = any(
+            isinstance(elt, ast.Subscript) and self._subscript_is_complex(elt)
+            for elt in (node.slice.elts if isinstance(node.slice, ast.Tuple) else [node.slice])
+        )
 
         should_expand = (
             has_nested
-            or flat_len > 40
-            or flat_len + len(indent) > self._MAX_LINE
+            or nesting_depth > self._annotation_max_depth
+            or flat_len > self._annotation_max_len
+            or flat_len + len(indent) > self._annotation_max_line_len
         )
 
         if not should_expand:
@@ -2110,6 +2157,23 @@ class PythonPairedPunctuationFormatter(Formatter):
         lines.append(f"{indent}]")
 
         return "\n".join(lines)
+
+
+    def _subscript_nesting_depth(self, node: ast.Subscript) -> int:
+        """Get the maximum bracket nesting depth of a subscript node."""
+        depth = 1
+
+        if isinstance(node.slice, ast.Tuple):
+            children = node.slice.elts
+        else:
+            children = [node.slice]
+
+        for child in children:
+            if isinstance(child, ast.Subscript):
+                child_depth = 1 + self._subscript_nesting_depth(child)
+                depth = max(depth, child_depth)
+
+        return depth
 
 
     def _format_string_concat(
@@ -2411,7 +2475,7 @@ class PythonPairedPunctuationFormatter(Formatter):
         """Collapse multi-line parenthesized expressions that fit on one line.
 
         Targets: expressions like 'x = y - (\n    ...\n)' where the content
-        is a simple arithmetic expression that fits within MAX_LINE.
+        is a simple arithmetic expression that fits within the call threshold.
         Does NOT collapse if content looks like a BoolOp, function args,
         container, or string concat.
         """
@@ -2472,7 +2536,7 @@ class PythonPairedPunctuationFormatter(Formatter):
                     ):
                         collapsed = f"{stripped}{content}{close_suffix}"
                         if len(collapsed) <= 120:
-                            if "," in content and len(f"({content})") > self._MAX_CONTAINER_FLAT:
+                            if "," in content and len(f"({content})") > self._lst_max_len:
                                 result.append(line)
                                 i += 1
                                 continue
@@ -2786,7 +2850,7 @@ class PythonPairedPunctuationFormatter(Formatter):
                 elts = getattr(ast_arg, "elts", [])
                 if len(elts) > 1:
                     has_nested = any(isinstance(e, (ast.Dict, ast.List, ast.Set, ast.Call)) for e in elts)
-                    if has_nested or len(elts) > 3:
+                    if has_nested or len(elts) > self._lst_max_num:
                         expanded = self._expand_container_inline(
                             arg_str,
                             inner_indent,
@@ -2838,7 +2902,7 @@ class PythonPairedPunctuationFormatter(Formatter):
         ):
             return None
 
-        if len(stripped) <= self._MAX_CONTAINER_FLAT:
+        if len(stripped) <= self._lst_max_len:
             return None
 
         inner = stripped[1:-1].strip()
@@ -3182,17 +3246,17 @@ class PythonPairedPunctuationFormatter(Formatter):
                 return True
 
             flat_inner = ", ".join(ast.unparse(e) for e in elts)
-            if len(flat_inner) + 2 > self._MAX_CONTAINER_FLAT:
+            if len(flat_inner) + 2 > self._lst_max_len:
                 return True
 
             return False
 
         if isinstance(arg, ast.Call):
             inner_args = len(arg.args) + len(arg.keywords)
-            if inner_args > self._MAX_ARGS:
+            if inner_args > self._call_max_args:
                 return True
 
-            if inner_args > self._MAX_ARGS_WITH_KWARGS and any(kw for kw in arg.keywords):
+            if inner_args > self._call_max_args_kw and any(kw for kw in arg.keywords):
                 return True
 
             return False

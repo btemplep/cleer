@@ -19,7 +19,7 @@ class JSONFormatter(Formatter):
 
     def inspect(self, token: str) -> str | None:
         if token != json.dumps(json.loads(token), indent=self._indent):
-            return "JSON must be properly formatted."
+            return f"JSON should be formatted with {self._indent}-space indentation."
 
         return None
 

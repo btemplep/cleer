@@ -49,7 +49,10 @@ class PythonCompoundChainFormatter(Formatter):
         formatted = self.format(token)
 
         if formatted != token:
-            return "Incorrect blank lines between compound statement parts."
+            return (
+                "Compound statement chains (if/elif/else, try/except/finally) should have no blank lines between parts, "
+                "except after return/yield/exit statements."
+            )
 
         return None
 

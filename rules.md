@@ -70,12 +70,13 @@
 - [x] yields
     - have a blank like before unless they are the only statement in that code block
     - have at least one blank line after it
-- [x] Type hints
+- [x] Type hints (handled by paired punctuation formatter)
     - no space before colon, one space after, add this to the existing colon checks if it makes sense
     - First flatten, Don't expand unless one of the following happen, in this order:
-        - A Single non-nested statement is over 40 chars, not including indent just type and brackets
-        - Any non expanded section is over 2 types/brackets deep, expand that started at the most external, non-expanded section
-    - if needed put this after the colon, and comma formatting in the default config generator
+        - A Single non-nested statement is over annotation_max_len (40) chars, not including indent just type and brackets
+        - Over annotation_max_line_len (80) chars including indent
+        - Any non expanded section is over annotation_max_depth (2) types/brackets deep, expand that started at the most external, non-expanded section
+    - Handles all annotation contexts: function params, return types, variable annotations, type aliases
 - [x] classes
     - no blank lines between class declaration, docstring, class vars, or pass
     - 2 blank lines for anything else
@@ -110,43 +111,52 @@
     - any paired punctuation with comments inside of it is not formatted.
     - excludes:
         - __all__
-        - type hints
         - for loop variables like `x` and `y` in `for x,y in thing:`
     - first step of all paired punctuation is to flatten it. 
     - no space between paired punctuation and inner values if they are on the same line
     - configurable thresholds (class parameters with defaults):
-        - max_line: 80
-        - max_call_flat: 60
-        - max_funcdef_flat: 80
-        - max_container_flat: 30
-        - max_boolop_flat: 60
-        - max_args: 4
-        - max_args_with_kwargs: 2
+        - def_max_len: 80 (func def flat length, no indent)
+        - def_max_line_len: 100 (func def with indent)
+        - def_max_args: 4
+        - def_max_args_kw: 2
+        - call_max_len: 60 (call flat length, no indent; also used for boolops and chain segments)
+        - call_max_line_len: 80 (call with indent; also used for boolops)
+        - call_max_args: 4 (also used for chain segments)
+        - call_max_args_kw: 2 (also used for chain segments)
+        - chain_call_max_len: 80 (total flat chain, no indent)
+        - chain_call_max_line_len: 100 (total chain with indent)
+        - lst_max_len: 30 (list/set/tuple literal length)
+        - lst_max_line_len: 80 (list/set/tuple with indent)
+        - lst_max_num: 3 (max items in list/set before inline expansion in call args)
+        - annotation_max_len: 40 (type annotation flat length)
+        - annotation_max_line_len: 80 (type annotation with indent)
+        - annotation_max_depth: 2 (max bracket nesting before expansion)
     - dicts that have more than 0 items, are always expanded
     - Lists, sets, or tuples that are not nested, 
         - should be flattened
-        - if the list, set, or tuple itself is over max_container_flat (30) chars, then expand. Only count length of list/set/tuple literal.
+        - if the list, set, or tuple itself is over lst_max_len (30) chars, then expand. Only count length of list/set/tuple literal.
+        - if the list, set, or tuple with indent is over lst_max_line_len (80), expand.
     - nested lists, sets, or tuples (inside of another list, dict, set, tuple) are expanded if more than 0 items
         - if any are nested are expanded then they all are expanded, unless empty
     - function definitions
         - first flatten
         - expand if any of the following
-            - over max_funcdef_flat (80) characters not including indent
-            - over 100 chars including indent
-            - over max_args (4) args
+            - over def_max_len (80) characters not including indent
+            - over def_max_line_len (100) chars including indent
+            - over def_max_args (4) args
             - any inner paired punctuation args are expanded
-            - more than max_args_with_kwargs (2) args with at least one given as a kwarg
+            - more than def_max_args_kw (2) args with at least one given as a kwarg
         - if any sub items are expanded
         - never split empty args, ie don't split the function def parenthesis to a new line
         - if any are expanded then they all are expanded, unless empty
     - function calls
         - first flatten
         - expand if any of the following
-            - over max_call_flat (60) characters not including indent
-            - over max_line (80) chars including indent
-            - over max_args (4) args
+            - over call_max_len (60) characters not including indent
+            - over call_max_line_len (80) chars including indent
+            - over call_max_args (4) args
             - any inner paired punct is expanded
-            - more than max_args_with_kwargs (2) args with at least one given as a kwarg
+            - more than call_max_args_kw (2) args with at least one given as a kwarg
         - never split empty args, ie don't split the function call parenthesis to a new line
         - never split if it is a single arg that a string
             - must be non-kwarg
@@ -156,18 +166,20 @@
         - if any are expanded then they all are expanded, unless empty
     - chained function calls
         - First flatten 
+        - Individual segments use call_max_len, call_max_args, call_max_args_kw
         - Expand all, except calls with 0 args, if:
-            - any of the chained function calls, meet any of the function call conditions for expansion,  
-            - The flattened length is > max_line (80) chars
+            - any of the chained function calls meet any of the function call conditions for expansion
+            - The total flattened chain length is > chain_call_max_len (80) chars
+            - The total chain length with indent is > chain_call_max_line_len (100) chars
     - decorators
-        - Are treated as function calls (same rules and thresholds)
+        - Are treated as function calls (same rules and thresholds: call_max_*)
         - flatten first
         - expand if any of the following
-            - over max_args (4) args
-            - more than max_call_flat (60) chars not including indent
-            - over max_line (80) chars including indent
+            - over call_max_args (4) args
+            - more than call_max_len (60) chars not including indent
+            - over call_max_line_len (80) chars including indent
             - any inner paired punct is expanded
-            - more than max_args_with_kwargs (2) args with at least one given as a kwarg
+            - more than call_max_args_kw (2) args with at least one given as a kwarg
         - never split empty args, ie don't split the decorator parenthesis to a new line
         - if any are expanded then they all are expanded, unless empty
     - logic blocks
@@ -175,10 +187,10 @@
         - When a logic block is expanded, the operators should proceed the following token on a line.
         - First flatten
         - Add parenthesis to clarify order of operations as well
-        - expand if any of the following
+        - expand if any of the following (uses call_max_len/call_max_line_len)
             - more than 2 statements
-            - length is over max_boolop_flat (60) without indent
-            - length is over max_line (80) with indent
+            - length is over call_max_len (60) without indent
+            - length is over call_max_line_len (80) with indent
             - any inner paired punct is expanded
             - any other logic block is expanded.
         - if expanded should add parenthesis around them
