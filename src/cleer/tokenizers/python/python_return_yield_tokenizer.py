@@ -1,4 +1,4 @@
-"""Python return/yield tokenizer module."""
+"""See :class:`PythonReturnYieldTokenizer`."""
 
 __all__ = [
     "PythonReturnYieldTokenizer"

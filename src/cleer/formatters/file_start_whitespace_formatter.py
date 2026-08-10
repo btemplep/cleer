@@ -1,10 +1,10 @@
-"""File start whitespace formatter module."""
+"""See :class:`FileStartWhitespaceFormatter`."""
 
 __all__ = [
     "FileStartWhitespaceFormatter"
 ]
 
-from cleer.formatters.formatter import Formatter
+from cleer.formatters.formatter import Formatter, FormatterViolation
 
 
 class FileStartWhitespaceFormatter(Formatter):
@@ -33,7 +33,7 @@ class FileStartWhitespaceFormatter(Formatter):
         self._starting_token = "\n" * spaces
 
 
-    def inspect(self, token: str) -> str | None:
+    def inspect(self, token: str) -> list[FormatterViolation]:
         """Inspect a token for improper leading whitespace.
 
         Parameters
@@ -43,14 +43,20 @@ class FileStartWhitespaceFormatter(Formatter):
 
         Returns
         -------
-        str | None
-            Error message if leading whitespace does not match the expected.
-            Returns `None` if there is no violation.
+        list[FormatterViolation]
+            List of violations if leading whitespace does not match the expected.
+            Returns an empty list if there is no violation.
         """
         if token != self._starting_token:
-            return f"Files should start with {self._spaces} blank line(s)."
+            return [
+                {
+                    "start_index": 0,
+                    "length": len(token),
+                    "message": f"Files should start with {self._spaces} blank line(s)."
+                }
+            ]
 
-        return None
+        return []
 
 
     def format(self, token: str) -> str:

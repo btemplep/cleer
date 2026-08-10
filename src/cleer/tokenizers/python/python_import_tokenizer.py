@@ -1,4 +1,4 @@
-"""Python import section tokenizer module."""
+"""See :class:`PythonImportTokenizer`."""
 
 __all__ = [
     "PythonImportTokenizer"

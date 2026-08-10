@@ -1,4 +1,4 @@
-"""Python class boundary formatter module."""
+"""See :class:`PythonClassBoundaryFormatter`."""
 
 __all__ = [
     "PythonClassBoundaryFormatter"
@@ -6,7 +6,7 @@ __all__ = [
 
 import ast
 
-from cleer.formatters.formatter import Formatter
+from cleer.formatters.formatter import Formatter, FormatterViolation
 
 
 class PythonClassBoundaryFormatter(Formatter):
@@ -30,7 +30,7 @@ class PythonClassBoundaryFormatter(Formatter):
     accepts_token_types = ["python_class_boundary"]
 
 
-    def inspect(self, token: str) -> str | None:
+    def inspect(self, token: str) -> list[FormatterViolation]:
         """Inspect class body spacing.
 
         Parameters
@@ -40,19 +40,21 @@ class PythonClassBoundaryFormatter(Formatter):
 
         Returns
         -------
-        str | None
-            Error message if spacing is incorrect.
-            Returns `None` if there is no violation.
+        list[FormatterViolation]
+            List of violations found, empty if no violations.
         """
         formatted = self.format(token)
 
         if formatted != token:
-            return (
-                "Class body spacing should have no blank lines between class declaration, docstring, class vars, or pass. "
-                "There should be two blank lines between those and the first method."
-            )
+            return [
+                {
+                    "start_index": 0,
+                    "length": len(token),
+                    "message": "Class body spacing should have no blank lines between class declaration, docstring, class vars, or pass. There should be two blank lines between those and the first method."
+                }
+            ]
 
-        return None
+        return []
 
 
     def format(self, token: str) -> str:

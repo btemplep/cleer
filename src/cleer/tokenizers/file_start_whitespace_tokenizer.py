@@ -1,4 +1,4 @@
-"""File start whitespace tokenizer module."""
+"""See :class:`FileStartWhitespaceTokenizer`."""
 
 __all__ = [
     "FileStartWhitespaceTokenizer"

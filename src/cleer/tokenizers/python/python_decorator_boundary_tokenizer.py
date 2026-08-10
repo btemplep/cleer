@@ -1,4 +1,4 @@
-"""Python decorator boundary tokenizer module."""
+"""See :class:`PythonDecoratorBoundaryTokenizer`."""
 
 __all__ = [
     "PythonDecoratorBoundaryTokenizer"

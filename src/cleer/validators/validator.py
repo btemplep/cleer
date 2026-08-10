@@ -1,4 +1,4 @@
-"""Base Validator module."""
+"""See :class:`Validator`."""
 
 __all__ = [
     "Validator"

@@ -1,10 +1,10 @@
-"""File end whitespace formatter module."""
+"""See :class:`FileEndWhitespaceFormatter`."""
 
 __all__ = [
     "FileEndWhitespaceFormatter"
 ]
 
-from cleer.formatters.formatter import Formatter
+from cleer.formatters.formatter import Formatter, FormatterViolation
 
 
 class FileEndWhitespaceFormatter(Formatter):
@@ -33,7 +33,7 @@ class FileEndWhitespaceFormatter(Formatter):
         self._ending_token = "\n" * blank_lines
 
 
-    def inspect(self, token: str) -> str | None:
+    def inspect(self, token: str) -> list[FormatterViolation]:
         """Inspect a token for improper trailing whitespace.
 
         Parameters
@@ -43,14 +43,20 @@ class FileEndWhitespaceFormatter(Formatter):
 
         Returns
         -------
-        str | None
-            Error message if trailing whitespace does not match the expected.
-            Returns `None` if there is no violation.
+        list[FormatterViolation]
+            List of violations if trailing whitespace does not match the expected.
+            Returns an empty list if there is no violation.
         """
         if token != self._ending_token:
-            return f"Files should end with {self._blank_lines} blank line(s)."
+            return [
+                {
+                    "start_index": 0,
+                    "length": len(token),
+                    "message": f"Files should end with {self._blank_lines} blank line(s)."
+                }
+            ]
 
-        return None
+        return []
 
 
     def format(self, token: str) -> str:

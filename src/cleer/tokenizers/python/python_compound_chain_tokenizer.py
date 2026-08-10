@@ -1,4 +1,4 @@
-"""Python compound chain tokenizer module."""
+"""See :class:`PythonCompoundChainTokenizer`."""
 
 __all__ = [
     "PythonCompoundChainTokenizer"

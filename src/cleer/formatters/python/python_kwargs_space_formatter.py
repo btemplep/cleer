@@ -1,10 +1,10 @@
-"""Python kwargs space formatter module."""
+"""See :class:`PythonKwargsSpaceFormatter`."""
 
 __all__ = [
     "PythonKwargsSpaceFormatter"
 ]
 
-from cleer.formatters.formatter import Formatter
+from cleer.formatters.formatter import Formatter, FormatterViolation
 
 
 class PythonKwargsSpaceFormatter(Formatter):
@@ -23,7 +23,7 @@ class PythonKwargsSpaceFormatter(Formatter):
     accepts_token_types = ["python_kwargs_space"]
 
 
-    def inspect(self, token: str) -> str | None:
+    def inspect(self, token: str) -> list[FormatterViolation]:
         """Inspect kwarg = spacing.
 
         Parameters
@@ -33,14 +33,19 @@ class PythonKwargsSpaceFormatter(Formatter):
 
         Returns
         -------
-        str | None
-            Error message if spacing is incorrect.
-            Returns `None` if there is no violation.
+        list[FormatterViolation]
+            List of violations. Empty if spacing is correct.
         """
         if token != "=":
-            return "Keyword argument = should have no surrounding spaces."
+            return [
+                {
+                    "start_index": 0,
+                    "length": len(token),
+                    "message": "Keyword argument = should have no surrounding spaces."
+                }
+            ]
 
-        return None
+        return []
 
 
     def format(self, token: str) -> str:

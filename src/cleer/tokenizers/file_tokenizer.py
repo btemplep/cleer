@@ -1,4 +1,4 @@
-"""File tokenizer module."""
+"""See :class:`FileTokenizer`."""
 
 __all__ = [
     "FileTokenizer"

@@ -1,4 +1,4 @@
-"""Cleer CLI"""
+"""Cleer CLI entry point."""
 
 __all__ = []
 

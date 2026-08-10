@@ -1,4 +1,4 @@
-"""TODO: Add module docstring."""
+"""See :class:`PythonSyntaxValidator`."""
 
 import ast
 

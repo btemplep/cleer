@@ -1,4 +1,13 @@
-"""TODO: Add module docstring."""
+"""cleer - A customizable and extensible file formatter.
+
+```python
+from cleer import Cleer, cleer_default_config
+
+
+clr = Cleer(config=cleer_default_config(python_packages=["my_package"]))
+results = clr.format("src/")
+```
+"""
 
 __version__ = "0.1.0a3"
 

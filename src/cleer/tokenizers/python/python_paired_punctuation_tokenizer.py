@@ -1,4 +1,4 @@
-"""Python paired punctuation tokenizer module."""
+"""See :class:`PythonPairedPunctuationTokenizer`."""
 
 __all__ = [
     "PythonPairedPunctuationTokenizer"

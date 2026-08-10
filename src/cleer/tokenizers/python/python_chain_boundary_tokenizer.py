@@ -1,4 +1,4 @@
-"""Python chain boundary tokenizer module."""
+"""See :class:`PythonChainBoundaryTokenizer`."""
 
 __all__ = [
     "PythonChainBoundaryTokenizer"

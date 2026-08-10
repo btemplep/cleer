@@ -1,4 +1,4 @@
-"""cleer Formatters"""
+"""cleer formatters."""
 
 __all__ = [
     "BlankLineFormatter",

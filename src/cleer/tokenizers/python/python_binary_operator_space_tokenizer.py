@@ -1,4 +1,4 @@
-"""Python binary operator space tokenizer module."""
+"""See :class:`PythonBinaryOperatorSpaceTokenizer`."""
 
 __all__ = [
     "PythonBinaryOperatorSpaceTokenizer"

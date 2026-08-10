@@ -1,4 +1,4 @@
-"""Python paired punctuation formatter module."""
+"""See :class:`PythonPairedPunctuationFormatter`."""
 
 __all__ = [
     "PythonPairedPunctuationFormatter"
@@ -9,7 +9,7 @@ import io
 import re
 import tokenize
 
-from cleer.formatters.formatter import Formatter
+from cleer.formatters.formatter import Formatter, FormatterViolation
 
 
 class PythonPairedPunctuationFormatter(Formatter):
@@ -107,15 +107,18 @@ class PythonPairedPunctuationFormatter(Formatter):
         self._annotation_max_depth = annotation_max_depth
 
 
-    def inspect(self, token: str) -> str | None:
+    def inspect(self, token: str) -> list[FormatterViolation]:
         formatted = self.format(token)
         if formatted != token:
-            return (
-                "Paired punctuation should be flattened first, then expanded based on length and argument thresholds. "
-                "No space between openers/closers and inner values on the same line."
-            )
+            return [
+                {
+                    "start_index": 0,
+                    "length": len(token),
+                    "message": "Paired punctuation should be flattened first, then expanded based on length and argument thresholds. No space between openers/closers and inner values on the same line."
+                }
+            ]
 
-        return None
+        return []
 
 
     def format(self, token: str) -> str:

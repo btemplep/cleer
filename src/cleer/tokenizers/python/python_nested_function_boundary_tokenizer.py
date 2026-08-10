@@ -1,4 +1,4 @@
-"""Python nested definition boundary tokenizer module."""
+"""See :class:`PythonNestedFunctionBoundaryTokenizer`."""
 
 __all__ = [
     "PythonNestedFunctionBoundaryTokenizer"

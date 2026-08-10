@@ -1,4 +1,4 @@
-"""Line tokenizer module."""
+"""See :class:`LineTokenizer`."""
 
 __all__ = [
     "LineTokenizer"

@@ -1,4 +1,4 @@
-"""Python import section formatter module."""
+"""See :class:`PythonImportFormatter`."""
 
 __all__ = [
     "PythonImportFormatter"
@@ -7,7 +7,7 @@ __all__ = [
 import ast
 import sys
 
-from cleer.formatters.formatter import Formatter
+from cleer.formatters.formatter import Formatter, FormatterViolation
 
 
 STDLIB_MODULES = sys.stdlib_module_names
@@ -53,7 +53,7 @@ class PythonImportFormatter(Formatter):
         self._current_packages = current_packages or []
 
 
-    def inspect(self, token: str) -> str | None:
+    def inspect(self, token: str) -> list[FormatterViolation]:
         """Inspect import section formatting.
 
         Parameters
@@ -63,16 +63,21 @@ class PythonImportFormatter(Formatter):
 
         Returns
         -------
-        str | None
-            Error message if formatting is incorrect.
-            Returns `None` if there is no violation.
+        list[FormatterViolation]
+            List of violations found, empty if no violations.
         """
         expected = self._format_token(token)
 
         if token != expected:
-            return "Import section should be sorted into blocks (stdlib, third-party, internal, current) with items sorted alphabetically."
+            return [
+                {
+                    "start_index": 0,
+                    "length": len(token),
+                    "message": "Import section should be sorted into blocks (stdlib, third-party, internal, current) with items sorted alphabetically."
+                }
+            ]
 
-        return None
+        return []
 
 
     def format(self, token: str) -> str:

@@ -1,4 +1,4 @@
-"""Python kwargs space tokenizer module."""
+"""See :class:`PythonKwargsSpaceTokenizer`."""
 
 __all__ = [
     "PythonKwargsSpaceTokenizer"

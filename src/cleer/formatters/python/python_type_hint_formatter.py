@@ -1,4 +1,4 @@
-"""Python type hint formatter module."""
+"""See :class:`PythonTypeHintFormatter`."""
 
 __all__ = [
     "PythonTypeHintFormatter"

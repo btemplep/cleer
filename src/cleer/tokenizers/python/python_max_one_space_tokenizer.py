@@ -1,4 +1,4 @@
-"""Python max one space tokenizer module."""
+"""See :class:`PythonMaxOneSpaceTokenizer`."""
 
 __all__ = [
     "PythonMaxOneSpaceTokenizer"

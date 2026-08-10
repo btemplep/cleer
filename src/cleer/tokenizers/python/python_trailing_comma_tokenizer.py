@@ -1,4 +1,4 @@
-"""Python trailing comma tokenizer module."""
+"""See :class:`PythonTrailingCommaTokenizer`."""
 
 __all__ = [
     "PythonTrailingCommaTokenizer"

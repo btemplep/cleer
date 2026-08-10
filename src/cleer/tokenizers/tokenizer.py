@@ -1,4 +1,4 @@
-"""TODO: Add module docstring."""
+"""See :class:`Tokenizer` and :class:`TokenResult`."""
 
 __all__ = [
     "TokenResult",

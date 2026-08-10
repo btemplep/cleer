@@ -1,4 +1,4 @@
-"""cleer Validators"""
+"""cleer validators."""
 
 __all__ = [
     "JSONValidator",

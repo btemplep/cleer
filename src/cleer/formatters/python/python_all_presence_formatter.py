@@ -1,4 +1,4 @@
-"""Python __all__ presence formatter module."""
+"""See :class:`PythonAllPresenceFormatter`."""
 
 __all__ = [
     "PythonAllPresenceFormatter"
@@ -6,7 +6,7 @@ __all__ = [
 
 import ast
 
-from cleer.formatters.formatter import Formatter
+from cleer.formatters.formatter import Formatter, FormatterViolation
 
 
 class PythonAllPresenceFormatter(Formatter):
@@ -31,7 +31,7 @@ class PythonAllPresenceFormatter(Formatter):
     accepts_token_types = ["file"]
 
 
-    def inspect(self, token: str) -> str | None:
+    def inspect(self, token: str) -> list[FormatterViolation]:
         """Inspect whether `__all__` exists in the module.
 
         Parameters
@@ -41,14 +41,19 @@ class PythonAllPresenceFormatter(Formatter):
 
         Returns
         -------
-        str | None
-            Error message if `__all__` is missing.
-            Returns `None` if there is no violation.
+        list[FormatterViolation]
+            List of violations. Empty if `__all__` exists.
         """
         if self._has_all(token):
-            return None
+            return []
 
-        return "Modules should define __all__."
+        return [
+            {
+                "start_index": 0,
+                "length": len(token),
+                "message": "Modules should define __all__."
+            }
+        ]
 
 
     def format(self, token: str) -> str:

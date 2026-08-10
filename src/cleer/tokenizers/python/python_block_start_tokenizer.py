@@ -1,4 +1,4 @@
-"""Python block start tokenizer module."""
+"""See :class:`PythonBlockStartTokenizer`."""
 
 __all__ = [
     "PythonBlockStartTokenizer"

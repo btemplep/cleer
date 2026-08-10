@@ -1,4 +1,4 @@
-"""Python module docstring presence formatter module."""
+"""See :class:`PythonModuleDocstringPresenceFormatter`."""
 
 __all__ = [
     "PythonModuleDocstringPresenceFormatter"
@@ -6,7 +6,7 @@ __all__ = [
 
 import ast
 
-from cleer.formatters.formatter import Formatter
+from cleer.formatters.formatter import Formatter, FormatterViolation
 
 
 class PythonModuleDocstringPresenceFormatter(Formatter):
@@ -32,7 +32,7 @@ class PythonModuleDocstringPresenceFormatter(Formatter):
     accepts_token_types = ["file"]
 
 
-    def inspect(self, token: str) -> str | None:
+    def inspect(self, token: str) -> list[FormatterViolation]:
         """Inspect whether a module docstring exists.
 
         Parameters
@@ -42,14 +42,19 @@ class PythonModuleDocstringPresenceFormatter(Formatter):
 
         Returns
         -------
-        str | None
-            Error message if module docstring is missing.
-            Returns `None` if there is no violation.
+        list[FormatterViolation]
+            List of violations found, empty if no violations.
         """
         if self._has_module_docstring(token):
-            return None
+            return []
 
-        return "Modules should have a docstring."
+        return [
+            {
+                "start_index": 0,
+                "length": len(token),
+                "message": "Modules should have a docstring."
+            }
+        ]
 
 
     def format(self, token: str) -> str:

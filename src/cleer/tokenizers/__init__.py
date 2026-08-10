@@ -1,4 +1,4 @@
-"""TODO: Add module docstring."""
+"""cleer tokenizers."""
 
 __all__ = [
     "FileEndWhitespaceTokenizer",

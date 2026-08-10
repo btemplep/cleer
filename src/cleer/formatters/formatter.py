@@ -1,12 +1,43 @@
-"""TODO: Add module docstring."""
+"""See :class:`Formatter` and :class:`FormatterViolation`."""
 
 __all__ = [
-    "Formatter"
+    "Formatter",
+    "FormatterViolation"
 ]
+
+from typing import TypedDict
+
+
+class FormatterViolation(TypedDict):
+    """Violation data returned directly from a Formatter's inspect method.
+
+    Examples
+    --------
+
+    ```python
+    {
+        "start_index": 4,
+        "length": 3,
+        "message": "Lines should not have any trailing whitespace."
+    }
+    ```
+
+    Attributes
+    ----------
+    start_index : int
+        Start index of the violation within the token.
+    length : int
+        Length of the violating span within the token.
+    message : str
+        Message describing the violation.
+    """
+    start_index: int
+    length: int
+    message: str
 
 
 class Formatter:
-    """Formatter base class
+    """Formatter base class.
 
     Formatters are use by cleer to:
     - inspect tokens to see if they are formatted correctly
@@ -17,8 +48,8 @@ class Formatter:
     accepts_token_types: list[str] = []
 
 
-    def inspect(self, token: str) -> str | None:
-        """Inspect a token for a violation.
+    def inspect(self, token: str) -> list[FormatterViolation]:
+        """Inspect a token for violations.
 
         Formatters must implement this method.
 
@@ -29,8 +60,8 @@ class Formatter:
 
         Returns
         -------
-        str | None
-            Error message. `None` if there is no violation.
+        list[FormatterViolation]
+            List of formatter violations. An empty list mean no violations.
         """
         raise NotImplementedError("Formatter classes must implement the inspect method!")
 

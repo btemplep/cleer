@@ -87,12 +87,13 @@ cleer format --log-level DEBUG --verbose --keep-excluded --keep-no-match path/to
 
 1. Custom instance from `--cleer` argument.
 2. Default path `clr:clr`. A `clr.py` file in the current directory with a `clr` variable.  The `clr` variable should be an instance of the `Cleer`.
-3. Auto-generated default configuration.
+3. Auto-generated default configuration. See [Default Rules](./rules.md).
 
 
 ## Configuration
 
-Create a `clr.py` file in the root of your project:
+Create a `clr.py` file in the root of your project. 
+For the easiest start use the `cleer_default_config` generator to create a default config with some tweaks exposed. 
 
 ```python
 """clr.py"""
@@ -103,9 +104,7 @@ from cleer import cleer_default_config, Cleer
 clr = Cleer(config=cleer_default_config(python_packages=["my_package"]))
 ```
 
-This ensures imports are properly grouped and sorted for your package.
-
-For more control:
+For the most control, you can create you formatting config from scratch. 
 
 ```python
 from cleer import *
@@ -115,7 +114,9 @@ clr = Cleer(
     config={
         "groups": [
             {
-                "includes": ["**/*.py"],
+                "includes": [
+                    "**/*.py"
+                ],
                 "excludes": [
                     "**/.venv*/**",
                     "**/venv*/**"

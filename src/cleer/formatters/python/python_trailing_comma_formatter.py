@@ -1,10 +1,10 @@
-"""Python trailing comma formatter module."""
+"""See :class:`PythonTrailingCommaFormatter`."""
 
 __all__ = [
     "PythonTrailingCommaFormatter"
 ]
 
-from cleer.formatters.formatter import Formatter
+from cleer.formatters.formatter import Formatter, FormatterViolation
 
 
 class PythonTrailingCommaFormatter(Formatter):
@@ -27,7 +27,7 @@ class PythonTrailingCommaFormatter(Formatter):
     accepts_token_types = ["python_trailing_comma"]
 
 
-    def inspect(self, token: str) -> str | None:
+    def inspect(self, token: str) -> list[FormatterViolation]:
         """Inspect for unwanted trailing comma.
 
         Parameters
@@ -37,14 +37,19 @@ class PythonTrailingCommaFormatter(Formatter):
 
         Returns
         -------
-        str | None
-            Error message if trailing comma should be removed.
-            Returns `None` if there is no violation.
+        list[FormatterViolation]
+            List of violations found, empty if no violations.
         """
         if token == ",":
-            return "Trailing commas should be removed."
+            return [
+                {
+                    "start_index": 0,
+                    "length": len(token),
+                    "message": "Trailing commas should be removed."
+                }
+            ]
 
-        return None
+        return []
 
 
     def format(self, token: str) -> str:

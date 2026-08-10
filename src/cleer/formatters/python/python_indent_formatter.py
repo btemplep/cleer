@@ -1,4 +1,4 @@
-"""Python indent formatter module."""
+"""See :class:`PythonIndentFormatter`."""
 
 __all__ = [
     "PythonIndentFormatter"
@@ -6,9 +6,8 @@ __all__ = [
 
 import ast
 import re
-from typing import Dict
 
-from cleer.formatters.formatter import Formatter
+from cleer.formatters.formatter import Formatter, FormatterViolation
 
 
 class PythonIndentFormatter(Formatter):
@@ -41,7 +40,7 @@ class PythonIndentFormatter(Formatter):
         self._tab_size = tab_size
 
 
-    def inspect(self, token: str) -> str | None:
+    def inspect(self, token: str) -> list[FormatterViolation]:
         """Inspect a code block for incorrect indentation.
 
         Parameters
@@ -51,9 +50,8 @@ class PythonIndentFormatter(Formatter):
 
         Returns
         -------
-        str | None
-            Error message if indentation is incorrect.
-            Returns `None` if there is no violation.
+        list[FormatterViolation]
+            List of violations. Empty if indentation is correct.
         """
         in_triple_quote = False
         triple_char = ""
@@ -88,9 +86,15 @@ class PythonIndentFormatter(Formatter):
                 continue
 
             if "\t" in leading or len(leading) % self._tab_size != 0:
-                return f"Indentation should use spaces with {self._tab_size} spaces per level."
+                return [
+                    {
+                        "start_index": 0,
+                        "length": len(token),
+                        "message": f"Indentation should use spaces with {self._tab_size} spaces per level."
+                    }
+                ]
 
-        return None
+        return []
 
 
     def format(self, token: str) -> str:

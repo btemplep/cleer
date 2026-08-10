@@ -1,4 +1,4 @@
-"""Whitespace tokenizer module."""
+"""See :class:`WhitespaceTokenizer`."""
 
 __all__ = [
     "WhitespaceTokenizer"

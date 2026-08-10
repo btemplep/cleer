@@ -1,4 +1,4 @@
-"""Python return/yield formatter module."""
+"""See :class:`PythonReturnYieldFormatter`."""
 
 __all__ = [
     "PythonReturnYieldFormatter"
@@ -6,7 +6,7 @@ __all__ = [
 
 import ast
 
-from cleer.formatters.formatter import Formatter
+from cleer.formatters.formatter import Formatter, FormatterViolation
 
 
 class PythonReturnYieldFormatter(Formatter):
@@ -31,7 +31,7 @@ class PythonReturnYieldFormatter(Formatter):
     accepts_token_types = ["python_return_yield"]
 
 
-    def inspect(self, token: str) -> str | None:
+    def inspect(self, token: str) -> list[FormatterViolation]:
         """Inspect return/yield blank line spacing.
 
         Parameters
@@ -41,16 +41,21 @@ class PythonReturnYieldFormatter(Formatter):
 
         Returns
         -------
-        str | None
-            Error message if spacing is incorrect.
-            Returns `None` if there is no violation.
+        list[FormatterViolation]
+            List of violations found, empty if no violations.
         """
         expected = self._format_token(token)
 
         if token != expected:
-            return "Return/yield should have a blank line before (unless only statement in block) and at least one blank line after."
+            return [
+                {
+                    "start_index": 0,
+                    "length": len(token),
+                    "message": "Return/yield should have a blank line before (unless only statement in block) and at least one blank line after."
+                }
+            ]
 
-        return None
+        return []
 
 
     def format(self, token: str) -> str:

@@ -1,4 +1,4 @@
-"""Python __all__ formatter module."""
+"""See :class:`PythonAllFormatter`."""
 
 __all__ = [
     "PythonAllFormatter"
@@ -6,7 +6,7 @@ __all__ = [
 
 import ast
 
-from cleer.formatters.formatter import Formatter
+from cleer.formatters.formatter import Formatter, FormatterViolation
 
 
 class PythonAllFormatter(Formatter):
@@ -40,7 +40,7 @@ class PythonAllFormatter(Formatter):
         self._quote = quote
 
 
-    def inspect(self, token: str) -> str | None:
+    def inspect(self, token: str) -> list[FormatterViolation]:
         """Inspect `__all__` formatting.
 
         Parameters
@@ -50,15 +50,20 @@ class PythonAllFormatter(Formatter):
 
         Returns
         -------
-        str | None
-            Error message if formatting is incorrect.
-            Returns `None` if there is no violation.
+        list[FormatterViolation]
+            List of violations. Empty if formatting is correct.
         """
         expected = self._format_token(token)
         if token != expected:
-            return "__all__ should be sorted alphabetically with one item per line and one blank line before and after."
+            return [
+                {
+                    "start_index": 0,
+                    "length": len(token),
+                    "message": "__all__ should be sorted alphabetically with one item per line and one blank line before and after."
+                }
+            ]
 
-        return None
+        return []
 
 
     def format(self, token: str) -> str:

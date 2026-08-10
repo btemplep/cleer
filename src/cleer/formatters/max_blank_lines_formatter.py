@@ -1,10 +1,10 @@
-"""Max blank lines formatter module."""
+"""See :class:`MaxBlankLinesFormatter`."""
 
 __all__ = [
     "MaxBlankLinesFormatter"
 ]
 
-from cleer.formatters.formatter import Formatter
+from cleer.formatters.formatter import Formatter, FormatterViolation
 
 
 class MaxBlankLinesFormatter(Formatter):
@@ -45,7 +45,7 @@ class MaxBlankLinesFormatter(Formatter):
         return newline_count - 1
 
 
-    def inspect(self, token: str) -> str | None:
+    def inspect(self, token: str) -> list[FormatterViolation]:
         """Inspect a token for too many consecutive blank lines.
 
         Parameters
@@ -55,16 +55,22 @@ class MaxBlankLinesFormatter(Formatter):
 
         Returns
         -------
-        str | None
-            Error message if there are more blank lines than allowed.
-            Returns `None` if there is no violation.
+        list[FormatterViolation]
+            List of violations if there are more blank lines than allowed.
+            Returns an empty list if there is no violation.
         """
         blank_lines = self._count_blank_lines(token)
 
         if blank_lines > self._max_blank_lines:
-            return f"No more than {self._max_blank_lines} consecutive blank line(s) allowed."
+            return [
+                {
+                    "start_index": 0,
+                    "length": len(token),
+                    "message": f"No more than {self._max_blank_lines} consecutive blank line(s) allowed."
+                }
+            ]
 
-        return None
+        return []
 
 
     def format(self, token: str) -> str:

@@ -1,4 +1,4 @@
-"""Glob to regex"""
+"""Glob pattern to regex conversion utility."""
 
 __all__ = [
     "glob_to_regex"

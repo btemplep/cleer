@@ -1,10 +1,10 @@
-"""Blank line formatter module."""
+"""See :class:`BlankLineFormatter`."""
 
 __all__ = [
     "BlankLineFormatter"
 ]
 
-from cleer.formatters.formatter import Formatter
+from cleer.formatters.formatter import Formatter, FormatterViolation
 
 
 class BlankLineFormatter(Formatter):
@@ -53,7 +53,7 @@ class BlankLineFormatter(Formatter):
         self._message = message
 
 
-    def inspect(self, token: str) -> str | None:
+    def inspect(self, token: str) -> list[FormatterViolation]:
         """Inspect a whitespace token for incorrect blank lines.
 
         Parameters
@@ -63,14 +63,20 @@ class BlankLineFormatter(Formatter):
 
         Returns
         -------
-        str | None
-            Error message if the token doesn't match the expected
-            replacement. Returns `None` if there is no violation.
+        list[FormatterViolation]
+            List of violations if the token doesn't match the expected
+            replacement. Returns an empty list if there is no violation.
         """
         if token != self._replacement:
-            return self._message
+            return [
+                {
+                    "start_index": 0,
+                    "length": len(token),
+                    "message": self._message
+                }
+            ]
 
-        return None
+        return []
 
 
     def format(self, token: str) -> str:

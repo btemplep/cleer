@@ -1,10 +1,10 @@
-"""Python comma space formatter module."""
+"""See :class:`PythonCommaSpaceFormatter`."""
 
 __all__ = [
     "PythonCommaSpaceFormatter"
 ]
 
-from cleer.formatters.formatter import Formatter
+from cleer.formatters.formatter import Formatter, FormatterViolation
 
 
 class PythonCommaSpaceFormatter(Formatter):
@@ -27,7 +27,7 @@ class PythonCommaSpaceFormatter(Formatter):
     accepts_token_types = ["python_comma_space"]
 
 
-    def inspect(self, token: str) -> str | None:
+    def inspect(self, token: str) -> list[FormatterViolation]:
         """Inspect comma spacing.
 
         Parameters
@@ -37,12 +37,11 @@ class PythonCommaSpaceFormatter(Formatter):
 
         Returns
         -------
-        str | None
-            Error message if spacing is incorrect.
-            Returns `None` if there is no violation.
+        list[FormatterViolation]
+            List of violations. Empty if spacing is correct.
         """
         if "," not in token:
-            return None
+            return []
 
         comma_idx = token.index(",")
         before = token[:comma_idx]
@@ -55,9 +54,15 @@ class PythonCommaSpaceFormatter(Formatter):
                 and not after.startswith("\n")
             )
         ):
-            return "There should be no space before a comma, and one space after."
+            return [
+                {
+                    "start_index": 0,
+                    "length": len(token),
+                    "message": "There should be no space before a comma, and one space after."
+                }
+            ]
 
-        return None
+        return []
 
 
     def format(self, token: str) -> str:

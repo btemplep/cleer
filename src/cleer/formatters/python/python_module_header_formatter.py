@@ -1,4 +1,4 @@
-"""Python module header formatter module."""
+"""See :class:`PythonModuleHeaderFormatter`."""
 
 __all__ = [
     "PythonModuleHeaderFormatter"
@@ -6,7 +6,7 @@ __all__ = [
 
 import ast
 
-from cleer.formatters.formatter import Formatter
+from cleer.formatters.formatter import Formatter, FormatterViolation
 
 
 class PythonModuleHeaderFormatter(Formatter):
@@ -36,7 +36,7 @@ class PythonModuleHeaderFormatter(Formatter):
     accepts_token_types = ["file"]
 
 
-    def inspect(self, token: str) -> str | None:
+    def inspect(self, token: str) -> list[FormatterViolation]:
         """Inspect module header spacing.
 
         Parameters
@@ -46,16 +46,21 @@ class PythonModuleHeaderFormatter(Formatter):
 
         Returns
         -------
-        str | None
-            Error message if header spacing is incorrect.
-            Returns `None` if there is no violation.
+        list[FormatterViolation]
+            List of violations found, empty if no violations.
         """
         expected = self._fix_header(token)
 
         if token != expected:
-            return "Module header should have 1 blank line between items and 2 blank lines before code."
+            return [
+                {
+                    "start_index": 0,
+                    "length": len(token),
+                    "message": "Module header should have 1 blank line between items and 2 blank lines before code."
+                }
+            ]
 
-        return None
+        return []
 
 
     def format(self, token: str) -> str:

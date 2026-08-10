@@ -1,4 +1,4 @@
-"""Trailing whitespace tokenizer module."""
+"""See :class:`TrailingWhitespaceTokenizer`."""
 
 __all__ = [
     "TrailingWhitespaceTokenizer"

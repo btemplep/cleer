@@ -1,4 +1,4 @@
-"""Python dict key quote tokenizer module."""
+"""See :class:`PythonDictKeyQuoteTokenizer`."""
 
 __all__ = [
     "PythonDictKeyQuoteTokenizer"

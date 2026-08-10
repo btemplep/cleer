@@ -1,10 +1,10 @@
-"""Python max one space formatter module."""
+"""See :class:`PythonMaxOneSpaceFormatter`."""
 
 __all__ = [
     "PythonMaxOneSpaceFormatter"
 ]
 
-from cleer.formatters.formatter import Formatter
+from cleer.formatters.formatter import Formatter, FormatterViolation
 
 
 class PythonMaxOneSpaceFormatter(Formatter):
@@ -23,7 +23,7 @@ class PythonMaxOneSpaceFormatter(Formatter):
     accepts_token_types = ["python_max_one_space"]
 
 
-    def inspect(self, token: str) -> str | None:
+    def inspect(self, token: str) -> list[FormatterViolation]:
         """Inspect for multiple consecutive spaces.
 
         Parameters
@@ -33,14 +33,19 @@ class PythonMaxOneSpaceFormatter(Formatter):
 
         Returns
         -------
-        str | None
-            Error message if multiple consecutive spaces found.
-            Returns `None` if there is no violation.
+        list[FormatterViolation]
+            List of violations found, empty if no violations.
         """
         if len(token) > 1:
-            return "Only one consecutive space is allowed outside of indentation and string literals."
+            return [
+                {
+                    "start_index": 0,
+                    "length": len(token),
+                    "message": "Only one consecutive space is allowed outside of indentation and string literals."
+                }
+            ]
 
-        return None
+        return []
 
 
     def format(self, token: str) -> str:

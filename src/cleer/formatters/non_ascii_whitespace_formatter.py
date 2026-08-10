@@ -1,10 +1,10 @@
-"""Non-ASCII whitespace formatter module."""
+"""See :class:`NonAsciiWhitespaceFormatter`."""
 
 __all__ = [
     "NonAsciiWhitespaceFormatter"
 ]
 
-from cleer.formatters.formatter import Formatter
+from cleer.formatters.formatter import Formatter, FormatterViolation
 
 
 class NonAsciiWhitespaceFormatter(Formatter):
@@ -26,7 +26,7 @@ class NonAsciiWhitespaceFormatter(Formatter):
     accepts_token_types = ["non_ascii_whitespace"]
 
 
-    def inspect(self, token: str) -> str | None:
+    def inspect(self, token: str) -> list[FormatterViolation]:
         """Inspect a token for non-ASCII whitespace.
 
         Parameters
@@ -36,11 +36,17 @@ class NonAsciiWhitespaceFormatter(Formatter):
 
         Returns
         -------
-        str | None
-            Error message if non-ASCII whitespace is present.
-            Returns `None` if there is no violation.
+        list[FormatterViolation]
+            List of violations if non-ASCII whitespace is present.
+            Returns an empty list if there is no violation.
         """
-        return "Non-ASCII whitespace characters should not exist."
+        return [
+            {
+                "start_index": 0,
+                "length": len(token),
+                "message": "Non-ASCII whitespace characters should not exist."
+            }
+        ]
 
 
     def format(self, token: str) -> str:

@@ -1,10 +1,10 @@
-"""Python dict key quote formatter module."""
+"""See :class:`PythonDictKeyQuoteFormatter`."""
 
 __all__ = [
     "PythonDictKeyQuoteFormatter"
 ]
 
-from cleer.formatters.formatter import Formatter
+from cleer.formatters.formatter import Formatter, FormatterViolation
 
 
 class PythonDictKeyQuoteFormatter(Formatter):
@@ -35,7 +35,7 @@ class PythonDictKeyQuoteFormatter(Formatter):
         self._quote = quote
 
 
-    def inspect(self, token: str) -> str | None:
+    def inspect(self, token: str) -> list[FormatterViolation]:
         """Inspect a dict key string token for incorrect quote style.
 
         Parameters
@@ -45,22 +45,27 @@ class PythonDictKeyQuoteFormatter(Formatter):
 
         Returns
         -------
-        str | None
-            Error message if wrong quote style is used.
-            Returns `None` if there is no violation.
+        list[FormatterViolation]
+            List of violations found, empty if no violations.
         """
         prefix, quote_char, content = self._parse_string(token)
 
         if prefix is None:
-            return None
+            return []
 
         if quote_char == self._quote:
-            return None
+            return []
 
         if self._quote in content:
-            return None
+            return []
 
-        return f"Dict key bracket notation should use {self._quote} quotes."
+        return [
+            {
+                "start_index": 0,
+                "length": len(token),
+                "message": f"Dict key bracket notation should use {self._quote} quotes."
+            }
+        ]
 
 
     def format(self, token: str) -> str:

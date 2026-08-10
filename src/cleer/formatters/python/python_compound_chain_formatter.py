@@ -1,4 +1,4 @@
-"""Python compound chain formatter module."""
+"""See :class:`PythonCompoundChainFormatter`."""
 
 __all__ = [
     "PythonCompoundChainFormatter"
@@ -7,7 +7,7 @@ __all__ = [
 import ast
 import textwrap
 
-from cleer.formatters.formatter import Formatter
+from cleer.formatters.formatter import Formatter, FormatterViolation
 
 
 class PythonCompoundChainFormatter(Formatter):
@@ -32,7 +32,7 @@ class PythonCompoundChainFormatter(Formatter):
     accepts_token_types = ["python_compound_chain"]
 
 
-    def inspect(self, token: str) -> str | None:
+    def inspect(self, token: str) -> list[FormatterViolation]:
         """Inspect compound chain for incorrect blank lines.
 
         Parameters
@@ -42,19 +42,22 @@ class PythonCompoundChainFormatter(Formatter):
 
         Returns
         -------
-        str | None
-            Error message if blank lines are incorrect.
-            Returns `None` if there is no violation.
+        list[FormatterViolation]
+            List of violations. Empty if blank lines are correct.
         """
         formatted = self.format(token)
 
         if formatted != token:
-            return (
-                "Compound statement chains (if/elif/else, try/except/finally) should have no blank lines between parts, "
-                "except after return/yield/exit statements."
-            )
+            return [
+                {
+                    "start_index": 0,
+                    "length": len(token),
+                    "message": "Compound statement chains (if/elif/else, try/except/finally) should have no blank lines between parts, "
+                        "except after return/yield/exit statements."
+                }
+            ]
 
-        return None
+        return []
 
 
     def format(self, token: str) -> str:

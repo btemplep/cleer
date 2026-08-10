@@ -1,10 +1,10 @@
-"""Python binary operator space formatter module."""
+"""See :class:`PythonBinaryOperatorSpaceFormatter`."""
 
 __all__ = [
     "PythonBinaryOperatorSpaceFormatter"
 ]
 
-from cleer.formatters.formatter import Formatter
+from cleer.formatters.formatter import Formatter, FormatterViolation
 
 
 class PythonBinaryOperatorSpaceFormatter(Formatter):
@@ -28,7 +28,7 @@ class PythonBinaryOperatorSpaceFormatter(Formatter):
     ]
 
 
-    def inspect(self, token: str) -> str | None:
+    def inspect(self, token: str) -> list[FormatterViolation]:
         """Inspect operator spacing.
 
         Parameters
@@ -38,17 +38,22 @@ class PythonBinaryOperatorSpaceFormatter(Formatter):
 
         Returns
         -------
-        str | None
-            Error message if spacing is incorrect.
-            Returns `None` if there is no violation.
+        list[FormatterViolation]
+            List of violations. Empty if spacing is correct.
         """
         stripped = token.strip()
         expected = f" {stripped} "
 
         if token != expected:
-            return f"Binary operators should have exactly one space on each side."
+            return [
+                {
+                    "start_index": 0,
+                    "length": len(token),
+                    "message": "Binary operators should have exactly one space on each side."
+                }
+            ]
 
-        return None
+        return []
 
 
     def format(self, token: str) -> str:

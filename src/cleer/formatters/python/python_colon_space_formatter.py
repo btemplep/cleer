@@ -1,10 +1,10 @@
-"""Python colon space formatter module."""
+"""See :class:`PythonColonSpaceFormatter`."""
 
 __all__ = [
     "PythonColonSpaceFormatter"
 ]
 
-from cleer.formatters.formatter import Formatter
+from cleer.formatters.formatter import Formatter, FormatterViolation
 
 
 class PythonColonSpaceFormatter(Formatter):
@@ -23,7 +23,7 @@ class PythonColonSpaceFormatter(Formatter):
     accepts_token_types = ["python_colon_space"]
 
 
-    def inspect(self, token: str) -> str | None:
+    def inspect(self, token: str) -> list[FormatterViolation]:
         """Inspect colon spacing.
 
         Parameters
@@ -33,14 +33,19 @@ class PythonColonSpaceFormatter(Formatter):
 
         Returns
         -------
-        str | None
-            Error message if spacing is incorrect.
-            Returns `None` if there is no violation.
+        list[FormatterViolation]
+            List of violations. Empty if spacing is correct.
         """
         if token != ": ":
-            return "Colons should have no space before and one space after."
+            return [
+                {
+                    "start_index": 0,
+                    "length": len(token),
+                    "message": "Colons should have no space before and one space after."
+                }
+            ]
 
-        return None
+        return []
 
 
     def format(self, token: str) -> str:

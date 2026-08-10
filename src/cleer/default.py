@@ -1,4 +1,4 @@
-"""TODO: Add module docstring."""
+"""See :func:`cleer_default_config`."""
 
 __all__ = [
     "cleer_default_config"

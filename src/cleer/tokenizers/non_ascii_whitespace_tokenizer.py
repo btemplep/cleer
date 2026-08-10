@@ -1,4 +1,4 @@
-"""Non-ASCII whitespace tokenizer module."""
+"""See :class:`NonAsciiWhitespaceTokenizer`."""
 
 __all__ = [
     "NonAsciiWhitespaceTokenizer"

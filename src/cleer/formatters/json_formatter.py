@@ -1,4 +1,4 @@
-""""""
+"""See :class:`JSONFormatter`."""
 
 __all__ = [
     "JSONFormatter"
@@ -6,7 +6,7 @@ __all__ = [
 
 import json
 
-from cleer.formatters.formatter import Formatter
+from cleer.formatters.formatter import Formatter, FormatterViolation
 
 
 class JSONFormatter(Formatter):
@@ -17,11 +17,17 @@ class JSONFormatter(Formatter):
         self._indent = indent
 
 
-    def inspect(self, token: str) -> str | None:
+    def inspect(self, token: str) -> list[FormatterViolation]:
         if token != json.dumps(json.loads(token), indent=self._indent):
-            return f"JSON should be formatted with {self._indent}-space indentation."
+            return [
+                {
+                    "start_index": 0,
+                    "length": len(token),
+                    "message": f"JSON should be formatted with {self._indent}-space indentation."
+                }
+            ]
 
-        return None
+        return []
 
 
     def format(self, token: str) -> str:

@@ -1,10 +1,10 @@
-"""Trailing whitespace formatter module."""
+"""See :class:`TrailingWhitespaceFormatter`."""
 
 __all__ = [
     "TrailingWhitespaceFormatter"
 ]
 
-from cleer.formatters.formatter import Formatter
+from cleer.formatters.formatter import Formatter, FormatterViolation
 
 
 class TrailingWhitespaceFormatter(Formatter):
@@ -26,7 +26,7 @@ class TrailingWhitespaceFormatter(Formatter):
     accepts_token_types = ["trailing_whitespace"]
 
 
-    def inspect(self, token: str) -> str | None:
+    def inspect(self, token: str) -> list[FormatterViolation]:
         """Inspect a token for trailing whitespace.
 
         Parameters
@@ -36,11 +36,17 @@ class TrailingWhitespaceFormatter(Formatter):
 
         Returns
         -------
-        str | None
-            Error message if trailing whitespace is present.
-            Returns `None` if there is no violation.
+        list[FormatterViolation]
+            List of violations if trailing whitespace is present.
+            Returns an empty list if there is no violation.
         """
-        return "Lines should not have any trailing whitespace."
+        return [
+            {
+                "start_index": 0,
+                "length": len(token),
+                "message": "Lines should not have any trailing whitespace."
+            }
+        ]
 
 
     def format(self, token: str) -> str:

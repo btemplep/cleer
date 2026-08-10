@@ -1,4 +1,4 @@
-"""TODO: Add module docstring."""
+"""See :class:`Cleer`."""
 
 __all__ = [
     "Cleer"
@@ -171,16 +171,15 @@ class Cleer:
                     tokens = stage['tokenizer'].tokenize(document)
                     for tr in tokens:
                         for fi, formatter in enumerate(stage['formatters']):
-                            message = formatter.inspect(tr['token'])
-                            if message is not None:
+                            for v in formatter.inspect(tr['token']):
                                 inspection['violations'].append(
                                     {
-                                        "start_index": tr['index'],
-                                        "length": tr['length'],
+                                        "start_index": v['start_index'],
+                                        "length": v['length'],
                                         "group": gi,
                                         "stage": si,
                                         "formatter": fi,
-                                        "message": message
+                                        "message": v['message']
                                     }
                                 )
 
@@ -212,15 +211,25 @@ class Cleer:
 
             ```python
             {
-                "path": "my_pkg/thing.py",
+                "path": pathlib.Path("my_pkg/thing.py"),
                 "included": [
                     {
                         "group": 0,
                         "pattern": "**/*.py"
                     }
                 ],
-                "excluded": [],
-                "invalidations": [],
+                "excluded": [
+                    {
+                        "group": 1,
+                        "pattern": "**/generated/**"
+                    }
+                ],
+                "invalidations": [
+                    {
+                        "validator": 0,
+                        "message": "File is not valid Python."
+                    }
+                ],
                 "violations": [
                     {
                         "start_index": 0,
@@ -290,15 +299,25 @@ class Cleer:
             ```python
             [
                 {
-                    "path": "my_pkg/thing.py",
+                    "path": pathlib.Path("/full/path/my_pkg/thing.py"),
                     "included": [
                         {
                             "group": 0,
                             "pattern": "**/*.py"
                         }
                     ],
-                    "excluded": [],
-                    "invalidations": [],
+                    "excluded": [
+                        {
+                            "group": 1,
+                            "pattern": "**/generated/**"
+                        }
+                    ],
+                    "invalidations": [
+                        {
+                            "validator": 0,
+                            "message": "File is not valid Python."
+                        }
+                    ],
                     "violations": [
                         {
                             "start_index": 0,
@@ -449,15 +468,25 @@ class Cleer:
 
             ```python
             {
-                "path": "my_pkg/thing.py",
+                "path": pathlib.Path("my_pkg/thing.py"),
                 "included": [
                     {
                         "group": 0,
                         "pattern": "**/*.py"
                     }
                 ],
-                "excluded": [],
-                "invalidations": [],
+                "excluded": [
+                    {
+                        "group": 1,
+                        "pattern": "**/generated/**"
+                    }
+                ],
+                "invalidations": [
+                    {
+                        "validator": 0,
+                        "message": "File is not valid Python."
+                    }
+                ],
                 "document": "x = 1\n"
             }
             ```
@@ -500,15 +529,25 @@ class Cleer:
             ```python
             [
                 {
-                    "path": "my_pkg/thing.py",
+                    "path": pathlib.Path("/full/path/my_pkg/thing.py"),
                     "included": [
                         {
                             "group": 0,
                             "pattern": "**/*.py"
                         }
                     ],
-                    "excluded": [],
-                    "invalidations": []
+                    "excluded": [
+                        {
+                            "group": 1,
+                            "pattern": "**/generated/**"
+                        }
+                    ],
+                    "invalidations": [
+                        {
+                            "validator": 0,
+                            "message": "File is not valid Python."
+                        }
+                    ]
                 }
             ]
             ```

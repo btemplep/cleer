@@ -2,11 +2,10 @@
 
 __all__ = [
     "CleerConfig",
-    "Excluded",
     "Formatting",
     "FormattingDocument",
     "Group",
-    "Included",
+    "GroupMatch",
     "Inspection",
     "Invalidation",
     "Stage",
@@ -24,9 +23,21 @@ from cleer.validators.validator import Validator
 class Stage(TypedDict):
     """Configuration for a cleer formatting stage.
 
+    Examples
+    --------
+
+    ```python
+    {
+        "tokenizer": LineTokenizer(),
+        "formatters": [
+            TrailingWhitespaceFormatter()
+        ]
+    }
+    ```
+
     Attributes
     ----------
-    tokenizer : cleer.tokenizer.Tokenizer
+    tokenizer : Tokenizer
         Tokenizer subclass instance for this formatting stage.
     formatters : list[Formatter]
         List of formatters to run for each token in this formatting stage.
@@ -37,7 +48,32 @@ class Stage(TypedDict):
 
 
 class Group(TypedDict):
-    """A group in the cleer config filters files by a set of glob patterns, and runs a list of stages on them.
+    """A group filters files by glob patterns and runs a list of stages on them.
+
+    Examples
+    --------
+
+    ```python
+    {
+        "includes": [
+            "**/*.py"
+        ],
+        "excludes": [
+            "**/.venv*/**"
+        ],
+        "validators": [
+            PythonSyntaxValidator()
+        ],
+        "stages": [
+            {
+                "tokenizer": LineTokenizer(),
+                "formatters": [
+                    TrailingWhitespaceFormatter()
+                ]
+            }
+        ]
+    }
+    ```
 
     Attributes
     ----------
@@ -47,7 +83,7 @@ class Group(TypedDict):
         Unix glob patterns used to exclude files from this Group.
     validators : list[Validator]
         List of validators to run for each document.
-        Documents that fail validation, will not be inspected or formatted.
+        Documents that fail validation will not be inspected or formatted.
     stages : list[Stage]
         List of formatting stages to use for this group of files.
     """
@@ -58,7 +94,36 @@ class Group(TypedDict):
 
 
 class CleerConfig(TypedDict):
-    """Formatting configuration for an instance of a cleer class.
+    """Formatting configuration for an instance of the Cleer class.
+
+    Examples
+    --------
+
+    ```python
+    {
+        "groups": [
+            {
+                "includes": [
+                    "**/*.py"
+                ],
+                "excludes": [
+                    "**/.venv*/**"
+                ],
+                "validators": [
+                    PythonSyntaxValidator()
+                ],
+                "stages": [
+                    {
+                        "tokenizer": LineTokenizer(),
+                        "formatters": [
+                            TrailingWhitespaceFormatter()
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+    ```
 
     Attributes
     ----------
@@ -69,39 +134,76 @@ class CleerConfig(TypedDict):
 
 
 class Invalidation(TypedDict):
+    """Result when a document fails a validator check.
+
+    Examples
+    --------
+
+    ```python
+    {
+        "validator": 0,
+        "message": "File is not valid Python."
+    }
+    ```
+
+    Attributes
+    ----------
+    validator : int
+        Config validator index within the group.
+    message : str
+        Message describing why the document is invalid.
+    """
     validator: int
     message: str
 
 
-class Included(TypedDict):
-    group: int
-    pattern: str
-    invalidation: Invalidation | None
+class GroupMatch(TypedDict):
+    """Result for a file matching a group glob pattern.
 
+    Examples
+    --------
 
-class Excluded(TypedDict):
-    """Response element for files matching group globs.
+    ```python
+    {
+        "group": 0,
+        "pattern": "**/*.py"
+    }
+    ```
 
-    Parameters
+    Attributes
     ----------
     group : int
         Config group index that was matched.
     pattern : str
-        The pattern that was matched in the config group.
+        The glob pattern that was matched in the config group.
     """
     group: int
     pattern: str
 
 
 class Violation(TypedDict):
-    """Formatting violation data.
+    """Formatting violation with full context for locating it in the config and document.
+
+    Examples
+    --------
+
+    ```python
+    {
+        "start_index": 49,
+        "length": 3,
+        "group": 0,
+        "stage": 0,
+        "formatter": 0,
+        "message": "Lines should not have any trailing whitespace."
+    }
+    ```
 
     Attributes
     ----------
-    start_index : str
-        Start index of the token in violation.
-    length : str
-        Length of token in violation
+    start_index : int
+        Start index of the violation in the document.
+    length : int
+        Length of the violating span in the document.
     group : int
         Config group index.
     stage : int
@@ -111,8 +213,8 @@ class Violation(TypedDict):
     message : str
         Message describing the violation.
     """
-    start_index: str
-    length: str
+    start_index: int
+    length: int
     group: int
     stage: int
     formatter: int
@@ -120,32 +222,96 @@ class Violation(TypedDict):
 
 
 class Inspection(TypedDict):
-    """Inspection for a file.
+    """Inspection result for a file.
+
+    Examples
+    --------
+
+    ```python
+    {
+        "path": pathlib.Path("/full/path/to/file.py"),
+        "included": [
+            {
+            "group": 0,
+            "pattern": "**/*.py"
+            }
+        ],
+        "excluded": [
+            {
+            "group": 0,
+            "pattern": "**/*.py"
+            }
+        ],
+        "invalidations": [
+            {
+                "validator": 0,
+                "message": "File is not valid."
+            }
+        ],
+        "violations": [
+            {
+                "start_index": 49,
+                "length": 3,
+                "group": 0,
+                "stage": 0,
+                "formatter": 0,
+                "message": "Lines should not have any trailing whitespace."
+            }
+        ]
+    }
+    ```
 
     Attributes
     ----------
     path : pathlib.Path
         Path to the file.
-    included : list[Included]
+    included : list[GroupMatch]
         Config groups the file was included in.
-    excluded : list[Excluded]
-        Config groups the file was explicitly excluded from..
+    excluded : list[GroupMatch]
+        Config groups the file was explicitly excluded from.
     invalidations : list[Invalidation]
         Any times the file was found to be invalid for a group.
     violations : list[Violation]
-        List of violations for the file
+        List of violations for the file.
     """
     path: pathlib.Path
-    included: list[Included]
-    excluded: list[Excluded]
+    included: list[GroupMatch]
+    excluded: list[GroupMatch]
     invalidations: list[Invalidation]
     violations: list[Violation]
 
 
 class Formatting(TypedDict):
-    """Formatting results for a file.
+    """Formatting result for a file formatted in place.
 
-    Parameters
+    Examples
+    --------
+
+    ```python
+    {
+        "path": pathlib.Path("/full/path/to/file.py"),
+        "included": [
+            {
+            "group": 0,
+            "pattern": "**/*.py"
+            }
+        ],
+        "excluded": [
+            {
+            "group": 0,
+            "pattern": "**/*.py"
+            }
+        ],
+        "invalidations": [
+            {
+                "validator": 0,
+                "message": "File is not valid."
+            }
+        ]
+    }
+    ```
+
+    Attributes
     ----------
     path : pathlib.Path
         Path to the file.
@@ -157,15 +323,44 @@ class Formatting(TypedDict):
         Any times the file was found to be invalid for a group.
     """
     path: pathlib.Path
-    included: list[Included]
-    excluded: list[Excluded]
+    included: list[GroupMatch]
+    excluded: list[GroupMatch]
     invalidations: list[Invalidation]
 
 
 class FormattingDocument(Formatting):
-    """Result of formatting a file string, with the formatted string.
+    """Result of formatting a document string, including the formatted output.
 
-    Parameters
+    Examples
+    --------
+
+    ```python
+    {
+        {
+        "path": pathlib.Path("/full/path/to/file.py"),
+        "included": [
+            {
+            "group": 0,
+            "pattern": "**/*.py"
+            }
+        ],
+        "excluded": [
+            {
+            "group": 0,
+            "pattern": "**/*.py"
+            }
+        ],
+        "invalidations": [
+            {
+                "validator": 0,
+                "message": "File is not valid."
+            }
+        ]
+        "document": "x = 1\n"
+    }
+    ```
+
+    Attributes
     ----------
     path : pathlib.Path
         Path to the file.
@@ -175,7 +370,7 @@ class FormattingDocument(Formatting):
         Config groups the file was explicitly excluded from.
     invalidations : list[Invalidation]
         Any times the file was found to be invalid for a group.
-    document : str
-        Formatted Document
+    document : str | None
+        Formatted document string. None if the file was not included in any group.
     """
     document: str | None

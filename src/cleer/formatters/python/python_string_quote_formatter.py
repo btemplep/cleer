@@ -1,10 +1,10 @@
-"""Python string quote formatter module."""
+"""See :class:`PythonStringQuoteFormatter`."""
 
 __all__ = [
     "PythonStringQuoteFormatter"
 ]
 
-from cleer.formatters.formatter import Formatter
+from cleer.formatters.formatter import Formatter, FormatterViolation
 
 
 class PythonStringQuoteFormatter(Formatter):
@@ -43,7 +43,7 @@ class PythonStringQuoteFormatter(Formatter):
         self._multiline_quote = multiline_quote
 
 
-    def inspect(self, token: str) -> str | None:
+    def inspect(self, token: str) -> list[FormatterViolation]:
         """Inspect a string token for incorrect quote style.
 
         Parameters
@@ -53,14 +53,13 @@ class PythonStringQuoteFormatter(Formatter):
 
         Returns
         -------
-        str | None
-            Error message if wrong quote style is used.
-            Returns `None` if there is no violation.
+        list[FormatterViolation]
+            List of violations found, empty if no violations.
         """
         prefix, quote_char, content, is_multiline = self._parse_string(token)
 
         if prefix is None:
-            return None
+            return []
 
         if is_multiline:
             expected_quote = self._multiline_quote
@@ -70,15 +69,27 @@ class PythonStringQuoteFormatter(Formatter):
         current_quote = quote_char
 
         if current_quote == expected_quote:
-            return None
+            return []
 
         if not is_multiline and expected_quote in content:
-            return None
+            return []
 
         if is_multiline:
-            return f"Multiline strings should use {self._multiline_quote} quotes."
+            return [
+                {
+                    "start_index": 0,
+                    "length": len(token),
+                    "message": f"Multiline strings should use {self._multiline_quote} quotes."
+                }
+            ]
 
-        return f"String literals should use {self._quote} quotes."
+        return [
+            {
+                "start_index": 0,
+                "length": len(token),
+                "message": f"String literals should use {self._quote} quotes."
+            }
+        ]
 
 
     def format(self, token: str) -> str:

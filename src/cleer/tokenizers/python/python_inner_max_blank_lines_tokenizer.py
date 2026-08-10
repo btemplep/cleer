@@ -1,4 +1,4 @@
-"""Python inner max blank lines tokenizer module."""
+"""See :class:`PythonInnerMaxBlankLinesTokenizer`."""
 
 __all__ = [
     "PythonInnerMaxBlankLinesTokenizer"

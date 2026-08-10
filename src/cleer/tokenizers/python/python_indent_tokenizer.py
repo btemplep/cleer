@@ -1,4 +1,4 @@
-"""Python indent tokenizer module."""
+"""See :class:`PythonIndentTokenizer`."""
 
 __all__ = [
     "PythonIndentTokenizer"
