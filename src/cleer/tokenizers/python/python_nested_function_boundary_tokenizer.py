@@ -6,7 +6,7 @@ __all__ = [
 
 import ast
 
-from cleer.tokenizers.tokenizer import Tokenizer
+from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
 
 class PythonNestedFunctionBoundaryTokenizer(Tokenizer):
@@ -33,7 +33,7 @@ class PythonNestedFunctionBoundaryTokenizer(Tokenizer):
     emits_token_type = "python_nested_function_boundary"
 
 
-    def tokenize(self, document: str) -> list[dict]:
+    def tokenize(self, document: str) -> list[TokenResult]:
         """Tokenize blank line boundaries around nested function definitions.
 
         Parameters
@@ -43,7 +43,7 @@ class PythonNestedFunctionBoundaryTokenizer(Tokenizer):
 
         Returns
         -------
-        list[dict]
+        list[TokenResult]
             List of token results for each whitespace boundary before/after
             nested function definitions, or an empty list if none exist.
 
@@ -85,7 +85,7 @@ class PythonNestedFunctionBoundaryTokenizer(Tokenizer):
         tree: ast.Module,
         document: str,
         line_offsets: list[int],
-        tokens: list[dict],
+        tokens: list[TokenResult],
         seen_ranges: set
     ):
         """Walk the AST to find all nested functions and their boundaries."""
@@ -107,7 +107,7 @@ class PythonNestedFunctionBoundaryTokenizer(Tokenizer):
         body: list,
         document: str,
         line_offsets: list[int],
-        tokens: list[dict],
+        tokens: list[TokenResult],
         seen_ranges: set
     ):
         """Process a function body for nested function/class boundaries."""

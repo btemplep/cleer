@@ -6,7 +6,7 @@ __all__ = [
 
 import re
 
-from cleer.tokenizers.tokenizer import Tokenizer
+from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
 
 class FileEndWhitespaceTokenizer(Tokenizer):
@@ -32,7 +32,7 @@ class FileEndWhitespaceTokenizer(Tokenizer):
     trailing_whitespace_pattern = re.compile(r"\s*$")
 
 
-    def tokenize(self, document: str) -> list[dict]:
+    def tokenize(self, document: str) -> list[TokenResult]:
         """Tokenize trailing whitespace at the end of a document.
 
         Parameters
@@ -50,7 +50,7 @@ class FileEndWhitespaceTokenizer(Tokenizer):
 
         Returns
         -------
-        list[dict]
+        list[TokenResult]
             List containing a single token result for the trailing whitespace,
             or an empty list if the file ends with exactly one newline.
 

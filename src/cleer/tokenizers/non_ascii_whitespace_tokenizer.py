@@ -6,7 +6,7 @@ __all__ = [
 
 import re
 
-from cleer.tokenizers.tokenizer import Tokenizer
+from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
 
 class NonAsciiWhitespaceTokenizer(Tokenizer):
@@ -32,7 +32,7 @@ class NonAsciiWhitespaceTokenizer(Tokenizer):
     non_ascii_ws_pattern = re.compile(r"[^\S\x00-\x7f]+")
 
 
-    def tokenize(self, document: str) -> list[dict]:
+    def tokenize(self, document: str) -> list[TokenResult]:
         """Tokenize all non-ASCII whitespace blocks in a document.
 
         Parameters
@@ -50,7 +50,7 @@ class NonAsciiWhitespaceTokenizer(Tokenizer):
 
         Returns
         -------
-        list[dict]
+        list[TokenResult]
             List of token results for each non-ASCII whitespace block,
             or an empty list if none exist.
 

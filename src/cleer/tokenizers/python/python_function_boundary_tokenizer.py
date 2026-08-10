@@ -6,7 +6,7 @@ __all__ = [
 
 import ast
 
-from cleer.tokenizers.tokenizer import Tokenizer
+from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
 
 class PythonFunctionBoundaryTokenizer(Tokenizer):
@@ -37,7 +37,7 @@ class PythonFunctionBoundaryTokenizer(Tokenizer):
     emits_token_type = "python_function_boundary"
 
 
-    def tokenize(self, document: str) -> list[dict]:
+    def tokenize(self, document: str) -> list[TokenResult]:
         """Tokenize blank line boundaries around top-level definitions.
 
         Handles functions, methods, and classes at module or class scope.
@@ -57,7 +57,7 @@ class PythonFunctionBoundaryTokenizer(Tokenizer):
 
         Returns
         -------
-        list[dict]
+        list[TokenResult]
             List of token results for each whitespace boundary before
             function definitions, or an empty list if none exist.
 
@@ -97,7 +97,7 @@ class PythonFunctionBoundaryTokenizer(Tokenizer):
         lines: list[str],
         line_offsets: list[int],
         document: str
-    ) -> list[dict]:
+    ) -> list[TokenResult]:
         """Collect all function boundary tokens."""
         tokens = []
         seen_ranges = set()
@@ -132,7 +132,7 @@ class PythonFunctionBoundaryTokenizer(Tokenizer):
         lines: list[str],
         line_offsets: list[int],
         document: str,
-        tokens: list[dict],
+        tokens: list[TokenResult],
         seen_ranges: set
     ):
         """Process a body (module or class) for definition boundaries."""

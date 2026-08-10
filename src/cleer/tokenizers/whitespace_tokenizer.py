@@ -6,7 +6,7 @@ __all__ = [
 
 import re
 
-from cleer.tokenizers.tokenizer import Tokenizer
+from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
 
 class WhitespaceTokenizer(Tokenizer):
@@ -29,7 +29,7 @@ class WhitespaceTokenizer(Tokenizer):
     whitespace_pattern = re.compile(r"\s+")
 
 
-    def tokenize(self, document: str) -> list[dict]:
+    def tokenize(self, document: str) -> list[TokenResult]:
         """Tokenize all blocks of whitespace in a document.
 
         Parameters
@@ -47,7 +47,7 @@ class WhitespaceTokenizer(Tokenizer):
 
         Returns
         -------
-        list[dict]
+        list[TokenResult]
             List of token results for each whitespace block, or an empty
             list if no whitespace exists.
 

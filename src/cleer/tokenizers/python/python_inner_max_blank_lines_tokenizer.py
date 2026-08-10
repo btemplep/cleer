@@ -6,7 +6,7 @@ __all__ = [
 
 import ast
 
-from cleer.tokenizers.tokenizer import Tokenizer
+from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
 
 class PythonInnerMaxBlankLinesTokenizer(Tokenizer):
@@ -42,7 +42,7 @@ class PythonInnerMaxBlankLinesTokenizer(Tokenizer):
         self._max_blank_lines = max_blank_lines
 
 
-    def tokenize(self, document: str) -> list[dict]:
+    def tokenize(self, document: str) -> list[TokenResult]:
         """Tokenize excessive blank lines inside function/method bodies.
 
         Parameters
@@ -52,7 +52,7 @@ class PythonInnerMaxBlankLinesTokenizer(Tokenizer):
 
         Returns
         -------
-        list[dict]
+        list[TokenResult]
             List of token results for blank line runs inside functions
             that exceed the max, or an empty list if none exist.
 

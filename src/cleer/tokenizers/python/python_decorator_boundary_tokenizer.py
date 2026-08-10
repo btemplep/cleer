@@ -6,7 +6,7 @@ __all__ = [
 
 import ast
 
-from cleer.tokenizers.tokenizer import Tokenizer
+from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
 
 class PythonDecoratorBoundaryTokenizer(Tokenizer):
@@ -29,7 +29,7 @@ class PythonDecoratorBoundaryTokenizer(Tokenizer):
     emits_token_type = "python_decorator_boundary"
 
 
-    def tokenize(self, document: str) -> list[dict]:
+    def tokenize(self, document: str) -> list[TokenResult]:
         """Tokenize whitespace between decorators and function definitions.
 
         Parameters
@@ -47,7 +47,7 @@ class PythonDecoratorBoundaryTokenizer(Tokenizer):
 
         Returns
         -------
-        list[dict]
+        list[TokenResult]
             List of token results for whitespace gaps between decorators
             and their function definitions, or an empty list if none exist.
 
@@ -90,7 +90,7 @@ class PythonDecoratorBoundaryTokenizer(Tokenizer):
         lines: list[str],
         line_offsets: list[int],
         document: str,
-        tokens: list[dict]
+        tokens: list[TokenResult]
     ):
         """Walk the AST to find all decorated functions/methods."""
         for node in ast.walk(tree):
@@ -136,7 +136,7 @@ class PythonDecoratorBoundaryTokenizer(Tokenizer):
         lines: list[str],
         line_offsets: list[int],
         document: str,
-        tokens: list[dict]
+        tokens: list[TokenResult]
     ):
         """Check for blank lines between a decorator and the next line.
 

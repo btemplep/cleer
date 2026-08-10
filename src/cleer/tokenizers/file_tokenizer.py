@@ -4,7 +4,7 @@ __all__ = [
     "FileTokenizer"
 ]
 
-from cleer.tokenizers.tokenizer import Tokenizer
+from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
 
 class FileTokenizer(Tokenizer):
@@ -28,7 +28,7 @@ class FileTokenizer(Tokenizer):
     emits_token_type = "file"
 
 
-    def tokenize(self, document: str) -> list[dict]:
+    def tokenize(self, document: str) -> list[TokenResult]:
         """Tokenize a document as a single whole-file token.
 
         Returns the entire document as a single token with index 0 and
