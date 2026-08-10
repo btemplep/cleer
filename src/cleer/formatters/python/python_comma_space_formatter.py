@@ -51,7 +51,9 @@ class PythonCommaSpaceFormatter(Formatter):
         if (
             before != before.rstrip(" \t")
             or (
-                after != " " and not after.startswith("\n"))
+                after != " "
+                and not after.startswith("\n")
+            )
         ):
             return "There should be no space before a comma, and one space after."
 

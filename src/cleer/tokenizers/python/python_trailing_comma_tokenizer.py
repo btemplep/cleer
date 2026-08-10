@@ -125,7 +125,9 @@ class PythonTrailingCommaTokenizer(Tokenizer):
 
         last = elements[-1]
         start = line_offsets[last.end_lineno - 1] + last.end_col_offset
-        end = line_offsets[container_node.end_lineno - 1] + container_node.end_col_offset - 1
+        end = line_offsets[
+            container_node.end_lineno - 1
+        ] + container_node.end_col_offset - 1
 
         if end <= start:
             return

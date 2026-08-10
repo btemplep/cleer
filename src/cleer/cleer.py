@@ -293,7 +293,7 @@ class Cleer:
                     "path": "my_pkg/thing.py",
                     "included": [
                         {
-                            "group": 0, 
+                            "group": 0,
                             "pattern": "**/*.py"
                         }
                     ],
@@ -452,7 +452,7 @@ class Cleer:
                 "path": "my_pkg/thing.py",
                 "included": [
                     {
-                        "group": 0, 
+                        "group": 0,
                         "pattern": "**/*.py"
                     }
                 ],
@@ -503,7 +503,7 @@ class Cleer:
                     "path": "my_pkg/thing.py",
                     "included": [
                         {
-                            "group": 0, 
+                            "group": 0,
                             "pattern": "**/*.py"
                         }
                     ],

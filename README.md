@@ -1,5 +1,7 @@
 # cleer
 
+The rules are cleer... or at least that was the idea.
+
 cleer is a customizable and extensible file formatter. Primarily made for Python (in Python), but works with any language.
 
 It has a set of defaults that I have chosen for a specifically readable style.  It does not try to make the smallest git diffs, but the most readable code.  Objectively speaking of course (I like the formatting).

@@ -63,7 +63,9 @@ class PythonUnaryOperatorSpaceTokenizer(Tokenizer):
                 continue
 
             op_start = line_offsets[node.lineno - 1] + node.col_offset
-            operand_end = line_offsets[node.operand.end_lineno - 1] + node.operand.end_col_offset
+            operand_end = line_offsets[
+                node.operand.end_lineno - 1
+            ] + node.operand.end_col_offset
 
             token = document[op_start:operand_end]
 

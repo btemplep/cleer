@@ -230,7 +230,8 @@ class PythonIndentTokenizer(Tokenizer):
                     continue
 
                 is_docstring = (
-                    i == 0 or isinstance(body[i - 1], (ast.Assign, ast.AnnAssign))
+                    i == 0
+                    or isinstance(body[i - 1], (ast.Assign, ast.AnnAssign))
                 )
 
                 if not is_docstring:

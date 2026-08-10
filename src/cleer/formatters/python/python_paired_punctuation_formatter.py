@@ -251,6 +251,7 @@ class PythonPairedPunctuationFormatter(Formatter):
     ):
         """Recursively walk the AST collecting formattable nodes."""
         for child in ast.iter_child_nodes(node):
+            child._cleer_grandparent = parent
             self._walk(
                 child,
                 document,
@@ -354,7 +355,6 @@ class PythonPairedPunctuationFormatter(Formatter):
         depth: int,
         parent: ast.AST=None
     ):
-        """Add a BoolOp node for formatting."""
         if not hasattr(node, "lineno"):
             return
 
@@ -386,6 +386,42 @@ class PythonPairedPunctuationFormatter(Formatter):
                 )
 
                 return
+
+        if (
+            isinstance(parent, ast.UnaryOp)
+            and isinstance(parent.op, ast.Not)
+            and hasattr(node, "_cleer_grandparent")
+            and isinstance(node._cleer_grandparent, (ast.If, ast.While))
+            and parent is node._cleer_grandparent.test
+        ):
+            grandparent = node._cleer_grandparent
+            stmt_start = self._offset(
+                document,
+                grandparent.lineno,
+                grandparent.col_offset
+            )
+            lines = document.split("\n")
+            stmt_line_idx = grandparent.lineno - 1
+            for li in range(stmt_line_idx, len(lines)):
+                if lines[li].rstrip().endswith(":"):
+                    end = self._offset(document, li + 1, 0) + len(lines[li].rstrip())
+                    break
+
+            else:
+                end = self._offset(document, node.end_lineno, node.end_col_offset)
+
+            nodes.append(
+                {
+                    "node": node,
+                    "type": "if_boolop",
+                    "start": stmt_start,
+                    "end": end,
+                    "depth": depth,
+                    "parent_node": grandparent
+                }
+            )
+
+            return
 
         start = self._offset(document, node.lineno, node.col_offset)
         end = self._offset(document, node.end_lineno, node.end_col_offset)
@@ -1119,39 +1155,63 @@ class PythonPairedPunctuationFormatter(Formatter):
             first_line = current_text.split("\n")[0].strip()
             last_line = current_text.split("\n")[-1].strip()
             if first_line.endswith("(") and last_line == "):":
+                inner_indent = indent + "    "
                 inner_text = "\n".join(current_text.split("\n")[1:-1])
-                has_bad_ops = (
-                    "or(" in inner_text
-                    or ")or " in inner_text
-                    or "and(" in inner_text
-                    or ")and " in inner_text
-                )
-                if not has_bad_ops:
-                    for line in current_text.split("\n")[1:-1]:
-                        stripped = line.strip()
-                        if not stripped:
-                            continue
+                has_bad_indent = False
+                paren_depth = 0
+                for line in current_text.split("\n")[1:-1]:
+                    stripped = line.strip()
+                    if not stripped:
+                        continue
 
-                        if f" {op_str} " in stripped:
-                            idx = stripped.find(f" {op_str} ")
-                            after = stripped[idx + len(op_str) + 2:]
-                            if after and not after.startswith("("):
-                                has_bad_ops = True
-                                break
+                    if paren_depth == 0:
+                        leading = len(line) - len(line.lstrip())
+                        if leading != len(inner_indent):
+                            has_bad_indent = True
+                            break
 
-                if not has_bad_ops:
-                    other_op = "and" if op_str == "or" else "or"
-                    for line in current_text.split("\n")[1:-1]:
-                        stripped = line.strip()
-                        if not stripped:
-                            continue
-                        if f" {other_op} " in stripped:
-                            if not stripped.startswith(f"{other_op} "):
-                                has_bad_ops = True
-                                break
+                    if stripped.endswith("("):
+                        paren_depth += 1
 
-                if not has_bad_ops:
-                    return current_text
+                    if stripped in (")", "),", "):", "),"):
+                        paren_depth -= 1
+
+                if has_bad_indent:
+                    pass
+                else:
+                    has_bad_ops = (
+                        "or(" in inner_text
+                        or ")or " in inner_text
+                        or "and(" in inner_text
+                        or ")and " in inner_text
+                    )
+                    if not has_bad_ops:
+                        for line in current_text.split("\n")[1:-1]:
+                            stripped = line.strip()
+                            if not stripped:
+                                continue
+
+                            if f" {op_str} " in stripped:
+                                idx = stripped.find(f" {op_str} ")
+                                after = stripped[idx + len(op_str) + 2:]
+                                if after and not after.startswith("("):
+                                    has_bad_ops = True
+                                    break
+
+                    if not has_bad_ops:
+                        other_op = "and" if op_str == "or" else "or"
+                        for line in current_text.split("\n")[1:-1]:
+                            stripped = line.strip()
+                            if not stripped:
+                                continue
+
+                            if f" {other_op} " in stripped:
+                                if not stripped.startswith(f"{other_op} "):
+                                    has_bad_ops = True
+                                    break
+
+                    if not has_bad_ops:
+                        return current_text
 
         keyword = "if"
         if isinstance(parent_node, ast.While):
@@ -1162,6 +1222,12 @@ class PythonPairedPunctuationFormatter(Formatter):
             if first_stripped.startswith("elif"):
                 keyword = "elif"
 
+        has_not = (
+            isinstance(parent_node.test, ast.UnaryOp)
+            and isinstance(parent_node.test.op, ast.Not)
+        )
+        keyword_prefix = f"{keyword} not" if has_not else keyword
+
         inner_indent = indent + "    "
         parts = self._get_boolop_parts(node, current_text)
 
@@ -1170,7 +1236,7 @@ class PythonPairedPunctuationFormatter(Formatter):
 
         condition_flat = self._flatten(current_text)
         condition_flat = self._collapse_paren_spaces(condition_flat)
-        kw_end = condition_flat.find(keyword) + len(keyword)
+        kw_end = condition_flat.find(keyword_prefix) + len(keyword_prefix)
         after_kw = condition_flat[kw_end:].strip()
         if after_kw.startswith("(") and after_kw.endswith("):"):
             after_kw = after_kw[1:-2].strip()
@@ -1184,7 +1250,7 @@ class PythonPairedPunctuationFormatter(Formatter):
         if not cond_parts:
             return current_text
 
-        result_lines = [f"{keyword} ("]
+        result_lines = [f"{keyword_prefix} ("]
 
         for i, part in enumerate(cond_parts):
             prefix = "" if i == 0 else f"{op_str} "
@@ -1305,7 +1371,29 @@ class PythonPairedPunctuationFormatter(Formatter):
             first_line = current_text.split("\n")[0].strip()
             last_line = current_text.split("\n")[-1].strip()
             if first_line.endswith("(") and last_line == ")":
-                return current_text
+                has_unexpanded_inner = False
+                inner_indent = indent + "    "
+                for line in current_text.split("\n")[1:-1]:
+                    stripped = line.strip()
+                    if (
+                        stripped.startswith(f"{op_str} (")
+                        or stripped.startswith("(")
+                    ):
+                        paren_content = stripped[stripped.index("("):]
+                        if (
+                            paren_content.endswith(")")
+                            and (
+                                f" {op_str} " in paren_content
+                                or " and " in paren_content
+                                or " or " in paren_content
+                            )
+                            and len(paren_content) > self._call_max_len
+                        ):
+                            has_unexpanded_inner = True
+                            break
+
+                if not has_unexpanded_inner:
+                    return current_text
 
         eq_pos = flat.find("=")
         if eq_pos == -1:
@@ -1328,10 +1416,32 @@ class PythonPairedPunctuationFormatter(Formatter):
         lines = [f"{prefix} ("]
 
         for i, part in enumerate(parts):
-            if i == 0:
-                lines.append(f"{inner_indent}{part}")
+            op_prefix = "" if i == 0 else f"{op_str} "
+            if (
+                part.startswith("(")
+                and part.endswith(")")
+                and (
+                    " and " in part
+                    or " or " in part
+                )
+                and len(part) > self._call_max_len
+            ):
+                inner_op = "and" if " and " in part else "or"
+                inner_content = part[1:-1].strip()
+                sub_parts = self._split_boolop_by_op(inner_content, inner_op)
+                if sub_parts and len(sub_parts) > 1:
+                    sub_indent = inner_indent + "    "
+                    lines.append(f"{inner_indent}{op_prefix}(")
+                    for j, sp in enumerate(sub_parts):
+                        sub_prefix = "" if j == 0 else f"{inner_op} "
+                        lines.append(f"{sub_indent}{sub_prefix}{sp}")
+
+                    lines.append(f"{inner_indent})")
+                else:
+                    lines.append(f"{inner_indent}{op_prefix}{part}")
+
             else:
-                lines.append(f"{inner_indent}{op_str} {part}")
+                lines.append(f"{inner_indent}{op_prefix}{part}")
 
         lines.append(f"{indent})")
 
@@ -1677,8 +1787,8 @@ class PythonPairedPunctuationFormatter(Formatter):
             or content_len + indent_len > self._call_max_line_len
             or len(all_args) > self._call_max_args
             or (
-            any(self._is_kwarg_str(a) for a in all_args)
-            and len(all_args) > self._call_max_args_kw
+                any(self._is_kwarg_str(a) for a in all_args)
+                and len(all_args) > self._call_max_args_kw
             )
             or self._any_arg_is_expanded(node)
         )
@@ -1816,7 +1926,9 @@ class PythonPairedPunctuationFormatter(Formatter):
 
         flat = self._flatten(current_text)
         flat_items = self._split_by_commas(
-            flat[flat.find("{") + 1:self._find_matching_paren(flat, flat.find("{"))]
+            flat[
+                flat.find("{") + 1:self._find_matching_paren(flat, flat.find("{"))
+            ]
         )
 
         if not flat_items:
@@ -2039,8 +2151,8 @@ class PythonPairedPunctuationFormatter(Formatter):
             or flat_len + len(indent) > self._def_max_line_len
             or len(params) > self._def_max_args
             or (
-            any("=" in p for p in params)
-            and len(params) > self._def_max_args_kw
+                any("=" in p for p in params)
+                and len(params) > self._def_max_args_kw
             )
         )
 
@@ -2098,10 +2210,7 @@ class PythonPairedPunctuationFormatter(Formatter):
             return flat
 
         nesting_depth = self._subscript_nesting_depth(node)
-        has_nested = any(
-            isinstance(elt, ast.Subscript) and self._subscript_is_complex(elt)
-            for elt in (node.slice.elts if isinstance(node.slice, ast.Tuple) else [node.slice])
-        )
+        has_nested = any(isinstance(elt, ast.Subscript) and self._subscript_is_complex(elt) for elt in (node.slice.elts if isinstance(node.slice, ast.Tuple) else [node.slice]))
 
         should_expand = (
             has_nested
@@ -2183,6 +2292,7 @@ class PythonPairedPunctuationFormatter(Formatter):
                 has_inner_parens = True
             else:
                 has_inner_parens = False
+
         else:
             has_inner_parens = False
 
@@ -2200,12 +2310,14 @@ class PythonPairedPunctuationFormatter(Formatter):
             str_indent = inner_indent + "    "
             for s in strings:
                 lines.append(f"{str_indent}{s}")
+
             lines.append(f"{inner_indent})")
             lines.append(f"{indent}){suffix}")
         else:
             lines = [f"{prefix}("]
             for s in strings:
                 lines.append(f"{inner_indent}{s}")
+
             lines.append(f"{indent}){suffix}")
 
         result = "\n".join(lines)
@@ -2406,22 +2518,44 @@ class PythonPairedPunctuationFormatter(Formatter):
 
                 if close_idx is not None and inner_lines:
                     needs_fix = False
+                    paren_depth = 0
                     for j in inner_lines:
                         l = lines[j]
-                        if l.strip():
+                        l_stripped = l.strip()
+                        if not l_stripped:
+                            continue
+
+                        if paren_depth == 0:
                             actual = len(l) - len(l.lstrip())
                             if actual != expected_inner:
                                 needs_fix = True
                                 break
 
+                        if l_stripped.endswith("("):
+                            paren_depth += 1
+
+                        if l_stripped in (")", "),"):
+                            paren_depth -= 1
+
                     if needs_fix:
                         result.append(line)
+                        paren_depth = 0
                         for j in inner_lines:
                             l = lines[j]
-                            if l.strip():
+                            l_stripped = l.strip()
+
+                            if paren_depth > 0:
+                                result.append(l)
+                            elif l_stripped:
                                 result.append(" " * expected_inner + l.lstrip())
                             else:
                                 result.append(l)
+
+                            if l_stripped.endswith("("):
+                                paren_depth += 1
+
+                            if l_stripped in (")", "),"):
+                                paren_depth -= 1
 
                         result.append(lines[close_idx])
                         i = close_idx + 1
@@ -2431,9 +2565,6 @@ class PythonPairedPunctuationFormatter(Formatter):
             i += 1
 
         return "\n".join(result)
-
-
-
 
 
     def _collapse_short_parens(self, doc: str) -> str:
@@ -2494,7 +2625,10 @@ class PythonPairedPunctuationFormatter(Formatter):
                     ):
                         collapsed = f"{stripped}{content}{close_suffix}"
                         if len(collapsed) <= 120:
-                            if "," in content and len(f"({content})") > self._lst_max_len:
+                            if (
+                                "," in content
+                                and len(f"({content})") > self._lst_max_len
+                            ):
                                 result.append(line)
                                 i += 1
                                 continue
@@ -3012,10 +3146,12 @@ class PythonPairedPunctuationFormatter(Formatter):
                 stripped = between.strip()
                 if stripped == "" or stripped == "\\":
                     return True
+
             else:
                 between_lines = lines[cur.end[0] - 1][cur.end[1]:]
                 for line_idx in range(cur.end[0], nxt.start[0] - 1):
                     between_lines += "\n" + lines[line_idx]
+
                 between_lines += "\n" + lines[nxt.start[0] - 1][:nxt.start[1]]
                 stripped = between_lines.strip()
                 if stripped == "" or stripped == "\\":
@@ -3071,6 +3207,7 @@ class PythonPairedPunctuationFormatter(Formatter):
                     else:
                         in_string = True
                         string_char = ch
+
             else:
                 if (
                     len(string_char) == 3
@@ -3082,7 +3219,10 @@ class PythonPairedPunctuationFormatter(Formatter):
                 elif (
                     len(string_char) == 1
                     and ch == string_char
-                    and (i == 0 or text[i - 1] != "\\")
+                    and (
+                        i == 0
+                        or text[i - 1] != "\\"
+                    )
                 ):
                     in_string = False
 
@@ -3172,7 +3312,10 @@ class PythonPairedPunctuationFormatter(Formatter):
             if inner_args > self._call_max_args:
                 return True
 
-            if inner_args > self._call_max_args_kw and any(kw for kw in arg.keywords):
+            if (
+                inner_args > self._call_max_args_kw
+                and any(kw for kw in arg.keywords)
+            ):
                 return True
 
             return False

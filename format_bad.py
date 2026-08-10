@@ -634,5 +634,37 @@ class JSONValidator:
 
             )
 
+        if not (
+                            isinstance(child, ast.Constant)
+            and isinstance(child.value, str)
+            and child.end_lineno > child.lineno
+        ):
+            return None
+
+
+        should_expand = (
+            content_len > self._call_max_len
+            or content_len + indent_len > self._call_max_line_len
+            or len(all_args) > self._call_max_args
+            or (any(self._is_kwarg_str(a) for a in all_args) and len(all_args) > self._call_max_args_kw)
+            or self._any_arg_is_expanded(node)
+        )
+
+        if (
+            not emitted
+            and isinstance(
+                child,
+                (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef, ast.If, ast.For, ast.AsyncFor, ast.While, ast.Try, ast.With, ast.AsyncWith)
+            )
+        ):
+            self._walk(
+                child,
+                lines,
+                line_offsets,
+                document,
+                tokens,
+                seen_ranges
+            )
+
 
         return None
