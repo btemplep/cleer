@@ -99,7 +99,6 @@ class PythonIndentTokenizer(Tokenizer):
 
 
     def _has_bad_indent(self, block: str) -> bool:
-        """Check if a code block has any lines with incorrect indentation."""
         for line in block.split("\n"):
             if not line.strip():
                 continue
@@ -125,7 +124,6 @@ class PythonIndentTokenizer(Tokenizer):
 
 
     def _has_bad_semantic_indent(self, block: str) -> bool:
-        """Check if any statement line has wrong indent depth per AST."""
         try:
             tree = ast.parse(block)
         except SyntaxError:
@@ -156,7 +154,6 @@ class PythonIndentTokenizer(Tokenizer):
 
 
     def _walk_for_indent_check(self, node, depth: int, indent_map: dict[int, int]):
-        """Walk AST to build indent map for semantic checking."""
         if hasattr(node, "lineno"):
             indent_map[node.lineno - 1] = depth
 
@@ -211,7 +208,6 @@ class PythonIndentTokenizer(Tokenizer):
 
 
     def _has_bad_docstring_indent(self, block: str) -> bool:
-        """Check if any docstring lines are at the wrong indent level."""
         try:
             tree = ast.parse(block)
         except SyntaxError:
@@ -264,7 +260,6 @@ class PythonIndentTokenizer(Tokenizer):
 
 
     def _get_body_depth(self, node, tree) -> int:
-        """Get the indent depth for statements in a node's body."""
         if isinstance(node, ast.Module):
             return 0
 
@@ -302,7 +297,6 @@ class PythonIndentTokenizer(Tokenizer):
 
 
     def _get_leading_whitespace(self, line: str) -> str:
-        """Get the leading whitespace from a line."""
         match = self._leading_ws.match(line)
 
         if match:
@@ -312,7 +306,6 @@ class PythonIndentTokenizer(Tokenizer):
 
 
     def _build_line_offsets(self, document: str) -> list[int]:
-        """Build a list mapping line numbers (0-indexed) to character offsets."""
         offsets = [0]
 
         for i, char in enumerate(document):

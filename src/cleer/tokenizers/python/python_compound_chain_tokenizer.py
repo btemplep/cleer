@@ -79,7 +79,6 @@ class PythonCompoundChainTokenizer(Tokenizer):
         tokens,
         seen_ranges
     ):
-        """Walk AST to find compound chains."""
         for child in ast.iter_child_nodes(node):
             emitted = False
 
@@ -157,7 +156,6 @@ class PythonCompoundChainTokenizer(Tokenizer):
         tokens,
         seen_ranges
     ):
-        """Emit token for an if/elif/else chain."""
         start_line = node.lineno
         end_line = self._find_chain_end(node)
 
@@ -181,7 +179,6 @@ class PythonCompoundChainTokenizer(Tokenizer):
         tokens,
         seen_ranges
     ):
-        """Emit token for a try/except/else/finally chain."""
         start_line = node.lineno
         end_line = node.end_lineno
 
@@ -205,7 +202,6 @@ class PythonCompoundChainTokenizer(Tokenizer):
         tokens,
         seen_ranges
     ):
-        """Emit token for a for/while with else."""
         start_line = node.lineno
         end_line = node.end_lineno
 
@@ -230,7 +226,6 @@ class PythonCompoundChainTokenizer(Tokenizer):
         tokens,
         seen_ranges
     ):
-        """Emit a token for the given line range."""
         start_offset = line_offsets[start_line - 1]
         if end_line < len(line_offsets):
             end_offset = line_offsets[end_line]
@@ -255,7 +250,6 @@ class PythonCompoundChainTokenizer(Tokenizer):
 
 
     def _find_chain_end(self, node: ast.If) -> int:
-        """Find the end line of a full if/elif/else chain."""
         if node.orelse:
             last_else = node.orelse[-1]
             if isinstance(last_else, ast.If):
@@ -269,7 +263,6 @@ class PythonCompoundChainTokenizer(Tokenizer):
 
 
     def _build_line_offsets(self, document: str) -> list[int]:
-        """Build a list mapping line numbers (0-indexed) to character offsets."""
         offsets = [0]
 
         for i, char in enumerate(document):

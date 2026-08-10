@@ -70,11 +70,6 @@ class PythonImportTokenizer(Tokenizer):
 
 
     def _find_import_sections(self, tree: ast.Module) -> list[list[ast.stmt]]:
-        """Find contiguous groups of import statements in the module body.
-
-        Returns a list of sections, where each section is a list of
-        consecutive import/import-from nodes.
-        """
         sections = []
         current_section = []
 
@@ -154,7 +149,6 @@ class PythonImportTokenizer(Tokenizer):
 
 
     def _build_line_offsets(self, document: str) -> list[int]:
-        """Build a list mapping line numbers (0-indexed) to character offsets."""
         offsets = [0]
 
         for i, char in enumerate(document):

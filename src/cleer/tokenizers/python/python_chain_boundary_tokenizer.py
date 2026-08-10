@@ -319,14 +319,6 @@ class PythonChainBoundaryTokenizer(Tokenizer):
 
 
     def _is_return_yield_exit(self, node) -> bool:
-        """Check if a boundary should preserve a blank line.
-
-        Returns True when the last statement before a connector is:
-        - A return, yield, or exit() call
-        - Any compound statement (if, for, while, with, try) — because
-        a nested block ending right before a connector needs visual
-        separation.
-        """
         if isinstance(node, ast.Return):
             return True
 
@@ -390,7 +382,6 @@ class PythonChainBoundaryTokenizer(Tokenizer):
 
 
     def _build_line_offsets(self, document: str) -> list[int]:
-        """Build a list mapping line numbers (0-indexed) to character offsets."""
         offsets = [0]
 
         for i, char in enumerate(document):

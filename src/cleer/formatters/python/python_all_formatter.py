@@ -78,7 +78,6 @@ class PythonAllFormatter(Formatter):
 
 
     def _format_token(self, token: str) -> str:
-        """Format the __all__ token."""
         items = self._extract_items(token)
 
         if items is None:
@@ -92,7 +91,6 @@ class PythonAllFormatter(Formatter):
 
 
     def _extract_items(self, token: str) -> list[str] | None:
-        """Extract the string items from __all__."""
         stripped = token.strip()
 
         if not stripped:

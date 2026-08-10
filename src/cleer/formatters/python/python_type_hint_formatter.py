@@ -98,22 +98,6 @@ class PythonTypeHintFormatter(Formatter):
 
 
     def _split_prefix(self, token: str) -> tuple[str, str]:
-        """Split token into prefix and type expression.
-
-        The prefix is everything before the type annotation starts.
-        Handles patterns like `x: `, `    a: `, `) -> `, `x = `,
-        and bare expressions.
-
-        Parameters
-        ----------
-        token : str
-            Full token text from start of line.
-
-        Returns
-        -------
-        tuple[str, str]
-            Prefix and type expression text.
-        """
         first_line = token.split("\n")[0] if "\n" in token else token
 
         arrow_match = re.search(r"->\s*", first_line)
@@ -144,18 +128,6 @@ class PythonTypeHintFormatter(Formatter):
 
 
     def _flatten(self, type_text: str) -> str:
-        """Flatten a type expression to a single line.
-
-        Parameters
-        ----------
-        type_text : str
-            Type expression possibly spanning multiple lines.
-
-        Returns
-        -------
-        str
-            Single-line type expression with normalized spacing.
-        """
         result = re.sub(r"\s+", " ", type_text)
         result = re.sub(r"\s*,\s*", ", ", result)
         result = re.sub(r"\s*\[\s*", "[", result)
@@ -168,18 +140,6 @@ class PythonTypeHintFormatter(Formatter):
 
 
     def _needs_expansion(self, flat: str) -> bool:
-        """Check if a flattened type needs expansion.
-
-        Parameters
-        ----------
-        flat : str
-            Flattened single-line type expression.
-
-        Returns
-        -------
-        bool
-            True if expansion is needed.
-        """
         if len(flat) > self._max_length:
             return True
 
@@ -190,18 +150,6 @@ class PythonTypeHintFormatter(Formatter):
 
 
     def _max_nesting_depth(self, text: str) -> int:
-        """Get the maximum bracket nesting depth.
-
-        Parameters
-        ----------
-        text : str
-            Type expression text.
-
-        Returns
-        -------
-        int
-            Maximum nesting depth.
-        """
         depth = 0
         max_depth = 0
 
@@ -216,56 +164,18 @@ class PythonTypeHintFormatter(Formatter):
 
 
     def _expand(self, flat: str, line_indent: int) -> str:
-        """Expand a type expression at the appropriate nesting level.
-
-        Expands at the shallowest level that either exceeds max_length
-        or exceeds max_depth.
-
-        Parameters
-        ----------
-        flat : str
-            Flattened type expression.
-        line_indent : int
-            Leading whitespace of the line (base indentation).
-
-        Returns
-        -------
-        str
-            Expanded type expression.
-        """
         segments = self._parse_segments(flat)
 
         return self._expand_segments(segments, line_indent)
 
 
     def _parse_segments(self, text: str) -> list:
-        """Parse a type expression into a tree of segments.
-
-        Parameters
-        ----------
-        text : str
-            Flattened type expression.
-
-        Returns
-        -------
-        list
-            Tree structure: each element is either a string (text) or
-            a list [name, [children]] where children are comma-separated
-            segments that may themselves be trees.
-        """
         result, _ = self._parse_at(text, 0)
 
         return result
 
 
     def _parse_at(self, text: str, pos: int) -> tuple[list, int]:
-        """Parse segments starting at position.
-
-        Returns
-        -------
-        tuple[list, int]
-            Parsed segments and the position after parsing.
-        """
         segments = []
         current = ""
 
@@ -291,14 +201,6 @@ class PythonTypeHintFormatter(Formatter):
 
 
     def _parse_children(self, text: str, pos: int) -> tuple[list, int]:
-        """Parse comma-separated children inside brackets.
-
-        Returns
-        -------
-        tuple[list, int]
-            List of children (each is a list of segments) and position
-            after closing bracket.
-        """
         children = []
         current_child = []
         current_text = ""
@@ -356,20 +258,6 @@ class PythonTypeHintFormatter(Formatter):
 
 
     def _expand_segments(self, segments: list, prefix_len: int) -> str:
-        """Render segments, expanding where needed.
-
-        Parameters
-        ----------
-        segments : list
-            Parsed segment tree.
-        prefix_len : int
-            Column offset for indentation.
-
-        Returns
-        -------
-        str
-            Rendered type expression.
-        """
         parts = []
 
         for seg in segments:
@@ -384,22 +272,6 @@ class PythonTypeHintFormatter(Formatter):
 
 
     def _render_node(self, name: str, children: list, base_indent: int) -> str:
-        """Render a subscript node, deciding whether to expand.
-
-        Parameters
-        ----------
-        name : str
-            The type name (e.g., "Dict", "List").
-        children : list
-            List of child segments.
-        base_indent : int
-            Current indentation column.
-
-        Returns
-        -------
-        str
-            Rendered subscript expression.
-        """
         flat_children = []
 
         for child in children:
@@ -429,20 +301,6 @@ class PythonTypeHintFormatter(Formatter):
 
 
     def _render_child_expanded(self, child: list, base_indent: int) -> str:
-        """Render a single child segment, recursively expanding if needed.
-
-        Parameters
-        ----------
-        child : list
-            List of segments for this child.
-        base_indent : int
-            Current indentation column.
-
-        Returns
-        -------
-        str
-            Rendered child text.
-        """
         parts = []
 
         for seg in child:
@@ -457,18 +315,6 @@ class PythonTypeHintFormatter(Formatter):
 
 
     def _render_flat(self, child: list) -> str:
-        """Render a child as a flat single-line string.
-
-        Parameters
-        ----------
-        child : list
-            List of segments for this child.
-
-        Returns
-        -------
-        str
-            Flat rendered text.
-        """
         parts = []
 
         for seg in child:

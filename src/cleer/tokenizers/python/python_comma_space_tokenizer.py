@@ -275,7 +275,6 @@ class PythonCommaSpaceTokenizer(Tokenizer):
 
 
     def _get_funcdef_params(self, node) -> list[tuple[int, int, int, int]]:
-        """Get ordered (end_line, end_col, start_line, start_col) for all params."""
         items = []
         args = node.args
         num_defaults = len(args.defaults)
@@ -350,7 +349,6 @@ class PythonCommaSpaceTokenizer(Tokenizer):
 
 
     def _is_correct(self, token: str) -> bool:
-        """Check if comma spacing is already correct."""
         comma_idx = token.index(",")
         before = token[:comma_idx]
         after = token[comma_idx + 1:]
@@ -375,7 +373,6 @@ class PythonCommaSpaceTokenizer(Tokenizer):
 
 
     def _deduplicate(self, tokens: list[TokenResult]) -> list[TokenResult]:
-        """Remove duplicate tokens at the same index."""
         seen = set()
         result = []
 
@@ -388,7 +385,6 @@ class PythonCommaSpaceTokenizer(Tokenizer):
 
 
     def _build_line_offsets(self, document: str) -> list[int]:
-        """Build a list mapping line numbers (0-indexed) to character offsets."""
         offsets = [0]
 
         for i, char in enumerate(document):

@@ -98,13 +98,6 @@ class PythonDictKeyQuoteFormatter(Formatter):
 
 
     def _parse_string(self, token: str) -> tuple:
-        """Parse a string token into prefix, quote, and content.
-
-        Returns
-        -------
-        tuple
-            (prefix, quote_char, content) or (None, None, None) if not parseable.
-        """
         stripped = token
 
         prefix = ""

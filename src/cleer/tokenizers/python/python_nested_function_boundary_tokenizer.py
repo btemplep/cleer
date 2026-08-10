@@ -70,7 +70,6 @@ class PythonNestedFunctionBoundaryTokenizer(Tokenizer):
 
 
     def _build_line_offsets(self, document: str) -> list[int]:
-        """Build a list mapping line numbers (0-indexed) to character offsets."""
         offsets = [0]
 
         for i, char in enumerate(document):
@@ -167,10 +166,6 @@ class PythonNestedFunctionBoundaryTokenizer(Tokenizer):
 
 
     def _get_start_line(self, node) -> int:
-        """Get the effective start line of a node, including decorators.
-
-        Returns 1-indexed line number.
-        """
         if hasattr(node, "decorator_list") and node.decorator_list:
             return node.decorator_list[0].lineno
 

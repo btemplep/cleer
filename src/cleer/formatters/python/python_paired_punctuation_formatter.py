@@ -517,7 +517,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _get_chain_root(self, node: ast.Call) -> ast.AST:
-        """Walk down the chain to find the root (first call)."""
         current = node
 
         while True:
@@ -786,7 +785,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _get_boolop_parts(self, node: ast.BoolOp, current_text: str) -> list[str]:
-        """Get the source text for each operand of a BoolOp."""
         flat = self._flatten(current_text)
         op_str = "or" if isinstance(node.op, ast.Or) else "and"
 
@@ -853,7 +851,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _is_subgroup_boolop(self, value_node: ast.AST, parent_op) -> bool:
-        """Check if a BoolOp value is a sub-BoolOp with different operator."""
         if isinstance(value_node, ast.BoolOp):
             return type(value_node.op) != type(parent_op)
 
@@ -941,7 +938,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _is_subgroup_inner_boolop(self, part: str) -> bool:
-        """Check if a subgroup part is itself a parenthesized BoolOp."""
         stripped = part.strip()
         if (
             not stripped.startswith("(")
@@ -957,7 +953,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _expand_inner_subgroup(self, part: str, indent: str, op_str: str) -> str:
-        """Expand an inner parenthesized BoolOp subgroup."""
         stripped = part.strip()
         inner = stripped[1:-1].strip()
         inner_indent = indent + "    "
@@ -989,7 +984,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _call_should_expand_in_boolop(self, part: str) -> bool:
-        """Check if a call text inside a BoolOp should be expanded."""
         paren_start = part.find("(")
         if paren_start == -1:
             return False
@@ -1035,7 +1029,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _expand_call_in_boolop(self, part: str, indent: str) -> str:
-        """Expand a function call inside a BoolOp condition."""
         paren_start = part.find("(")
         if paren_start == -1:
             return part
@@ -1071,7 +1064,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _try_expand_dict_arg(self, arg: str, indent: str) -> str | None:
-        """Try to expand a dict argument in a call."""
         stripped = arg.strip()
         if (
             not stripped.startswith("{")
@@ -1225,7 +1217,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _split_boolop_by_op(self, text: str, op_str: str) -> list[str]:
-        """Split a boolean expression by its top-level operator."""
         parts = []
         op_pattern = f" {op_str} "
         depth = 0
@@ -1416,13 +1407,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _format_chain(self, node: ast.Call, current_text: str, indent: str) -> str:
-        """Format a chained method call.
-
-        Rules:
-        - Flatten first
-        - Expand all (except 0-arg calls) if any call meets expansion
-        criteria or total > 80 chars
-        """
         if self._has_comment(current_text):
             return current_text
 
@@ -1598,7 +1582,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _expand_ast_dict(self, node: ast.Dict, indent: str) -> str:
-        """Expand an AST Dict node to multi-line string."""
         inner_indent = indent + "    " if indent else "        "
         items = []
         for k, v in zip(node.keys, node.values):
@@ -1615,7 +1598,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _expand_ast_list(self, node: ast.List, indent: str) -> str:
-        """Expand an AST List node to multi-line string."""
         inner_indent = indent + "    " if indent else "        "
         lines = ["["]
 
@@ -1633,7 +1615,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _format_call(self, node: ast.Call, current_text: str, indent: str) -> str:
-        """Format a function call."""
         if self._has_comment(current_text):
             return current_text
 
@@ -1827,7 +1808,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _format_dict(self, node: ast.Dict, current_text: str, indent: str) -> str:
-        """Format a dict literal — always expand if has content."""
         if not node.keys:
             return current_text
 
@@ -1864,7 +1844,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _format_tuple(self, node: ast.Tuple, current_text: str, indent: str) -> str:
-        """Format a tuple per rules: flatten, expand if >30 chars literal."""
         if "(" not in current_text:
             return current_text
 
@@ -1995,7 +1974,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _is_correctly_expanded_concat(self, text: str, indent: str) -> bool:
-        """Check if a call with string concat is already correctly expanded."""
         lines = text.split("\n")
         if len(lines) < 3:
             return False
@@ -2027,7 +2005,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _split_concat_strings(self, content: str) -> list[str]:
-        """Split a string concatenation into individual string tokens."""
         try:
             tokens = list(
                 tokenize.generate_tokens(io.StringIO(content).readline)
@@ -2044,7 +2021,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _format_funcdef(self, node: ast.AST, current_text: str, indent: str) -> str:
-        """Format a function definition signature."""
         if self._has_comment(current_text):
             return current_text
 
@@ -2160,7 +2136,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _subscript_nesting_depth(self, node: ast.Subscript) -> int:
-        """Get the maximum bracket nesting depth of a subscript node."""
         depth = 1
 
         if isinstance(node.slice, ast.Tuple):
@@ -2242,7 +2217,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _offset(self, document: str, lineno: int, col_offset: int) -> int:
-        """Convert a line number and column offset to a character offset."""
         line_start = 0
         for i in range(lineno - 1):
             line_start = document.index("\n", line_start) + 1
@@ -2251,7 +2225,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _get_indent(self, document: str, offset: int) -> str:
-        """Get the indentation at a given offset."""
         line_start = document.rfind("\n", 0, offset) + 1
         indent = ""
 
@@ -2282,7 +2255,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _flatten(self, text: str) -> str:
-        """Flatten multiline text to single line, preserving strings."""
         result = []
         i = 0
         in_string = False
@@ -2380,7 +2352,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _is_closing_quote(self, s: str, i: int) -> bool:
-        """Check if the quote at position i is a closing quote."""
         num_backslashes = 0
         j = i - 1
 
@@ -2392,7 +2363,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _collapse_inline_spaces(self, doc: str) -> str:
-        """Collapse ( x, ) to (x,) and [ ] to [] on single lines."""
         lines = doc.split("\n")
         result = []
 
@@ -2404,11 +2374,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _normalize_paren_indent(self, doc: str) -> str:
-        """Normalize inconsistent indentation inside = ( ... ) blocks.
-
-        Fixes cases where lines inside a paren block have different indent
-        levels when they should all be at indent + 4.
-        """
         lines = doc.split("\n")
         result = []
         i = 0
@@ -2472,13 +2437,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _collapse_short_parens(self, doc: str) -> str:
-        """Collapse multi-line parenthesized expressions that fit on one line.
-
-        Targets: expressions like 'x = y - (\n    ...\n)' where the content
-        is a simple arithmetic expression that fits within the call threshold.
-        Does NOT collapse if content looks like a BoolOp, function args,
-        container, or string concat.
-        """
         lines = doc.split("\n")
         result = []
         i = 0
@@ -2552,7 +2510,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _is_call_paren(self, stripped: str) -> bool:
-        """Check if a line ending with ( is a function/method call."""
         if not stripped.endswith("("):
             return False
 
@@ -2586,7 +2543,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _is_keyword_paren(self, stripped: str) -> bool:
-        """Check if a line ending with ( is a keyword paren (if/elif/while/def/class)."""
         keywords = (
             "if ",
             "elif ",
@@ -2605,11 +2561,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _collapse_paren_spaces_line(self, line: str) -> str:
-        """Collapse spaces after openers and before closers on a single line.
-
-        Only collapses when the space is adjacent to content (not leading indent).
-        e.g. '( 2, )' -> '(2,)' but '        ],' stays unchanged.
-        """
         result = []
         i = 0
         in_string = False
@@ -2678,7 +2629,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _collapse_paren_spaces(self, flat: str) -> str:
-        """Remove spaces after ( [ { and before ) ] } outside strings."""
         result = []
         i = 0
         in_string = False
@@ -2745,7 +2695,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _contains_ternary(self, node: ast.Call) -> bool:
-        """Check if a call contains a ternary (IfExp) as a direct arg."""
         for arg in node.args:
             if isinstance(arg, ast.IfExp):
                 return True
@@ -2758,7 +2707,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _any_arg_is_expanded(self, node: ast.Call) -> bool:
-        """Check if any argument of a call is a multiline-expanded node."""
         for arg in node.args:
             if isinstance(arg, (ast.Dict, ast.List, ast.Set)):
                 if self._node_has_content(arg):
@@ -2778,7 +2726,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _is_chained_method(self, node: ast.Call) -> bool:
-        """Check if this call is an inner link of a method chain."""
         if isinstance(node.func, ast.Attribute):
             if isinstance(node.func.value, ast.Call):
                 return True
@@ -2787,7 +2734,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _is_chain_root(self, node: ast.Call, parent: ast.AST) -> bool:
-        """Check if this call is the root of a method chain."""
         if isinstance(parent, ast.Attribute):
             return True
 
@@ -2795,11 +2741,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _is_chain_end(self, node: ast.Call, parent: ast.AST) -> bool:
-        """Check if this call is the outermost (last) call in a chain.
-
-        True if: this call is a method on another call result, AND
-        is NOT itself used as the value of another Attribute.
-        """
         if not isinstance(node.func, ast.Attribute):
             return False
 
@@ -2866,7 +2807,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _expand_dict_inline(self, arg_str: str, indent: str) -> str | None:
-        """Expand a dict arg string into multi-line format."""
         stripped = arg_str.strip()
         if (
             not stripped.startswith("{")
@@ -2894,7 +2834,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _expand_tuple_inline(self, arg_str: str, indent: str) -> str | None:
-        """Expand a tuple arg string into multi-line format if >30 chars."""
         stripped = arg_str.strip()
         if (
             not stripped.startswith("(")
@@ -2985,7 +2924,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _is_generator_call(self, node: ast.Call) -> bool:
-        """Check if a call has a single generator expression arg."""
         if len(node.args) == 1 and not node.keywords:
             if isinstance(node.args[0], ast.GeneratorExp):
                 return True
@@ -2994,7 +2932,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _normalize_operators(self, text: str) -> str:
-        """Ensure 'and' and 'or' keywords have spaces around them."""
         text = re.sub(r"\)or\(", ") or (", text)
         text = re.sub(r"\)or ", ") or ", text)
         text = re.sub(r" or\(", " or (", text)
@@ -3006,11 +2943,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _subscript_is_complex(self, node: ast.Subscript) -> bool:
-        """Check if a subscript is complex enough to trigger parent expansion.
-
-        Complex means: has multiple type params AND at least one is itself
-        a subscript, OR has a single param that is a complex subscript.
-        """
         if isinstance(node.slice, ast.Tuple):
             if len(node.slice.elts) > 1:
                 return any(isinstance(elt, ast.Subscript) for elt in node.slice.elts)
@@ -3024,7 +2956,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _is_comprehension_node(self, node: ast.AST) -> bool:
-        """Check if a node is a comprehension (ListComp, SetComp, etc.)."""
         return isinstance(
             node, (
                 ast.ListComp,
@@ -3036,10 +2967,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _has_string_concat_arg(self, flat: str) -> bool:
-        """Check if a flattened call has a string concatenation argument.
-
-        Uses the tokenize module to detect adjacent STRING tokens.
-        """
         paren_start = flat.find("(")
         if paren_start == -1:
             return False
@@ -3059,7 +2986,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _is_string_concat(self, content: str) -> bool:
-        """Check if content is implicit string concatenation using tokenize."""
         try:
             tokens = list(
                 tokenize.generate_tokens(io.StringIO(content).readline)
@@ -3099,7 +3025,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _get_call_args(self, node: ast.Call, current_text: str) -> list[str]:
-        """Extract the argument strings from a call node."""
         flat = self._flatten(current_text)
 
         paren_start = flat.find("(")
@@ -3116,7 +3041,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _get_func_text(self, node: ast.Call, current_text: str) -> str:
-        """Get the function name/expression part of a call."""
         flat = self._flatten(current_text)
         paren_start = flat.find("(")
 
@@ -3127,7 +3051,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _has_comment(self, text: str) -> bool:
-        """Check if text contains a comment outside of string literals."""
         in_string = False
         string_char = ""
         i = 0
@@ -3169,11 +3092,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _is_single_string_arg(self, node: ast.Call) -> bool:
-        """Check if a call has exactly one positional string arg (no concat).
-
-        Returns True for calls like logger.debug(f"...") or raise Exception("...").
-        Returns False for kwargs, string concats, or chained calls with string arg.
-        """
         if len(node.args) != 1 or node.keywords:
             return False
 
@@ -3192,7 +3110,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _is_kwarg_str(self, arg: str) -> bool:
-        """Check if an arg string is a keyword argument."""
         depth = 0
         in_string = False
         string_char = ""
@@ -3227,7 +3144,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _inner_would_expand(self, node: ast.Call, indent: str) -> bool:
-        """Check if a single-arg call's inner argument would expand."""
         if not node.args:
             return False
 
@@ -3275,7 +3191,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _node_has_content(self, node: ast.AST) -> bool:
-        """Check if a container node has any content."""
         if isinstance(node, ast.Dict):
             return bool(node.keys)
 
@@ -3324,7 +3239,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _normalize_item(self, item: str) -> str:
-        """Normalize an item's internal whitespace while preserving structure."""
         if "\n" not in item:
             return item.strip()
 
@@ -3357,11 +3271,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _reindent(self, item: str, base_indent: str) -> str:
-        """Re-indent a potentially multiline item to the given base indent.
-
-        The first line is returned without leading indent (caller adds it).
-        Subsequent lines get base_indent prepended to their relative indent.
-        """
         if "\n" not in item:
             return item
 
@@ -3422,7 +3331,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _extract_params(self, node: ast.AST, current_text: str) -> list[str]:
-        """Extract parameter strings from a function def."""
         flat = self._flatten(current_text)
         paren_start = flat.find("(")
 
@@ -3439,7 +3347,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _get_funcdef_prefix(self, current_text: str) -> str:
-        """Get the def/async def + name part before the opening paren."""
         flat = self._flatten(current_text)
         paren_start = flat.find("(")
 
@@ -3450,7 +3357,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _get_funcdef_suffix(self, flat: str) -> str:
-        """Get the return annotation + colon after the closing paren."""
         paren_start = flat.find("(")
         if paren_start == -1:
             return ":"
@@ -3465,7 +3371,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _get_subscript_value(self, current_text: str) -> str:
-        """Get the value part before [ in a subscript."""
         flat = self._flatten(current_text)
         bracket_start = flat.find("[")
 
@@ -3476,7 +3381,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _find_matching_paren(self, s: str, start: int) -> int | None:
-        """Find the matching closing bracket for an opener at start."""
         open_ch = s[start]
         close_map = {
             "(": ")",
@@ -3534,7 +3438,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _split_by_commas(self, content: str) -> list[str]:
-        """Split content by top-level commas."""
         items = []
         current = ""
         depth = 0

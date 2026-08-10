@@ -150,20 +150,6 @@ class PythonClassBoundaryFormatter(Formatter):
 
 
     def _find_header_end(self, body: list) -> int:
-        """Find the index of the last header node in the class body.
-
-        Header nodes are: docstring, class variables, pass.
-
-        Parameters
-        ----------
-        body : list
-            Class body AST nodes.
-
-        Returns
-        -------
-        int
-            Index of the last header node, or -1 if no header.
-        """
         header_end = -1
 
         for i, node in enumerate(body):
@@ -176,23 +162,6 @@ class PythonClassBoundaryFormatter(Formatter):
 
 
     def _is_header_node(self, node: ast.stmt, index: int) -> bool:
-        """Check if a node is a class header node.
-
-        Header nodes: docstring (first Expr with string), class variables
-        (AnnAssign, Assign), Pass.
-
-        Parameters
-        ----------
-        node : ast.stmt
-            AST node to check.
-        index : int
-            Position in the body.
-
-        Returns
-        -------
-        bool
-            True if this is a header node.
-        """
         if isinstance(node, ast.Pass):
             return True
 
@@ -210,14 +179,12 @@ class PythonClassBoundaryFormatter(Formatter):
 
 
     def _get_indent(self, text: str) -> int:
-        """Get the indentation level of the first line."""
         first_line = text.split("\n")[0]
 
         return len(first_line) - len(first_line.lstrip())
 
 
     def _dedent(self, text: str, indent: int) -> str:
-        """Remove indent spaces from the start of each line."""
         if indent == 0:
             return text
 

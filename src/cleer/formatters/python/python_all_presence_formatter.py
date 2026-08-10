@@ -71,7 +71,6 @@ class PythonAllPresenceFormatter(Formatter):
 
 
     def _has_all(self, document: str) -> bool:
-        """Check if the document has an __all__ assignment."""
         try:
             tree = ast.parse(document)
         except SyntaxError:
@@ -89,7 +88,6 @@ class PythonAllPresenceFormatter(Formatter):
 
 
     def _insert_all(self, document: str) -> str:
-        """Insert __all__ = [] at the correct position in the document."""
         try:
             tree = ast.parse(document)
         except SyntaxError:

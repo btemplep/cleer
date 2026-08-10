@@ -103,7 +103,6 @@ class PythonReturnYieldTokenizer(Tokenizer):
 
 
     def _contains_return_yield(self, func_node: ast.stmt) -> bool:
-        """Check if a function contains any return or yield statement."""
         for node in ast.walk(func_node):
             if isinstance(node, ast.Return):
                 return True
@@ -133,7 +132,6 @@ class PythonReturnYieldTokenizer(Tokenizer):
 
 
     def _build_line_offsets(self, document: str) -> list[int]:
-        """Build a list mapping line numbers (0-indexed) to character offsets."""
         offsets = [0]
 
         for i, char in enumerate(document):

@@ -73,7 +73,6 @@ class PythonModuleDocstringPresenceFormatter(Formatter):
 
 
     def _has_module_docstring(self, document: str) -> bool:
-        """Check if the document has a module docstring."""
         try:
             tree = ast.parse(document)
         except SyntaxError:

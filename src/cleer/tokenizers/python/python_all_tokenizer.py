@@ -75,7 +75,6 @@ class PythonAllTokenizer(Tokenizer):
 
 
     def _find_first_all(self, tree: ast.Module):
-        """Find the first __all__ assignment node in the module body."""
         for node in tree.body:
             if not isinstance(node, ast.Assign):
                 continue
@@ -130,7 +129,6 @@ class PythonAllTokenizer(Tokenizer):
 
 
     def _build_line_offsets(self, document: str) -> list[int]:
-        """Build a list mapping line numbers (0-indexed) to character offsets."""
         offsets = [0]
 
         for i, char in enumerate(document):

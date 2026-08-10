@@ -73,7 +73,6 @@ class PythonStringQuoteTokenizer(Tokenizer):
 
 
     def _build_line_offsets(self, document: str) -> list[int]:
-        """Build a list mapping line numbers (0-indexed) to character offsets."""
         offsets = [0]
 
         for i, char in enumerate(document):
@@ -84,7 +83,6 @@ class PythonStringQuoteTokenizer(Tokenizer):
 
 
     def _collect_dict_key_positions(self, tree: ast.Module) -> set[tuple[int, int]]:
-        """Collect line/col positions of string constants used as dict subscript keys."""
         positions = set()
 
         for node in ast.walk(tree):
@@ -103,7 +101,6 @@ class PythonStringQuoteTokenizer(Tokenizer):
 
 
     def _collect_fstring_positions(self, tree: ast.Module) -> set[tuple[int, int]]:
-        """Collect line/col positions of constants that are children of f/t-strings."""
         positions = set()
         fstring_types = [ast.JoinedStr]
 
@@ -217,7 +214,6 @@ class PythonStringQuoteTokenizer(Tokenizer):
 
 
     def _is_string_token(self, token: str) -> bool:
-        """Check if the extracted token looks like a string literal."""
         stripped = token.lstrip()
 
         if not stripped:

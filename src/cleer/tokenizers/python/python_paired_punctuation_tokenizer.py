@@ -318,7 +318,6 @@ class PythonPairedPunctuationTokenizer(Tokenizer):
 
 
     def _is_excluded(self, child, parent) -> bool:
-        """Check if a node should be excluded from tokenization."""
         if isinstance(child, ast.Assign):
             for target in child.targets:
                 if isinstance(target, ast.Name) and target.id == "__all__":
@@ -353,12 +352,10 @@ class PythonPairedPunctuationTokenizer(Tokenizer):
 
 
     def _is_logic_condition(self, node) -> bool:
-        """Check if an if/while has a logic condition with and/or."""
         return isinstance(node.test, ast.BoolOp)
 
 
     def _has_paired_punct_value(self, node) -> bool:
-        """Check if an assignment has a value with paired punctuation."""
         if isinstance(node, ast.Assign):
             value = node.value
         elif isinstance(node, ast.AnnAssign) and node.value:
@@ -370,7 +367,6 @@ class PythonPairedPunctuationTokenizer(Tokenizer):
 
 
     def _node_has_paired_punct(self, node) -> bool:
-        """Check if an AST node contains paired punctuation."""
         if isinstance(
             node,
             (
@@ -422,7 +418,6 @@ class PythonPairedPunctuationTokenizer(Tokenizer):
 
 
     def _find_funcdef_end(self, node, lines: list[str]) -> int:
-        """Find the line where the function def's colon is."""
         for line_idx in range(
             node.lineno - 1,
             min(node.end_lineno, len(lines))
@@ -551,7 +546,6 @@ class PythonPairedPunctuationTokenizer(Tokenizer):
 
 
     def _compute_line_offsets(self, document: str) -> list[int]:
-        """Compute byte offsets for each line in the document."""
         offsets = [0]
         for i, char in enumerate(document):
             if char == "\n":

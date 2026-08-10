@@ -1,214 +1,219 @@
 # cleer Default Rules
 
 
-## General Rules
+## General
 
-- [x] End of file space formatter
-    - set number of spaces
-    - default 1
-- [x] start of file space formatter
-    - set number of spaces
-    - default 0
-- [x] max blank lines in a row
-    - set max number of blank lines in a row
-    - default 2
-- [x] non-ascii whitespace should not exist
-- [x] no trailing whitespace on lines
+- [x] End of file whitespace
+    - Files should end with a configurable number of blank lines
+    - Default: 1
+- [x] Start of file whitespace
+    - Files should start with a configurable number of blank lines
+    - Default: 0
+- [x] Max consecutive blank lines
+    - No more than the configured max blank lines in a row
+    - Default: 2
+- [x] Non-ASCII whitespace
+    - Non-ASCII whitespace characters should not exist
+- [x] Trailing whitespace
+    - Lines should not have any trailing whitespace
 
 
+## Python
 
-## Python Specific Rules
+### Spacing
 
-- [x] one space in a row max, outside of indent and string literals.
-- [x] Binary operators should have one space around them on each side
-    - not including function default kwargs, or function call kwargs. Should be a default of 0
-- [x] specific unary operators should not have space between them and the variable
-    - "negative" (-)
-- [x] indent with spaces, tab size is 4 spaces
-- [x] default string quote style
-    - set to " or ' separately for
-        - string literals
-        - dict key lookup
-    - multiline """ or '''
-- [x] colons for type hints, dictionaries etc
-    - no space before
-    - one space after
-- [x] comma separated values
-    - no space before
-    - one space after, or newline
-    - set to have a trailing comma, or remove it
-        - default, no trailing comma
-        - except for one value items like python tuples
-        - for loop vars never have trailing comma
-- [x] functions/methods
-    - inside of functions and methods should be a max of 1 blank line in a row
-    - 2 blank lines before and after functions, except nested functions
+- [x] Single space maximum
+    - Only one consecutive space allowed outside of indentation and string literals
+- [x] Binary operators
+    - One space on each side
+    - Exception: function default kwargs and function call kwargs should have no space around `=`
+- [x] Unary operators
+    - No space between unary negative (-) and its operand
+- [x] Indentation
+    - Spaces only, 4 spaces per level
+- [x] Colons
+    - No space before, one space after
+    - Applies to type hints, dictionaries, slices
+- [x] Commas
+    - No space before, one space after (or newline)
+    - No trailing comma, except for single-value tuples
+    - For loop variables never have trailing comma
+
+### Strings
+
+- [x] Quote style
+    - String literals use `"`
+    - Dict key bracket notation uses `'`
+    - Multiline strings use `"""`
+
+### Functions and methods
+
+- [x] Blank lines
+    - 2 blank lines before and after top-level functions
     - 1 blank line before and after nested functions or classes
-- [x] __all__ 
-    - should be in all modules that belong to a packages
-        - Take a var for current_packages, by default None
-    - one blank line before and after
-    - one item per line if there is more than 0 items
-    - sort alphabetically
-    - only applies formatting to the first instance of __all__ in a module. Ignore other times it is assigned.
-- [x] imports section
-    - Should be separated into 4 blocks, that are separated by a space, in this order
-        - std lib
-        - 3rd party (pypi)
-        - Internal Libraries (private repo)
-        - The current package
-    - an imports section is sequential lines of code that only have import statements or blank lines
-    - Should take a list of internal package names and current package names, by default none
-    - Each block should be sorted alphabetically, not including the preceding import or from keyword
-    - flatten each import, if more than 80 characters then it should be multi-line with one per line
-    - 1 blank line before, 2 blank lines after an imports section
-    - items in a multi import or import from statement are sorted alphabetically, as well.
-- [x] returns
-    - returns have a blank line before them 
-        - unless they are the only statement in that code block
-    - returns have a at least one blank line after them.
-- [x] yields
-    - have a blank like before unless they are the only statement in that code block
-    - have at least one blank line after it
-- [x] Type hints (handled by paired punctuation formatter)
-    - no space before colon, one space after, add this to the existing colon checks if it makes sense
-    - First flatten, Don't expand unless one of the following happen, in this order:
-        - A Single non-nested statement is over annotation_max_len (40) chars, not including indent just type and brackets
+    - Max 1 blank line inside function bodies
+    - No blank line between `def` and docstring or first line of code
+
+### Returns and yields
+
+- [x] Returns
+    - Blank line before, unless it is the only statement in the block
+    - At least one blank line after
+- [x] Yields
+    - Blank line before, unless it is the only statement in the block
+    - At least one blank line after
+
+### Classes
+
+- [x] Class body spacing
+    - No blank lines between class declaration, docstring, class vars, or pass
+    - 2 blank lines before anything else (methods, etc.)
+    - 2 blank lines before and after root-indent classes
+
+### Compound statements
+
+- [x] if/elif/else, try/except/finally, with, etc.
+    - No blank lines between chain parts (if→elif, try→except)
+        - Exception: after return, yield, or exit()
+    - At least one blank line after the end of a chain
+    - No blank lines between block opener and first line of inner code
+
+### `__all__`
+
+- [x] Presence and formatting
+    - Should exist in all modules belonging to configured packages
+    - One blank line before and after
+    - One item per line if more than 0 items
+    - Sorted alphabetically
+    - Only formats the first `__all__` assignment in a module
+
+### Imports
+
+- [x] Import section formatting
+    - 4 blocks separated by a blank line, in order:
+        1. Standard library
+        2. Third party (PyPI)
+        3. Internal libraries (private repos)
+        4. Current package
+    - Each block sorted alphabetically (not including `import`/`from` keyword)
+    - Items within a multi-import statement sorted alphabetically
+    - Flatten each import; if over 80 chars, expand to one per line
+    - 1 blank line before, 2 blank lines after an import section
+
+### Module header
+
+- [x] Header ordering
+    - Items in this order, with 1 blank line between each (if they exist):
+        1. Module docstring
+        2. `__version__`
+        3. `__all__`
+        4. Imports
+    - 2 blank lines after the header before module code
+
+### Module docstring
+
+- [x] Presence
+    - All modules should have a docstring at the top
+
+### Type hints
+
+- [x] Handled by paired punctuation formatter
+    - Colon spacing follows the colons rule (no space before, one space after)
+    - Flatten first, then expand if:
+        - Over annotation_max_len (40) chars, not including indent
         - Over annotation_max_line_len (80) chars including indent
-        - Any non expanded section is over annotation_max_depth (2) types/brackets deep, expand that started at the most external, non-expanded section
+        - Nesting exceeds annotation_max_depth (2) bracket levels
     - Handles all annotation contexts: function params, return types, variable annotations, type aliases
-- [x] classes
-    - no blank lines between class declaration, docstring, class vars, or pass
-    - 2 blank lines for anything else
-    - 2 blank lines before and after class for root indent classes
-- [x] function
-    - no blank line between def and docstrings or first line of code. 
-- [x] docstring 
-    - should exist at top of all modules with one blank line following
-        - Can be a separate tokenizer of formatter. 
-    - docstrings should be at same indent level for variables and modules
-        - Can probably add this to the indent level checker? 
-    - tell me what you are doing before you do it. 
-- [x] handling blank space at beginning of a file. There is some inconsistency. 
-    - 2 spaces between module code and any of the following:
-        - module docstring
-        - any __all__ assignments
-        - import block
-    - but at the top there should only be 1 blank space between the module docstring, first __all__ assignment, and/or an import block
-    -I think the existing formatters for those items that are have the item formatting and the blank space formatting should just set the ending of them to be one blank line
-    - A separate tokenizer/formatter needs to be made to handle that block holistically with the rules I gave above
-- [x] if/elif/else, try/except/finally, with blocks etc.
-    - no blank lines between the in-between statements, between if and elif or else, etc.
-        - except 
-            - after a return or yield statement, or exit() call
-            - another end of chain statement and
-    - At end of chain of statements if/elif/else, if/else, try/except etc.
-        - always have at least one blank line following
-        - should not remove extra blank lines
-        - If multiple end at different levels, and there is no blank line, then it should only be one blank line total.
-    - no blank lines between indent block (if, for, while, with, etc) and first line of inner code
-- [x] paired punctuation
-    - any paired punctuation with comments inside of it is not formatted.
-    - excludes:
-        - __all__
-        - for loop variables like `x` and `y` in `for x,y in thing:`
-    - first step of all paired punctuation is to flatten it. 
-    - no space between paired punctuation and inner values if they are on the same line
-    - configurable thresholds (class parameters with defaults):
-        - def_max_len: 80 (func def flat length, no indent)
-        - def_max_line_len: 100 (func def with indent)
-        - def_max_args: 4
-        - def_max_args_kw: 2
-        - call_max_len: 60 (call flat length, no indent; also used for boolops and chain segments)
-        - call_max_line_len: 80 (call with indent; also used for boolops)
-        - call_max_args: 4 (also used for chain segments)
-        - call_max_args_kw: 2 (also used for chain segments)
-        - chain_call_max_len: 80 (total flat chain, no indent)
-        - chain_call_max_line_len: 100 (total chain with indent)
-        - lst_max_len: 30 (list/set/tuple literal length)
-        - lst_max_line_len: 80 (list/set/tuple with indent)
-        - lst_max_num: 3 (max items in list/set before inline expansion in call args)
-        - annotation_max_len: 40 (type annotation flat length)
-        - annotation_max_line_len: 80 (type annotation with indent)
-        - annotation_max_depth: 2 (max bracket nesting before expansion)
-    - dicts that have more than 0 items, are always expanded
-    - Lists, sets, or tuples that are not nested, 
-        - should be flattened
-        - if the list, set, or tuple itself is over lst_max_len (30) chars, then expand. Only count length of list/set/tuple literal.
-        - if the list, set, or tuple with indent is over lst_max_line_len (80), expand.
-    - nested lists, sets, or tuples (inside of another list, dict, set, tuple) are expanded if more than 0 items
-        - if any are nested are expanded then they all are expanded, unless empty
-    - function definitions
-        - first flatten
-        - expand if any of the following
-            - over def_max_len (80) characters not including indent
-            - over def_max_line_len (100) chars including indent
-            - over def_max_args (4) args
-            - any inner paired punctuation args are expanded
-            - more than def_max_args_kw (2) args with at least one given as a kwarg
-        - if any sub items are expanded
-        - never split empty args, ie don't split the function def parenthesis to a new line
-        - if any are expanded then they all are expanded, unless empty
-    - function calls
-        - first flatten
-        - expand if any of the following
-            - over call_max_len (60) characters not including indent
-            - over call_max_line_len (80) chars including indent
-            - over call_max_args (4) args
-            - any inner paired punct is expanded
-            - more than call_max_args_kw (2) args with at least one given as a kwarg
-        - never split empty args, ie don't split the function call parenthesis to a new line
-        - never split if it is a single arg that a string
-            - must be non-kwarg
-            - does not include chained functions with one str arg
-            - single arg does not include string concats
-            - Useful for logging and raising exceptions
-        - if any are expanded then they all are expanded, unless empty
-    - chained function calls
-        - First flatten 
-        - Individual segments use call_max_len, call_max_args, call_max_args_kw
-        - Expand all, except calls with 0 args, if:
-            - any of the chained function calls meet any of the function call conditions for expansion
-            - The total flattened chain length is > chain_call_max_len (80) chars
-            - The total chain length with indent is > chain_call_max_line_len (100) chars
-    - decorators
-        - Are treated as function calls (same rules and thresholds: call_max_*)
-        - flatten first
-        - expand if any of the following
-            - over call_max_args (4) args
-            - more than call_max_len (60) chars not including indent
-            - over call_max_line_len (80) chars including indent
-            - any inner paired punct is expanded
-            - more than call_max_args_kw (2) args with at least one given as a kwarg
-        - never split empty args, ie don't split the decorator parenthesis to a new line
-        - if any are expanded then they all are expanded, unless empty
-    - logic blocks
-        - statements are separated by the logic operators `or` and `and`
-        - When a logic block is expanded, the operators should proceed the following token on a line.
-        - First flatten
-        - Add parenthesis to clarify order of operations as well
-        - expand if any of the following (uses call_max_len/call_max_line_len)
-            - more than 2 statements
-            - length is over call_max_len (60) without indent
-            - length is over call_max_line_len (80) with indent
-            - any inner paired punct is expanded
-            - any other logic block is expanded.
-        - if expanded should add parenthesis around them
-    - native strings concatenation, with () or without
-        - flatten first, as usual
-        - should always be multiline, and surrounded by parenthesis for themselves
-        - fully expand everything that it is in per usual.
-        - applies to return statements and assignments as well as function call args
-    - dictionary key notation
-        - always flatten
-        - never expand
-    - Inline generators
-        - always flatten
-        - never expand
-- [x] header format
-    - should be in this order, with one line in between each, if they exist:
-        - module docstring
-        - __version__
-        - __all__
-        - imports
-    Then 2 blank lines
+
+### Paired punctuation
+
+- [x] Core behavior
+    - Flatten first, then expand based on thresholds
+    - Any paired punctuation containing a comment is not formatted
+    - No space between openers/closers and inner values on the same line
+    - Excludes: `__all__`, for loop variables
+
+- [x] Configurable thresholds (PythonPairedPunctuationFormatter parameters):
+    - def_max_len: 80 — func def flat length, no indent
+    - def_max_line_len: 100 — func def with indent
+    - def_max_args: 4 — func def params before expansion
+    - def_max_args_kw: 2 — func def params when defaults present
+    - call_max_len: 60 — call flat length, no indent (also boolops, chain segments)
+    - call_max_line_len: 80 — call with indent (also boolops)
+    - call_max_args: 4 — call args before expansion (also chain segments)
+    - call_max_args_kw: 2 — call args when kwargs present (also chain segments)
+    - chain_call_max_len: 80 — total flat chain, no indent
+    - chain_call_max_line_len: 100 — total chain with indent
+    - lst_max_len: 30 — container literal length
+    - lst_max_line_len: 80 — container with indent
+    - lst_max_num: 3 — max container items before inline expansion in call args
+    - annotation_max_len: 40 — type annotation flat length
+    - annotation_max_line_len: 80 — type annotation with indent
+    - annotation_max_depth: 2 — max bracket nesting before expansion
+
+- [x] Dictionaries
+    - Always expanded if more than 0 items
+
+- [x] Lists, sets, tuples
+    - Flatten first
+    - Expand if literal length > lst_max_len (30) or with indent > lst_max_line_len (80)
+    - Nested containers (inside another list, dict, set, tuple) always expand if non-empty
+    - If any nested containers expand, all siblings expand too (unless empty)
+
+- [x] Function definitions
+    - Flatten first
+    - Expand if:
+        - Flat length > def_max_len (80)
+        - With indent > def_max_line_len (100)
+        - More than def_max_args (4) params
+        - More than def_max_args_kw (2) params when any have defaults
+        - Any inner paired punctuation is expanded
+    - Never split empty parens to a new line
+    - If any args expand, all expand (unless empty)
+
+- [x] Function calls
+    - Flatten first
+    - Expand if:
+        - Flat length > call_max_len (60)
+        - With indent > call_max_line_len (80)
+        - More than call_max_args (4) args
+        - More than call_max_args_kw (2) args when any are kwargs
+        - Any inner paired punctuation is expanded
+    - Never split empty parens to a new line
+    - Never split single non-kwarg string arg (useful for logging, exceptions)
+        - Does not include chained calls or string concats
+    - If any args expand, all expand (unless empty)
+
+- [x] Chained function calls
+    - Flatten first
+    - Individual segments use call_max_len, call_max_args, call_max_args_kw
+    - Expand all (except 0-arg calls) if:
+        - Any segment meets call expansion criteria
+        - Total flat length > chain_call_max_len (80)
+        - Total with indent > chain_call_max_line_len (100)
+
+- [x] Decorators
+    - Treated as function calls — same rules and thresholds (call_max_*)
+
+- [x] Logic blocks (boolean expressions)
+    - Operators `or` and `and` separate statements
+    - Flatten first
+    - Expand if:
+        - More than 2 statements
+        - Flat length > call_max_len (60)
+        - With indent > call_max_line_len (80)
+        - Any inner paired punctuation or other logic block is expanded
+    - Expanded operators precede the following operand on each line
+    - Add parenthesis to clarify order of operations
+
+- [x] Native string concatenation
+    - Flatten first
+    - Always multiline, surrounded by parenthesis
+    - Fully expand containing context
+    - Applies to return statements, assignments, and call args
+
+- [x] Dictionary key notation
+    - Always flatten, never expand
+
+- [x] Inline generators
+    - Always flatten, never expand

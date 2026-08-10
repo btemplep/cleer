@@ -120,7 +120,6 @@ class PythonCompoundChainFormatter(Formatter):
 
 
     def _get_base_indent(self, token: str) -> str:
-        """Get the indentation of the first line."""
         first_line = token.split("\n")[0]
 
         for i, ch in enumerate(first_line):
@@ -131,16 +130,6 @@ class PythonCompoundChainFormatter(Formatter):
 
 
     def _find_boundaries(self, node) -> list:
-        """Find all boundaries between parts of compound chains.
-
-        Recursively finds boundaries in nested compound statements
-        throughout the entire tree.
-
-        Returns a list of dicts with:
-        - ``body_end_line``: 1-indexed last line of previous part's body
-        - ``connector_line``: 1-indexed line of the connector keyword
-        - ``expected_blanks``: number of blank lines expected (0 or 1)
-        """
         boundaries = []
 
         for child in ast.walk(node):
@@ -156,7 +145,6 @@ class PythonCompoundChainFormatter(Formatter):
 
 
     def _find_if_boundaries(self, node: ast.If, boundaries: list):
-        """Find boundaries in an if/elif/else chain."""
         if not node.orelse:
             return
 
@@ -183,7 +171,6 @@ class PythonCompoundChainFormatter(Formatter):
 
 
     def _find_try_boundaries(self, node: ast.Try, boundaries: list):
-        """Find boundaries in a try/except/else/finally chain."""
         if node.handlers:
             last_stmt = node.body[-1]
             body_end = last_stmt.end_lineno
@@ -255,7 +242,6 @@ class PythonCompoundChainFormatter(Formatter):
 
 
     def _find_loop_boundaries(self, node, boundaries: list):
-        """Find boundaries in a for/while with else."""
         if not node.orelse:
             return
 
@@ -274,10 +260,6 @@ class PythonCompoundChainFormatter(Formatter):
 
 
     def _needs_blank(self, node) -> bool:
-        """Check if the last statement requires a blank line after it.
-
-        Returns True for return/yield/exit or any compound statement.
-        """
         if isinstance(node, ast.Return):
             return True
 
@@ -310,12 +292,6 @@ class PythonCompoundChainFormatter(Formatter):
 
 
     def _find_else_line(self, body_end: int, first_else_line: int, node) -> int:
-        """Estimate the connector line for else/finally keywords.
-
-        Since the AST doesn't store the else/finally keyword line directly,
-        we use the line before the first statement in the else block, or
-        fall back to body_end + 1.
-        """
         return body_end + 1
 
 
@@ -326,11 +302,6 @@ class PythonCompoundChainFormatter(Formatter):
         base_indent,
         lines
     ) -> dict | None:
-        """Check if line_idx is the last body line before a boundary.
-
-        Converts 1-indexed AST lines to 0-indexed token lines by accounting
-        for base indent offset.
-        """
         token_line_num = line_idx + 1
 
         for boundary in boundaries:

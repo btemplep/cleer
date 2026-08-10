@@ -150,20 +150,6 @@ class PythonIndentFormatter(Formatter):
 
 
     def _build_indent_map(self, token: str):
-        """Build a mapping of line index to indent level using the AST.
-
-        Parameters
-        ----------
-        token : str
-            Code block to parse.
-
-        Returns
-        -------
-        tuple[dict, set]
-            Mapping of line index (0-based) to indent level, and a set
-            of line indices that should not be modified (inside non-docstring
-            multiline strings).
-        """
         try:
             tree = ast.parse(token)
         except SyntaxError:
@@ -318,7 +304,6 @@ class PythonIndentFormatter(Formatter):
 
 
     def _freeze_multiline_strings(self, node, frozen_lines: set):
-        """Mark lines inside non-docstring multiline strings as frozen."""
         for child in ast.walk(node):
             if not (
                 isinstance(child, ast.Constant)
@@ -335,13 +320,6 @@ class PythonIndentFormatter(Formatter):
 
 
     def _is_body_docstring(self, index: int, body: list) -> bool:
-        """Check if a body node at the given index is a docstring.
-
-        A docstring is either:
-        - The first statement in a body (module/class/function docstring)
-        - An Expr with string constant immediately after an Assign or
-        AnnAssign (variable docstring)
-        """
         node = body[index]
 
         if not (
@@ -433,7 +411,6 @@ class PythonIndentFormatter(Formatter):
 
 
     def _is_docstring(self, string_node, root_node) -> bool:
-        """Check if a string constant is a docstring in any body."""
         for node in ast.walk(root_node):
             body = getattr(node, "body", None)
 
@@ -460,7 +437,6 @@ class PythonIndentFormatter(Formatter):
 
 
     def _get_leading_whitespace(self, line: str) -> str:
-        """Get the leading whitespace from a line."""
         match = self._leading_ws.match(line)
 
         if match:
@@ -470,7 +446,6 @@ class PythonIndentFormatter(Formatter):
 
 
     def _fallback_expand_tabs(self, token: str) -> str:
-        """Simple tab expansion fallback when AST parsing fails."""
         lines = token.split("\n")
         result = []
 

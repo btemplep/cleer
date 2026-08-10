@@ -37,11 +37,6 @@ class MaxBlankLinesFormatter(Formatter):
 
 
     def _count_blank_lines(self, token: str) -> int:
-        """Count the number of consecutive blank lines in a whitespace token.
-
-        A blank line is counted for each newline after the first. The first
-        newline ends the previous content line and is not a blank line itself.
-        """
         newline_count = token.count("\n")
 
         if newline_count <= 1:

@@ -1,47 +1,42 @@
 # cleer
 
-cleer is a file formatter that is customizable and easy to extend. 
+cleer is a customizable and extensible file formatter. Primarily made for Python (in Python), but works with any language.
 
-It was primarily made for python (in python), but can work with any language. 
-
-It has a set of defaults that I have chosen for a specific and readable style.  It does not try to make the smallest git diffs, but he most readable code in general.  Objectively speaking of course (I like the formatting).
+It has a set of defaults that I have chosen for a specifically readable style.  It does not try to make the smallest git diffs, but the most readable code.  Objectively speaking of course (I like the formatting).
 
 
 ## Installation
 
-``console
+```console
 pip install cleer
 ```
 
-## Tutorial
 
-### Quickstart
+## CLI
 
-Out of the box it comes with a CLI.
+The CLI is the primary interface. Use `--help` on the base or any command for all options.
 
-Use `--help`on the base or any commands for all options.
-
-``onsole
+```console
 cleer --help
 ```
 
-It has 2 main commands:
-- inspect - JSON output of the formatting violations
-- format - format files in place
+Two main commands:
 
-You can use them both on a single file or a all files/dirs in a directory. 
+- `inspect` — JSON output of formatting violations
+- `format` — format files in place
 
-``onsole
+Both work on a single file or all matching files in a directory.
+
+```console
 cleer inspect path/to/file.py
-```
-
-``onsole
 cleer inspect path/to/dir/
+cleer format path/to/file.py
+cleer format path/to/dir/
 ```
 
-Output example for inspect:
+### Inspect output
 
-``son
+```json
 [
     {
         "path": "/full/path/to/file.py",
@@ -56,118 +51,64 @@ Output example for inspect:
 ]
 ```
 
-Format files in place:
-``onsole
-cleer format path/to/file.py
+### Format output
+
+```json
+[
+    {
+        "path": "/full/path/to/file.py"
+    }
+]
 ```
 
-Inspect or format with specific config and log level
-``onsole
-cleer format --log-level DEBUG --cleer python_path.to.my_file:my_cleer_instance  path/to/file.py
+
+### Custom config
+
+```console
+cleer format --cleer python_path.to.my_file:my_cleer_instance path/to/file.py
 ```
 
-Formatters for python packages are recommended to create a `clr.py` file in the root of the project. 
 
-If the package can by imported as "my_package", and you just want the default formatting:
+### Options
 
-``ython
+```console
+cleer format --log-level DEBUG --verbose --keep-excluded --keep-no-match path/to/dir/
+```
+
+- `--log-level` — Set logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL). Default: ERROR.
+- `--verbose` — Include `included`, `excluded`, and `invalidations` in output.
+- `--keep-excluded` — Include results for files that matched a group but were excluded.
+- `--keep-no-match` — Include results for files that did not match any groups.
+
+
+### Config resolution
+
+1. Custom instance from `--cleer` argument.
+2. Default path `clr:clr`. A `clr.py` file in the current directory with a `clr` variable.  The `clr` variable should be an instance of the `Cleer`.
+3. Auto-generated default configuration.
+
+
+## Configuration
+
+Create a `clr.py` file in the root of your project:
+
+```python
 """clr.py"""
 
-from cleer import cleer_default
+from cleer import cleer_default_config, Cleer
 
 
-clr = cleer_default(current_packages=["my_package"])
+clr = Cleer(config=cleer_default_config(python_packages=["my_package"]))
 ```
 
-This will ensure that imports are properly grouped and sorted.
+This ensures imports are properly grouped and sorted for your package.
 
+For more control:
 
-### Configuration
-
-The chain of configuration is as follows:
-1. If a custom cleer instance is given with the `--cleer` argument.
-2. The default python path of `clr:clr`.
-3. A default configuration is generated.
-
-
-Example of custom `Cleer` instance/config:
-
-``ython
+```python
 from cleer import *
 
 
-# use the defaults with minimal input
-clr = cleer_default(current_packages=["my_package"], internal_packages=["my_other_private_package"])
-# create your own config from scratch
-clr = Cleer(
-    config={
-        "groups": [ # Groups are collections of formatting stages
-            {
-                "includes": ["**/*.py"], # A group uses glob style include and exclude patterns to determine which files be collected
-                "excludes": [
-                    "**/.venv*/**",
-                    "**/venv*/**"
-                ],
-                "stages": [ # stages are run in serial to format or inspect documents
-                    {
-                        "tokenizer": LineTokenizer(), # each stage has a tokenizer, that will tokenize and iterate through the tokens
-                        "formatters": [ # formatters are all run in order on each token. 
-                            TrailingWhitespaceFormatter(),
-                        ]
-                    }
-                ]
-            }
-        ]
-    }
-)
-```
-
-
-### Logging
-
-`cleer` uses standard python logging levels.  By default it is set to `CRITICAL`. You can change this with the `--log-level` argument.
-
-- `DEBUG`
-- `INFO`
-- `WARNING`
-- `ERROR`
-- `CRITICAL`
-
-
-### Run with VSCode
-
-You can automatically format on save in vscode by installing the (Run On Save)[https://marketplace.visualstudio.com/items?itemName=emeraldwalk.RunOnSave] extension and adding a config like this under `.vscode/settings.json`:
-
-``son
-{
-    "emeraldwalk.runonsave": {
-        "commands": [
-            {
-                "cmd": "./venv/bin/cleer format --log-level DEBUG ${file}"
-            }
-        ]
-    }
-}
-```
-
-Update the path to cleer to where ever you installed cleer at. 
-
-
-## Programmatic API
-
-The `cleer` CLI is a thin wrapper around the `Cleer` class. 
-
-You can directly call different inspect and format options on the `Cleer` class instance.
-
-``ython
-import pathlib
-
-from cleer import *
-
-
-# get a default instance, set some configs
-clr = cleer_default(current_packages=["my_package"], internal_packages=["my_internal_pkg"])
-# Or create your own instance from scratch
 clr = Cleer(
     config={
         "groups": [
@@ -181,7 +122,7 @@ clr = Cleer(
                     {
                         "tokenizer": LineTokenizer(),
                         "formatters": [
-                            TrailingWhitespaceFormatter(),
+                            TrailingWhitespaceFormatter()
                         ]
                     }
                 ]
@@ -189,89 +130,74 @@ clr = Cleer(
         ]
     }
 )
-
-# inspect a document string for violations
-violations = clr.inspect_str("x = 1   \n", "my_pkg/thing.py") 
-# note that even for strings you have to pass a "file name"
-# this is so that the "file" can be picked up by the matching config groups. 
-# [
-#     {
-#         "start_index": 29,
-#         "length": 20,
-#         "message": "Lines should not have any trailing whitespace."
-#     }
-# ]
+```
 
 
-# inspect a file pointer
-with open("thing.py", "r") as fp:
-    violations = clr.inspect_fp(fp, "my_pkg/thing.py")
-# note that even for strings you have to pass a "file name"
-# this is so that the "file" can be picked up by the matching config groups. 
-# [
-#     {
-#         "start_index": 29,
-#         "length": 20,
-#         "message": "Lines should not have any trailing whitespace."
-#     }
-# ]
+## VSCode Integration
 
-# inspect a file by path
-violations = clr.inspect_file("my_pkg/thing.py")
-# [
-#     {
-#         "start_index": 29,
-#         "length": 20,
-#         "message": "Lines should not have any trailing whitespace."
-#     }
-# ]
+Auto-format on save with the [Run On Save](https://marketplace.visualstudio.com/items?itemName=emeraldwalk.RunOnSave) extension.
 
-# inspect all matching files in a directory
-results = clr.inspect_dir(pathlib.Path("./"))
-# [
-#     {
-#         "path": "my_pkg/thing.py",
-#         "violations": [
-#             {
-#                 "start_index": 29,
-#                 "length": 20,
-#                 "message": "Lines should not have any trailing whitespace."
-#             }
-#         ]
-#     }
-# ]
+`.vscode/settings.json`:
 
-# inspect a path (file or directory, auto-detected)
-# this is what is used by the CLI to take either
-results = clr.inspect_path("my_pkg/")
-# for files, one entry at most will be returned.
-# [
-#     {
-#         "path": "my_pkg/thing.py",
-#         "violations": [
-#             {
-#                 "start_index": 29,
-#                 "length": 20,
-#                 "message": "Lines should not have any trailing whitespace."
-#             }
-#         ]
-#     }
-# ]
+```json
+{
+    "emeraldwalk.runonsave": {
+        "commands": [
+            {
+                "cmd": "./venv/bin/cleer format --log-level DEBUG ${file}"
+            }
+        ]
+    }
+}
+```
 
-# format a document string (returns the formatted string)
-formatted = clr.format_str("x = 1   \n", "my_pkg/thing.py")
 
-# format a file pointer in place
-with open("thing.py", "r+") as fp:
-    clr.format_fp(fp, "my_pkg/thing.py")
+## Programmatic API
 
-# format a file in place by path
-clr.format_file("my_pkg/thing.py")
+The CLI is a thin wrapper around the `Cleer` class. You can use it directly:
 
-# format all matching files in a directory in place
-clr.format_dir(pathlib.Path("./"))
+```python
+import pathlib
 
-# format a path (file or directory, auto-detected)
-# this is what is used by the CLI to take either
-clr.format_path("my_pkg/")
+from cleer import Cleer, cleer_default_config
+
+
+clr = Cleer(config=cleer_default_config(python_packages=["my_package"]))
+
+# Inspect a string — path is only used for glob matching
+result = clr.inspects("my_pkg/thing.py", "x = 1   \n")
+# {
+#     "path": "my_pkg/thing.py",
+#     "included": [{"group": 0, "pattern": "**/*.py"}],
+#     "excluded": [],
+#     "invalidations": [],
+#     "violations": [
+#         {
+#             "start_index": 0,
+#             "length": 9,
+#             "group": 0,
+#             "stage": 0,
+#             "formatter": 0,
+#             "message": "Lines should not have any trailing whitespace."
+#         }
+#     ]
+# }
+
+# Inspect a file or directory
+results = clr.inspect("my_pkg/")
+# [{"path": ..., "violations": [...]}, ...]
+
+# Format a string — returns result with formatted document
+result = clr.formats("my_pkg/thing.py", "x = 1   \n")
+# {
+#     "path": "my_pkg/thing.py",
+#     "included": [{"group": 0, "pattern": "**/*.py"}],
+#     "excluded": [],
+#     "invalidations": [],
+#     "document": "x = 1\n"
+# }
+
+# Format a file or directory in place
+results = clr.format("my_pkg/")
+# [{"path": ..., "included": [...], "excluded": [], "invalidations": []}, ...]
 ```

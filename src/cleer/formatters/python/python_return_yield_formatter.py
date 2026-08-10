@@ -70,7 +70,6 @@ class PythonReturnYieldFormatter(Formatter):
 
 
     def _format_token(self, token: str) -> str:
-        """Format the function token."""
         stripped = token.rstrip("\n")
         trailing_newlines = len(token) - len(stripped)
 
@@ -123,14 +122,12 @@ class PythonReturnYieldFormatter(Formatter):
 
 
     def _get_indent(self, text: str) -> int:
-        """Get the indentation level of the first line."""
         first_line = text.split("\n")[0]
 
         return len(first_line) - len(first_line.lstrip())
 
 
     def _dedent(self, text: str, indent: int) -> str:
-        """Remove `indent` spaces from the start of each line."""
         if indent == 0:
             return text
 
@@ -147,7 +144,6 @@ class PythonReturnYieldFormatter(Formatter):
 
 
     def _find_edits(self, body: list, lines: list[str], edits: list):
-        """Find required edits for return/yield in a body."""
         for i, node in enumerate(body):
             is_ry = self._is_return_yield(node)
 
@@ -187,7 +183,6 @@ class PythonReturnYieldFormatter(Formatter):
 
 
     def _is_only_statement(self, body: list, index: int) -> bool:
-        """Check if a return/yield is the only non-docstring statement in its block."""
         if len(body) == 1:
             return True
 
@@ -204,7 +199,6 @@ class PythonReturnYieldFormatter(Formatter):
 
 
     def _is_return_yield(self, node: ast.stmt) -> bool:
-        """Check if a node is a return or yield statement."""
         if isinstance(node, ast.Return):
             return True
 

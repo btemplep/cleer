@@ -128,13 +128,6 @@ class PythonStringQuoteFormatter(Formatter):
 
 
     def _parse_string(self, token: str) -> tuple:
-        """Parse a string token into prefix, quote, content, and multiline flag.
-
-        Returns
-        -------
-        tuple
-            (prefix, quote_char, content, is_multiline) or (None, None, None, None) if not parseable.
-        """
         stripped = token
 
         prefix = ""

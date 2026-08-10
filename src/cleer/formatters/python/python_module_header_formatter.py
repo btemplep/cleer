@@ -75,7 +75,6 @@ class PythonModuleHeaderFormatter(Formatter):
 
 
     def _fix_header(self, document: str) -> str:
-        """Rebuild module header with correct spacing."""
         try:
             tree = ast.parse(document)
         except SyntaxError:
@@ -149,20 +148,6 @@ class PythonModuleHeaderFormatter(Formatter):
 
 
     def _identify_header_sections(self, tree: ast.Module) -> list:
-        """Identify header sections as (start_line, end_line) 0-indexed tuples.
-
-        Scans from the top of the module collecting header items in any
-        order. Stops at the first non-header node. Returns sections in
-        canonical order:
-
-        - Module docstring (first Expr with string constant)
-        - `__version__` assignment
-        - `__all__` assignment
-        - Import/ImportFrom statements (grouped as one section)
-
-        Each section is a list of (start_line, end_line) tuples for the
-        individual statements in that section.
-        """
         body = tree.body
 
         if not body:
@@ -249,7 +234,6 @@ class PythonModuleHeaderFormatter(Formatter):
 
 
     def _is_all_assignment(self, node) -> bool:
-        """Check if a node is an __all__ assignment."""
         if not isinstance(node, ast.Assign):
             return False
 
@@ -261,7 +245,6 @@ class PythonModuleHeaderFormatter(Formatter):
 
 
     def _is_version_assignment(self, node) -> bool:
-        """Check if a node is a __version__ assignment."""
         if not isinstance(node, ast.Assign):
             return False
 

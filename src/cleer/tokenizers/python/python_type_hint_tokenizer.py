@@ -121,7 +121,6 @@ class PythonTypeHintTokenizer(Tokenizer):
 
 
     def _build_line_offsets(self, document: str) -> list[int]:
-        """Build a list mapping line numbers (0-indexed) to character offsets."""
         offsets = [0]
 
         for i, char in enumerate(document):
@@ -132,7 +131,6 @@ class PythonTypeHintTokenizer(Tokenizer):
 
 
     def _remove_overlaps(self, tokens: list[TokenResult]) -> list[TokenResult]:
-        """Remove overlapping tokens, keeping the longer one."""
         if not tokens:
             return tokens
 

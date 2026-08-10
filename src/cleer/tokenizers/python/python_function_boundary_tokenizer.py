@@ -82,7 +82,6 @@ class PythonFunctionBoundaryTokenizer(Tokenizer):
 
 
     def _build_line_offsets(self, document: str) -> list[int]:
-        """Build a list mapping line numbers (0-indexed) to character offsets."""
         offsets = [0]
         for i, char in enumerate(document):
             if char == "\n":
@@ -230,10 +229,6 @@ class PythonFunctionBoundaryTokenizer(Tokenizer):
 
 
     def _get_start_line(self, func) -> int:
-        """Get the effective start line of a definition, including decorators.
-
-        Returns 1-indexed line number.
-        """
         if func.decorator_list:
             return func.decorator_list[0].lineno
 
@@ -241,10 +236,6 @@ class PythonFunctionBoundaryTokenizer(Tokenizer):
 
 
     def _get_node_start_line(self, node) -> int:
-        """Get the start line of any AST node, including decorators if applicable.
-
-        Returns 1-indexed line number.
-        """
         if hasattr(node, "decorator_list") and node.decorator_list:
             return node.decorator_list[0].lineno
 

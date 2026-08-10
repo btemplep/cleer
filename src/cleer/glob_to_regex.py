@@ -131,20 +131,6 @@ def glob_to_regex(
 
 
 def _translate_segment(pat: str, not_sep: str) -> list:
-    """Translate a single path segment (no separators) into regex parts.
-
-    Arguments
-    ---------
-    pat : str
-        The segment pattern to translate.
-    not_sep : str
-        Regex character class matching any non-separator character.
-
-    Returns
-    -------
-    list
-        List of regex string fragments for this segment.
-    """
     res = []
     i, n = 0, len(pat)
 

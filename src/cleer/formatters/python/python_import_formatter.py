@@ -92,7 +92,6 @@ class PythonImportFormatter(Formatter):
 
 
     def _format_token(self, token: str) -> str:
-        """Format the import section token."""
         stripped = token.strip()
 
         if not stripped:
@@ -148,15 +147,6 @@ class PythonImportFormatter(Formatter):
 
 
     def _extract_imports(self, tree: ast.Module) -> list:
-        """Extract flattened import entries from the AST.
-
-        Each entry is a dict:
-        - type: "import" or "from"
-        - module: module name (for from imports)
-        - level: relative import level
-        - name: imported name
-        - asname: alias or None
-        """
         imports = []
 
         for node in tree.body:
@@ -201,7 +191,6 @@ class PythonImportFormatter(Formatter):
 
 
     def _classify(self, imp: dict) -> str:
-        """Classify an import into stdlib, third_party, internal, or current."""
         if imp['level'] > 0:
             return "current"
 
@@ -220,7 +209,6 @@ class PythonImportFormatter(Formatter):
 
 
     def _format_block(self, imports: list) -> list[str]:
-        """Format a block of imports into sorted lines."""
         lines = []
 
         for imp in imports:
@@ -232,11 +220,6 @@ class PythonImportFormatter(Formatter):
 
 
     def _sort_key_line(self, line: str) -> str:
-        """Generate a sort key for a formatted import line.
-
-        Strips the `from` or `import` keyword so sorting is by
-        module name only.
-        """
         stripped = line.lstrip(".")
         leading_dots = line[:len(line) - len(stripped)]
 
@@ -250,7 +233,6 @@ class PythonImportFormatter(Formatter):
 
 
     def _format_import(self, imp: dict) -> list[str]:
-        """Format a single import entry into one or more lines."""
         if imp['type'] == "import":
             line = f"import {imp['module']}"
 
@@ -293,7 +275,6 @@ class PythonImportFormatter(Formatter):
 
 
     def _sort_key(self, imp: dict) -> str:
-        """Generate a sort key for an import."""
         if imp['type'] == "import":
             return imp['module']
 

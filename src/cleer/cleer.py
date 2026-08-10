@@ -193,15 +193,46 @@ class Cleer:
         Parameters
         ----------
         path : str | pathlib.Path
-            File path that is only used for glob matching.
+            File path used only for glob matching.
             The file is not opened or checked for existence.
-        document : str | None, default=None
+        document : str
             String document to inspect.
+
+        Examples
+        --------
+
+        ```python
+        result = clr.inspects("my_pkg/thing.py", "x = 1   \n")
+        ```
 
         Returns
         -------
         Inspection
-            Inspection result.
+            Inspection result with violations, included/excluded groups.
+
+            ```python
+            {
+                "path": "my_pkg/thing.py",
+                "included": [
+                    {
+                        "group": 0,
+                        "pattern": "**/*.py"
+                    }
+                ],
+                "excluded": [],
+                "invalidations": [],
+                "violations": [
+                    {
+                        "start_index": 0,
+                        "length": 9,
+                        "group": 0,
+                        "stage": 0,
+                        "formatter": 0,
+                        "message": "Lines should not have any trailing whitespace."
+                    }
+                ]
+            }
+            ```
         """
         file_path = pathlib.Path(file_path)
 
@@ -238,19 +269,49 @@ class Cleer:
         Parameters
         ----------
         path : str | pathlib.Path
-            File or dir path.
+            File or directory path.
         keep_excluded : bool, default=False
-            Keep results for files that matched at least one group, but were excluded from all matches.
-            By default, these are not included in the results.
+            Include results for files that matched a group but were excluded.
         keep_no_match : bool, default=False
-            Keep results for files that did not match any groups.
-            By default, these are not included in the results.
+            Include results for files that did not match any groups.
+
+        Examples
+        --------
+
+        ```python
+        results = clr.inspect("my_pkg/")
+        ```
 
         Returns
         -------
         list[Inspection]
-            List of inspections for the file or directory.
-            By default, it does not include results that did not match any groups, or were excluded from all groups.
+            List of inspections for matched files.
+
+            ```python
+            [
+                {
+                    "path": "my_pkg/thing.py",
+                    "included": [
+                        {
+                            "group": 0, 
+                            "pattern": "**/*.py"
+                        }
+                    ],
+                    "excluded": [],
+                    "invalidations": [],
+                    "violations": [
+                        {
+                            "start_index": 0,
+                            "length": 9,
+                            "group": 0,
+                            "stage": 0,
+                            "formatter": 0,
+                            "message": "Lines should not have any trailing whitespace."
+                        }
+                    ]
+                }
+            ]
+            ```
 
         Raises
         ------
@@ -369,15 +430,37 @@ class Cleer:
         Parameters
         ----------
         path : str | pathlib.Path
-            File path that is only used for glob matching.
+            File path used only for glob matching.
             The file is not opened or checked for existence.
-        document : str | None, default=None
+        document : str
             String document to format.
+
+        Examples
+        --------
+
+        ```python
+        result = clr.formats("my_pkg/thing.py", "x = 1   \n")
+        ```
 
         Returns
         -------
         FormattingDocument
-            Formatting results with formatted document.
+            Formatting result with the formatted document string.
+
+            ```python
+            {
+                "path": "my_pkg/thing.py",
+                "included": [
+                    {
+                        "group": 0, 
+                        "pattern": "**/*.py"
+                    }
+                ],
+                "excluded": [],
+                "invalidations": [],
+                "document": "x = 1\n"
+            }
+            ```
         """
         file_path = pathlib.Path(file_path)
 
@@ -390,24 +473,45 @@ class Cleer:
         keep_excluded: bool=False,
         keep_no_match: bool=False
     ) -> list[Formatting]:
-        """Format a file or directory of files.
+        """Format a file or directory of files in place.
 
         Parameters
         ----------
         path : str | pathlib.Path
-            File or dir path.
+            File or directory path.
         keep_excluded : bool, default=False
-            Keep results for files that matched at least one group, but were excluded from all matches.
-            By default these are not included in the result.
+            Include results for files that matched a group but were excluded.
         keep_no_match : bool, default=False
-            Keep results for files that did not match any groups.
-            By default, these are not included in the results.
+            Include results for files that did not match any groups.
+
+        Examples
+        --------
+
+        ```python
+        results = clr.format("my_pkg/")
+        ```
 
         Returns
         -------
         list[Formatting]
-            List of formatting results for the file or directory.
-            By default, it does not include results that did not match any groups, or were excluded from all groups.
+            List of formatting results for matched files.
+            Files are formatted in place.
+
+            ```python
+            [
+                {
+                    "path": "my_pkg/thing.py",
+                    "included": [
+                        {
+                            "group": 0, 
+                            "pattern": "**/*.py"
+                        }
+                    ],
+                    "excluded": [],
+                    "invalidations": []
+                }
+            ]
+            ```
 
         Raises
         ------
