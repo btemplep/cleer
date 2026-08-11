@@ -174,7 +174,7 @@ class Cleer:
                             for v in formatter.inspect(tr['token']):
                                 inspection['violations'].append(
                                     {
-                                        "start_index": v['start_index'],
+                                        "start_index": tr['index'] + v['start_index'],
                                         "length": v['length'],
                                         "group": gi,
                                         "stage": si,
@@ -243,9 +243,7 @@ class Cleer:
             }
             ```
         """
-        file_path = pathlib.Path(file_path)
-
-        return self._inspect_one(file_path=path, document=document)
+        return self._inspect_one(file_path=pathlib.Path(path), document=document)
 
 
     def _keep_result(
@@ -491,9 +489,7 @@ class Cleer:
             }
             ```
         """
-        file_path = pathlib.Path(file_path)
-
-        return self._format_one(file_path=path, document=document)
+        return self._format_one(file_path=pathlib.Path(path), document=document)
 
 
     def format(
