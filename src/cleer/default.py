@@ -1,207 +1,308 @@
-__all__ = ["cleer_default"]
+"""See :func:`cleer_default_config`."""
 
+__all__ = [
+    "cleer_default_config"
+]
 
-from typing import List
+import json
 
 from loguru import logger
 
-from cleer.cleer import Cleer
-from cleer.formatters import * 
-from cleer.tokenizers import * 
-from cleer.types import * 
+from cleer.formatters import *
+from cleer.tokenizers import *
+from cleer.types import *
+from cleer.validators import *
 
 
-def cleer_default(
-    current_packages: List[str] | None=None,
-    internal_packages: List[str] | None=None,
-    python_excludes: List[str] | None=None
-) -> Cleer:
+def cleer_default_config(
+    python_packages: list[str] | None=None,
+    python_internal_packages: list[str] | None=None,
+    excludes: list[str] | None=None
+) -> CleerConfig:
     """Generate a new instance of cleer with the default configs.
 
     Parameters
     ----------
-    current_packages : List[str] | None, optional
+    python_packages : list[str] | None, optional
         List of package names for this project/repo/dir.
         Used to classify imports as "current package" and to determine
-        which directories should enforce ``__all__``. A separate group
-        is created that only targets files under ``src/`` or directories
-        matching the package names.
-    internal_packages : List[str] | None, optional
-        Identity the list of internal packages for import formatting.
+        which directories should enforce `__all__`. File globs are
+        derived from names (e.g. `"my_pkg"` becomes
+        `"my_pkg/**/*.py"`). `src/**/*.py` is always included.
+    python_internal_packages : list[str] | None, optional
+        List of internal package names for import formatting.
         Internal packages are those that are hosted on private
         repositories, not including current packages.
-    python_excludes : List[str] | None, default=["**/venv/**", "**/.venv/**"]
-        File patterns to exclude from formatting python files.
+    excludes : list[str] | None, default=["**/venv*/**", "**/.venv*/**"]
+        File patterns to exclude from formatting files.
 
     Returns
     -------
-    Cleer
-        Instance with default configs.
+    CleerConfig
+        Config dict for the `Cleer` class.
     """
-    package_includes = ["src/**/*.py"]
-    if current_packages is not None:
-        package_includes += current_packages
+    if python_packages is None:
+        python_packages = []
 
-    if python_excludes is None:
-        python_excludes = []
+    package_includes = [f"{pkg}/**/*.py" for pkg in python_packages]
+    package_includes.append("src/**/*.py")
 
-    logger.debug(f"Package includes: {package_includes}")
+    if python_internal_packages is None:
+        python_internal_packages = []
 
-    return Cleer(
-        config={
-            "groups": [
-                {
-                    "includes": package_includes,
-                    "excludes": ["**/.venv*/**", "**/venv*/**"] + python_excludes,
-                    "stages": [
-                        {
-                            "tokenizer": FileTokenizer(),
-                            "formatters": [PyAllModuleFormatter()]
-                        }
-                    ]
-                },
-                {
-                    "includes": ["**/*.py"],
-                    "excludes": ["**/.venv*/**", "**/venv*/**"] + python_excludes,
-                    "stages": [
-                        {
-                            "tokenizer": FileStartWhitespaceTokenizer(),
-                            "formatters": [FileStartWhitespaceFormatter()]
-                        },
-                        {
-                            "tokenizer": FileTokenizer(),
-                            "formatters": [PyAllSpacingFormatter()]
-                        },
-                        {
-                            "tokenizer": LineTokenizer(),
-                            "formatters": [TrailingWhitespaceFormatter()]
-                        },
-                        {
-                            "tokenizer": LineTokenizer(),
-                            "formatters": [MaxSpaceFormatter()]
-                        },
-                        {
-                            "tokenizer": NonAsciiWhitespaceTokenizer(),
-                            "formatters": [ReplaceNonAsciiWhitespaceFormatter()]
-                        },
-                        {
-                            "tokenizer": PyImportSectionTokenizer(),
-                            "formatters": [
-                                PyImportSeparatorFormatter(
-                                    internal_packages=internal_packages,
-                                    current_packages=current_packages
-                                )
-                            ]
-                        },
-                        {
-                            "tokenizer": PyImportBlockTokenizer(),
-                            "formatters": [PyImportSortFormatter()]
-                        },
-                        {
-                            "tokenizer": PyImportStatementTokenizer(),
-                            "formatters": [
-                                PyImportEntrySortFormatter(),
-                                PyImportParenthesisFormatter()
-                            ]
-                        },
-                        {
-                            "tokenizer": PyImportSectionSpaceTokenizer(),
-                            "formatters": [PyImportSectionSpaceFormatter()]
-                        },
-                        {
-                            "tokenizer": PyFunctionSignatureTokenizer(),
-                            "formatters": [PySignatureNewLineFormatter()]
-                        },
-                        {
-                            "tokenizer": PyDecoratorTokenizer(),
-                            "formatters": [PyDecoratorArgsNewLineFormatter()]
-                        },
-                        {
-                            "tokenizer": PyDecoratorSpaceTokenizer(),
-                            "formatters": [PyDecoratorSpaceFormatter()]
-                        },
-                        {
-                            "tokenizer": PyDocstringSpaceTokenizer(),
-                            "formatters": [PyDocstringSpaceFormatter()]
-                        },
-                        {
-                            "tokenizer": PyFunctionSpaceTokenizer(),
-                            "formatters": [PyFunctionSpaceFormatter()]
-                        },
-                        {
-                            "tokenizer": PyClassWhitespaceTokenizer(),
-                            "formatters": [PyClassWhitespaceFormatter()]
-                        },
-                        {
-                            "tokenizer": PyClassVarWhitespaceTokenizer(),
-                            "formatters": [PyClassVarWhitespaceFormatter()]
-                        },
-                        {
-                            "tokenizer": FileTokenizer(),
-                            "formatters": [PyLogicBlockFormatter()]
-                        },
-                        {
-                            "tokenizer": PyFunctionTokenizer(),
-                            "formatters": [
-                                PyFunctionInternalNewLinesFormatter(),
-                                PyReturnYieldNewLineFormatter(),
-                                PyCodeBlockNewLinesFormatter()
-                            ]
-                        },
-                        {
-                            "tokenizer": FileTokenizer(),
-                            "formatters": [PyCodeBlockNewLinesFormatter()]
-                        },
-                        {
-                            "tokenizer": PyTypeHintSpacingTokenizer(),
-                            "formatters": [PyTypeHintSpacingFormatter()]
-                        },
-                        {
-                            "tokenizer": BinaryOperatorTokenizer(),
-                            "formatters": [BinaryOperatorSpaceFormatter()]
-                        },
-                        {
-                            "tokenizer": UnaryOperatorTokenizer(),
-                            "formatters": [UnaryOperatorSpaceFormatter()]
-                        },
-                        {
-                            "tokenizer": PyFunctionCallKwargsEqualsTokenizer(),
-                            "formatters": [NoSpaceEqualsFormatter()]
-                        },
-                        {
-                            "tokenizer": PyFunctionSignatureKwargsEqualsTokenizer(),
-                            "formatters": [NoSpaceEqualsFormatter()]
-                        },
-                        {
-                            "tokenizer": CommaTokenizer(),
-                            "formatters": [CommaSpaceFormatter()]
-                        },
-                        {
-                            "tokenizer": CommaPlusTokenizer(),
-                            "formatters": [TrailingCommaFormatter()]
-                        },
-                        {
-                            "tokenizer": QuotationTokenizer(),
-                            "formatters": [QuoteStyleFormatter()]
-                        },
-                        {
-                            "tokenizer": PyDictKeyNotationTokenizer(),
-                            "formatters": [QuoteStyleFormatter(style="'")]
-                        },
-                        {
-                            "tokenizer": PairedPunctuationTokenizer(),
-                            "formatters": [MultiLineNestedFormatter()]
-                        },
-                        {
-                            "tokenizer": MaxNewlinesTokenizer(),
-                            "formatters": [MaxNewlinesFormatter()]
-                        },
-                        {
-                            "tokenizer": FileEndWhitespaceTokenizer(),
-                            "formatters": [FileEndWhitespaceFormatter()]
-                        }
-                    ]
-                }
-            ]
-        }
+    if excludes is None:
+        excludes = []
+
+    excludes += [
+        "**/.venv*/**",
+        "**/venv*/**"
+    ]
+    logger.debug(
+        (
+            f"Python Packages: {python_packages}\n"
+            f"Internal Python Packages: {python_internal_packages}\n"
+            f" Excludes: {json.dumps(excludes, indent=4)}"
+        )
     )
+
+    return {
+        "groups": [
+            {
+                "includes": [
+                    "**/*.json"
+                ],
+                "excludes": excludes,
+                "validators": [
+                    JSONValidator()
+                ],
+                "stages": [
+                    {
+                        "tokenizer": FileTokenizer(),
+                        "formatters": [
+                            JSONFormatter()
+                        ]
+                    }
+                ]
+            },
+            {
+                "includes": [
+                    "**/*.py"
+                ],
+                "excludes": excludes,
+                "validators": [],
+                "stages": [
+                    {
+                        "tokenizer": NonAsciiWhitespaceTokenizer(),
+                        "formatters": [
+                            NonAsciiWhitespaceFormatter()
+                        ]
+                    }
+                ]
+            },
+            {
+                "includes": package_includes,
+                "excludes": excludes,
+                "validators": [
+                    PythonSyntaxValidator()
+                ],
+                "stages": [
+                    {
+                        "tokenizer": FileTokenizer(),
+                        "formatters": [
+                            PythonAllPresenceFormatter()
+                        ]
+                    }
+                ]
+            },
+            {
+                "includes": [
+                    "**/*.py"
+                ],
+                "excludes": excludes,
+                "validators": [
+                    PythonSyntaxValidator()
+                ],
+                "stages": [
+                    {
+                        "tokenizer": PythonIndentTokenizer(),
+                        "formatters": [
+                            PythonIndentFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": FileTokenizer(),
+                        "formatters": [
+                            PythonPairedPunctuationFormatter(),
+                            PythonModuleDocstringPresenceFormatter(),
+                            PythonModuleHeaderFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": PythonAllTokenizer(),
+                        "formatters": [
+                            PythonAllFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": PythonImportTokenizer(),
+                        "formatters": [
+                            PythonImportFormatter(
+                                internal_packages=python_internal_packages,
+                                current_packages=python_packages
+                            )
+                        ]
+                    },
+                    {
+                        "tokenizer": PythonFunctionBoundaryTokenizer(),
+                        "formatters": [
+                            BlankLineFormatter(
+                                num_blank_lines=2,
+                                message="Expected 2 blank lines before/after definition."
+                            )
+                        ]
+                    },
+                    {
+                        "tokenizer": PythonClassBoundaryTokenizer(),
+                        "formatters": [
+                            PythonClassBoundaryFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": PythonBlockStartTokenizer(),
+                        "formatters": [
+                            BlankLineFormatter(
+                                num_blank_lines=0,
+                                message="No blank lines between start of code blocks and first line of body."
+                            )
+                        ]
+                    },
+                    {
+                        "tokenizer": PythonDecoratorBoundaryTokenizer(),
+                        "formatters": [
+                            BlankLineFormatter(
+                                num_blank_lines=0,
+                                message="No blank lines between decorators and definitions."
+                            )
+                        ]
+                    },
+                    {
+                        "tokenizer": PythonNestedFunctionBoundaryTokenizer(),
+                        "formatters": [
+                            BlankLineFormatter(
+                                num_blank_lines=1,
+                                message="Expected 1 blank line before/after nested definition."
+                            )
+                        ]
+                    },
+                    {
+                        "tokenizer": PythonReturnYieldTokenizer(),
+                        "formatters": [
+                            PythonReturnYieldFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": PythonCompoundChainTokenizer(),
+                        "formatters": [
+                            PythonCompoundChainFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": PythonCompoundEndTokenizer(),
+                        "formatters": [
+                            BlankLineFormatter(
+                                num_blank_lines=1,
+                                message="Expected at least 1 blank line after compound statement."
+                            )
+                        ]
+                    },
+                    {
+                        "tokenizer": PythonInnerMaxBlankLinesTokenizer(),
+                        "formatters": [
+                            BlankLineFormatter(
+                                num_blank_lines=1,
+                                message="No more than 1 consecutive blank line inside function bodies."
+                            )
+                        ]
+                    },
+                    {
+                        "tokenizer": PythonStringQuoteTokenizer(),
+                        "formatters": [
+                            PythonStringQuoteFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": PythonDictKeyQuoteTokenizer(),
+                        "formatters": [
+                            PythonDictKeyQuoteFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": PythonMaxOneSpaceTokenizer(),
+                        "formatters": [
+                            PythonMaxOneSpaceFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": PythonBinaryOperatorSpaceTokenizer(),
+                        "formatters": [
+                            PythonBinaryOperatorSpaceFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": PythonKwargsSpaceTokenizer(),
+                        "formatters": [
+                            PythonKwargsSpaceFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": PythonUnaryOperatorSpaceTokenizer(),
+                        "formatters": [
+                            PythonUnaryOperatorSpaceFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": PythonColonSpaceTokenizer(),
+                        "formatters": [
+                            PythonColonSpaceFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": PythonCommaSpaceTokenizer(),
+                        "formatters": [
+                            PythonCommaSpaceFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": PythonTrailingCommaTokenizer(),
+                        "formatters": [
+                            PythonTrailingCommaFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": TrailingWhitespaceTokenizer(),
+                        "formatters": [
+                            TrailingWhitespaceFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": FileStartWhitespaceTokenizer(),
+                        "formatters": [
+                            FileStartWhitespaceFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": WhitespaceTokenizer(),
+                        "formatters": [
+                            MaxBlankLinesFormatter()
+                        ]
+                    },
+                    {
+                        "tokenizer": FileEndWhitespaceTokenizer(),
+                        "formatters": [
+                            FileEndWhitespaceFormatter()
+                        ]
+                    }
+                ]
+            }
+        ]
+    }

@@ -1,11 +1,10 @@
-"""File tokenizer module."""
+"""See :class:`FileTokenizer`."""
 
-__all__ = ["FileTokenizer"]
+__all__ = [
+    "FileTokenizer"
+]
 
-
-from typing import List
-
-from cleer.tokenizers.tokenizer import Tokenizer
+from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
 
 class FileTokenizer(Tokenizer):
@@ -29,7 +28,7 @@ class FileTokenizer(Tokenizer):
     emits_token_type = "file"
 
 
-    def tokenize(self, document: str) -> List[dict]:
+    def tokenize(self, document: str) -> list[TokenResult]:
         """Tokenize a document as a single whole-file token.
 
         Returns the entire document as a single token with index 0 and
@@ -50,19 +49,20 @@ class FileTokenizer(Tokenizer):
 
         Returns
         -------
-        List[TokenResult]
+        list[TokenResult]
             List containing a single token result for the whole document,
             or an empty list if the document is empty.
 
             ```python
             [
-                {"token": "hello\\nworld\\n", "index": 0, "length": 12}
+                {
+                    "token": "hello\\nworld\\n",
+                    "index": 0,
+                    "length": 12
+                }
             ]
             ```
         """
-        if not document:
-            return []
-
         return [
             {
                 "token": document,

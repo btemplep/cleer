@@ -1,8 +1,17 @@
-from cleer import cleer_default
+"""clr conf"""
+
+from cleer import Cleer, cleer_default_config
 
 
-clr = cleer_default(
-    current_packages=["cleer"],
-    internal_packages=["my_pkg"],
-    python_excludes=["**/tests/unit/fixtures/format_*.py"]
+clr = Cleer(
+    config=cleer_default_config(
+        python_packages=["cleer"],
+        python_internal_packages=[],
+        excludes=[
+            "**/.nox/**",
+            "**/tests/unit/fixtures/format_*.py",
+            "**format_bad.py"
+            # "**/format_good.py"
+        ]
+    )
 )

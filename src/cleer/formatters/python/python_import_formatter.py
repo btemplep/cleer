@@ -1,0 +1,288 @@
+"""See :class:`PythonImportFormatter`."""
+
+__all__ = [
+    "PythonImportFormatter"
+]
+
+import ast
+import sys
+
+from cleer.formatters.formatter import Formatter, FormatterViolation
+
+
+STDLIB_MODULES = sys.stdlib_module_names
+
+
+class PythonImportFormatter(Formatter):
+    """Enforce import section formatting.
+
+    Formats import sections with 4 sorted blocks separated by blank
+    lines (stdlib, third-party, internal, current package). Flattens
+    multi-name imports, sorts items alphabetically, and wraps lines
+    longer than 80 characters.
+
+    Parameters
+    ----------
+    internal_packages : list[str] | None, optional
+        List of internal package names (private repos). By default, no
+        packages are classified as internal.
+    current_packages : list[str] | None, optional
+        List of current project package names. By default, no packages
+        are classified as current.
+
+    Examples
+    --------
+
+    ```python
+    from cleer import PythonImportFormatter
+
+    formatter = PythonImportFormatter(
+        current_packages=["my_package"]
+    )
+    ```
+    """
+    accepts_token_types = ["python_import"]
+
+
+    def __init__(
+        self,
+        internal_packages: list[str] | None=None,
+        current_packages: list[str] | None=None
+    ):
+        self._internal_packages = internal_packages or []
+        self._current_packages = current_packages or []
+
+
+    def inspect(self, token: str) -> list[FormatterViolation]:
+        """Inspect import section formatting.
+
+        Parameters
+        ----------
+        token : str
+            Import section token with surrounding whitespace.
+
+        Returns
+        -------
+        list[FormatterViolation]
+            List of violations found, empty if no violations.
+        """
+        expected = self._format_token(token)
+
+        if token != expected:
+            return [
+                {
+                    "start_index": 0,
+                    "length": len(token),
+                    "message": "Import section should be sorted into blocks (stdlib, third-party, internal, current) with items sorted alphabetically."
+                }
+            ]
+
+        return []
+
+
+    def format(self, token: str) -> str:
+        """Reformat import section.
+
+        Parameters
+        ----------
+        token : str
+            Import section token with surrounding whitespace.
+
+        Returns
+        -------
+        str
+            Correctly formatted import section.
+        """
+        return self._format_token(token)
+
+
+    def _format_token(self, token: str) -> str:
+        stripped = token.strip()
+
+        if not stripped:
+            return token
+
+        try:
+            tree = ast.parse(stripped)
+        except SyntaxError:
+            return token
+
+        imports = self._extract_imports(tree)
+
+        if not imports:
+            return token
+
+        stdlib = []
+        third_party = []
+        internal = []
+        current = []
+
+        for imp in imports:
+            category = self._classify(imp)
+
+            if category == "stdlib":
+                stdlib.append(imp)
+            elif category == "internal":
+                internal.append(imp)
+            elif category == "current":
+                current.append(imp)
+            else:
+                third_party.append(imp)
+
+        blocks = []
+
+        for block_imports in [stdlib, third_party, internal, current]:
+            if not block_imports:
+                continue
+
+            lines = self._format_block(block_imports)
+            blocks.append("\n".join(lines))
+
+        body = "\n\n".join(blocks)
+        leading_newline = token.startswith("\n")
+        prefix = "\n" if leading_newline else ""
+
+        trailing = "\n\n"
+        stripped_end = token.rstrip(" \t")
+        trailing_newlines = len(stripped_end) - len(stripped_end.rstrip("\n"))
+        if trailing_newlines > 2:
+            trailing = "\n" * trailing_newlines
+
+        return f"{prefix}{body}{trailing}"
+
+
+    def _extract_imports(self, tree: ast.Module) -> list:
+        imports = []
+
+        for node in tree.body:
+            if isinstance(node, ast.Import):
+                for alias in node.names:
+                    imports.append(
+                        {
+                            "type": "import",
+                            "module": alias.name,
+                            "level": 0,
+                            "name": alias.name,
+                            "asname": alias.asname,
+                            "names": None
+                        }
+                    )
+
+            elif isinstance(node, ast.ImportFrom):
+                module = node.module or ""
+                level = node.level
+
+                names = []
+                for alias in node.names:
+                    names.append(
+                        {
+                            "name": alias.name,
+                            "asname": alias.asname
+                        }
+                    )
+
+                imports.append(
+                    {
+                        "type": "from",
+                        "module": module,
+                        "level": level,
+                        "name": module,
+                        "asname": None,
+                        "names": names
+                    }
+                )
+
+        return imports
+
+
+    def _classify(self, imp: dict) -> str:
+        if imp['level'] > 0:
+            return "current"
+
+        root_module = imp['module'].split(".")[0]
+
+        if root_module in STDLIB_MODULES:
+            return "stdlib"
+
+        if root_module in self._current_packages:
+            return "current"
+
+        if root_module in self._internal_packages:
+            return "internal"
+
+        return "third_party"
+
+
+    def _format_block(self, imports: list) -> list[str]:
+        lines = []
+
+        for imp in imports:
+            lines.extend(self._format_import(imp))
+
+        lines.sort(key=self._sort_key_line)
+
+        return lines
+
+
+    def _sort_key_line(self, line: str) -> str:
+        stripped = line.lstrip(".")
+        leading_dots = line[:len(line) - len(stripped)]
+
+        if stripped.startswith("from "):
+            return leading_dots + stripped[5:]
+
+        if stripped.startswith("import "):
+            return leading_dots + stripped[7:]
+
+        return line
+
+
+    def _format_import(self, imp: dict) -> list[str]:
+        if imp['type'] == "import":
+            line = f"import {imp['module']}"
+
+            if imp['asname']:
+                line += f" as {imp['asname']}"
+
+            return [line]
+
+        prefix = "." * imp['level']
+        module = imp['module']
+        full_module = f"{prefix}{module}"
+
+        names = sorted(imp['names'], key=lambda n: n['name'])
+        name_parts = []
+
+        for n in names:
+            if n['asname']:
+                name_parts.append(f"{n['name']} as {n['asname']}")
+            else:
+                name_parts.append(n['name'])
+
+        single_line = f"from {full_module} import {', '.join(name_parts)}"
+
+        if len(name_parts) <= 1 or len(single_line) <= 80:
+            return [single_line]
+
+        import_lines = [
+            f"from {full_module} import ("
+        ]
+
+        for i, part in enumerate(name_parts):
+            if i < len(name_parts) - 1:
+                import_lines.append(f"    {part},")
+            else:
+                import_lines.append(f"    {part}")
+
+        import_lines.append(")")
+
+        return ["\n".join(import_lines)]
+
+
+    def _sort_key(self, imp: dict) -> str:
+        if imp['type'] == "import":
+            return imp['module']
+
+        prefix = "." * imp['level']
+
+        return f"{prefix}{imp['module']}"

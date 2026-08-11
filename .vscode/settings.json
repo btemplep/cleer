@@ -1,14 +1,15 @@
 {
     "autoDocstring.docstringFormat": "numpy",
-    "editor.formatOnSave": true,
+    "editor.formatOnSave": false,
     "emeraldwalk.runonsave": {
         "commands": [
             {
-                "cmd": "./venv/bin/cleer format --log-level DEBUG ${file}"
+                "cmd": "./venv/bin/cleer inspect --log-level DEBUG ${file}"
             }
         ]
     },
     "cSpell.words": [
+        "boolop",
         "cleer",
         "compatibilty",
         "emeraldwalk",

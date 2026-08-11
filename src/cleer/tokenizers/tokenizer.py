@@ -1,9 +1,30 @@
-__all__ = ["Tokenizer"]
+"""See :class:`Tokenizer` and :class:`TokenResult`."""
 
+__all__ = [
+    "TokenResult",
+    "Tokenizer"
+]
 
-from typing import List
+from typing import TypedDict
 
 from cleer.exceptions import NotImplementedError
+
+
+class TokenResult(TypedDict):
+    """Token and location from a tokenizer.
+
+    Attributes
+    ----------
+    token : str
+        Token from a tokenizer.
+    index : int
+        Index where the token starts in the source document string, inclusive.
+    length : int
+        Character length of the token.
+    """
+    token: str
+    index: int
+    length: int
 
 
 class Tokenizer:
@@ -18,7 +39,7 @@ class Tokenizer:
     emits_token_type: str = ""
 
 
-    def tokenize(self, document: str) -> List[dict]:
+    def tokenize(self, document: str) -> list[TokenResult]:
         """Tokenize a document.
 
         Tokens from a single call of tokenize cannot overlap.
@@ -32,7 +53,7 @@ class Tokenizer:
 
         Returns
         -------
-        List[TokenResult]
+        list[TokenResult]
             List of token results.
         """
         raise NotImplementedError("Tokenizer classes must implement the tokenize method!")

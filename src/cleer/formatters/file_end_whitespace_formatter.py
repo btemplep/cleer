@@ -1,31 +1,39 @@
-"""File end whitespace formatter module."""
+"""See :class:`FileEndWhitespaceFormatter`."""
 
-__all__ = ["FileEndWhitespaceFormatter"]
+__all__ = [
+    "FileEndWhitespaceFormatter"
+]
 
-
-from cleer.formatters.formatter import Formatter
+from cleer.formatters.formatter import Formatter, FormatterViolation
 
 
 class FileEndWhitespaceFormatter(Formatter):
-    """Ensures exactly one trailing newline at the end of a file.
+    """Format the number of blank lines at the end of a file.
 
-    Accepts `file_end_whitespace` tokens and formats them to a single
-    newline character, ensuring the file ends with exactly one newline.
+
+    Parameters
+    ----------
+    blank_lines : int, default=1
+        Number of blank lines to enforce at the end of a file.
 
     Examples
     --------
-
     ```python
     from cleer import FileEndWhitespaceFormatter
 
     formatter = FileEndWhitespaceFormatter()
-    result = formatter.format("\\n\\n\\n")
+    result = formatter.format("\n\n\n")
     ```
     """
     accepts_token_types = ["file_end_whitespace"]
 
 
-    def inspect(self, token: str) -> str | None:
+    def __init__(self, blank_lines: int=1):
+        self._blank_lines = blank_lines
+        self._ending_token = "\n" * blank_lines
+
+
+    def inspect(self, token: str) -> list[FormatterViolation]:
         """Inspect a token for improper trailing whitespace.
 
         Parameters
@@ -33,45 +41,35 @@ class FileEndWhitespaceFormatter(Formatter):
         token : str
             String token to inspect (trailing whitespace from file).
 
-        Examples
-        --------
-
-        ```python
-        formatter = FileEndWhitespaceFormatter()
-        message = formatter.inspect("\\n\\n\\n")
-        ```
-
         Returns
         -------
-        str | None
-            Error message if trailing whitespace is not exactly one newline,
-            `None` otherwise.
+        list[FormatterViolation]
+            List of violations if trailing whitespace does not match the expected.
+            Returns an empty list if there is no violation.
         """
-        if token != "\n":
-            return "Files should end with exactly one trailing newline."
+        if token != self._ending_token:
+            return [
+                {
+                    "start_index": 0,
+                    "length": len(token),
+                    "message": f"Files should end with {self._blank_lines} blank line(s)."
+                }
+            ]
 
-        return None
+        return []
 
 
     def format(self, token: str) -> str:
-        """Format trailing whitespace to exactly one newline.
+        """Format trailing whitespace.
 
         Parameters
         ----------
         token : str
             Token to format (trailing whitespace from file).
 
-        Examples
-        --------
-
-        ```python
-        formatter = FileEndWhitespaceFormatter()
-        result = formatter.format("\\n\\n\\n")
-        ```
-
         Returns
         -------
         str
-            A single newline character.
+            The number configured number of blank lines.
         """
-        return "\n"
+        return self._ending_token

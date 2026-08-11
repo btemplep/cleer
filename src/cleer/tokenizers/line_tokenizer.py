@@ -1,20 +1,17 @@
-"""Line tokenizer module."""
+"""See :class:`LineTokenizer`."""
 
-__all__ = ["LineTokenizer"]
+__all__ = [
+    "LineTokenizer"
+]
 
-
-from typing import List
-
-from cleer.tokenizers.tokenizer import Tokenizer
+from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
 
 class LineTokenizer(Tokenizer):
     """Tokenizes a document into individual lines.
 
-    Each line is returned as a token, excluding the newline character itself.
-    The newline character is not included in the token or its length.
-
-    Emits token type: `line`
+    Splits the document on newlines and emits each line as a token.
+    The newline character is not included in the token.
 
     Examples
     --------
@@ -23,17 +20,14 @@ class LineTokenizer(Tokenizer):
     from cleer import LineTokenizer
 
     tokenizer = LineTokenizer()
-    tokens = tokenizer.tokenize("hello world\\ngoodbye world\\n")
+    tokens = tokenizer.tokenize("import os\nx = 1\n")
     ```
     """
     emits_token_type = "line"
 
 
-    def tokenize(self, document: str) -> List[dict]:
-        """Tokenize a document into lines.
-
-        Each line becomes a token. The newline character is not included
-        in the token string or its length.
+    def tokenize(self, document: str) -> list[TokenResult]:
+        """Tokenize a document into individual lines.
 
         Parameters
         ----------
@@ -45,36 +39,36 @@ class LineTokenizer(Tokenizer):
 
         ```python
         tokenizer = LineTokenizer()
-        tokens = tokenizer.tokenize("hello\\nworld\\n")
+        tokens = tokenizer.tokenize("import os\nx = 1\n")
         ```
 
         Returns
         -------
-        List[TokenResult]
-            List of token results, one per line.
+        list[TokenResult]
+            List of token results for each line, or an empty list if
+            the document is empty.
 
             ```python
             [
-                {"token": "hello", "index": 0, "length": 5},
-                {"token": "world", "index": 6, "length": 5},
-                {"token": "", "index": 12, "length": 0}
+                {"token": "import os", "index": 0, "length": 9},
+                {"token": "x = 1", "index": 10, "length": 5},
+                {"token": "", "index": 16, "length": 0}
             ]
             ```
         """
-        tokens: List[dict] = []
+        if not document:
+            return []
+
+        tokens = []
         index = 0
-
-        lines = document.split("\n")
-        for i, line in enumerate(lines):
-            if i < len(lines) - 1 or line:
-                tokens.append(
-                    {
-                        "token": line,
-                        "index": index,
-                        "length": len(line)
-                    }
-                )
-
+        for line in document.split("\n"):
+            tokens.append(
+                {
+                    "token": line,
+                    "index": index,
+                    "length": len(line)
+                }
+            )
             index += len(line) + 1
 
         return tokens

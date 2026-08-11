@@ -1,16 +1,19 @@
-"""File start whitespace formatter module."""
+"""See :class:`FileStartWhitespaceFormatter`."""
 
-__all__ = ["FileStartWhitespaceFormatter"]
+__all__ = [
+    "FileStartWhitespaceFormatter"
+]
 
-
-from cleer.formatters.formatter import Formatter
+from cleer.formatters.formatter import Formatter, FormatterViolation
 
 
 class FileStartWhitespaceFormatter(Formatter):
-    """Removes leading whitespace from the start of a file.
+    """Format the number of blank lines at the start of a file.
 
-    Accepts `file_start_whitespace` tokens and formats them to an empty
-    string, effectively removing any leading whitespace from the file.
+    Parameters
+    ----------
+    spaces : int, default=0
+        Number of blank lines to enforce at the start of a file.
 
     Examples
     --------
@@ -19,58 +22,54 @@ class FileStartWhitespaceFormatter(Formatter):
     from cleer import FileStartWhitespaceFormatter
 
     formatter = FileStartWhitespaceFormatter()
-    result = formatter.format("\\n\\n  ")
+    result = formatter.format("\n\n\n")
     ```
     """
     accepts_token_types = ["file_start_whitespace"]
 
 
-    def inspect(self, token: str) -> str | None:
-        """Inspect a token for leading file whitespace.
+    def __init__(self, spaces: int=0):
+        self._spaces = spaces
+        self._starting_token = "\n" * spaces
+
+
+    def inspect(self, token: str) -> list[FormatterViolation]:
+        """Inspect a token for improper leading whitespace.
 
         Parameters
         ----------
         token : str
             String token to inspect (leading whitespace from file).
 
-        Examples
-        --------
-
-        ```python
-        formatter = FileStartWhitespaceFormatter()
-        message = formatter.inspect("\\n  ")
-        ```
-
         Returns
         -------
-        str | None
-            Error message if leading whitespace exists, `None` otherwise.
+        list[FormatterViolation]
+            List of violations if leading whitespace does not match the expected.
+            Returns an empty list if there is no violation.
         """
-        if token:
-            return "Files should have no leading whitespace."
+        if token != self._starting_token:
+            return [
+                {
+                    "start_index": 0,
+                    "length": len(token),
+                    "message": f"Files should start with {self._spaces} blank line(s)."
+                }
+            ]
 
-        return None
+        return []
 
 
     def format(self, token: str) -> str:
-        """Remove leading whitespace from the start of a file.
+        """Format leading whitespace.
 
         Parameters
         ----------
         token : str
             Token to format (leading whitespace from file).
 
-        Examples
-        --------
-
-        ```python
-        formatter = FileStartWhitespaceFormatter()
-        result = formatter.format("\\n\\n  ")
-        ```
-
         Returns
         -------
         str
-            An empty string.
+            The configured number of blank lines.
         """
-        return ""
+        return self._starting_token

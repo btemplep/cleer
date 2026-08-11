@@ -1,8 +1,8 @@
 """Cleer Exceptions module."""
 
 __all__ = [
-    "CleerError",
     "BadPathError",
+    "CleerError",
     "NotImplementedError"
 ]
 
@@ -13,8 +13,8 @@ class CleerError(Exception):
 
 
 class NotImplementedError(CleerError):
-   """Internal error when a tokenizer or formatter has not implemented a necessary part of the interface."""
-   pass
+    """Internal error when a tokenizer or formatter has not implemented a necessary part of the interface."""
+    pass
 
 
 class BadPathError(CleerError):

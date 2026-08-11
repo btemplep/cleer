@@ -1,25 +1,22 @@
-"""Non-ascii whitespace tokenizer module."""
+"""See :class:`NonAsciiWhitespaceTokenizer`."""
 
-__all__ = ["NonAsciiWhitespaceTokenizer"]
-
+__all__ = [
+    "NonAsciiWhitespaceTokenizer"
+]
 
 import re
-from typing import List
 
-from cleer.tokenizers.tokenizer import Tokenizer
-
-
-NON_ASCII_WHITESPACE_PATTERN = re.compile(r"[^\S\x00-\x7F]+")
+from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
 
 class NonAsciiWhitespaceTokenizer(Tokenizer):
-    """Tokenizes non-ascii whitespace characters in a document.
+    """Tokenizes non-ASCII whitespace characters in a document.
 
-    Each contiguous sequence of non-ascii whitespace characters is returned
-    as a token. ASCII whitespace characters (space, tab, newline, etc.) are
-    not tokenized.
-
-    Emits token type: `non_ascii_whitespace`
+    Scans a document and emits a token for every contiguous block of
+    non-ASCII whitespace characters. This includes characters like
+    non-breaking spaces, ideographic spaces, zero-width spaces, and
+    other Unicode whitespace that is not a standard ASCII space, tab,
+    newline, carriage return, or form feed.
 
     Examples
     --------
@@ -28,17 +25,15 @@ class NonAsciiWhitespaceTokenizer(Tokenizer):
     from cleer import NonAsciiWhitespaceTokenizer
 
     tokenizer = NonAsciiWhitespaceTokenizer()
-    tokens = tokenizer.tokenize("hello\u00a0world")
+    tokens = tokenizer.tokenize("import\u00a0os\n")
     ```
     """
     emits_token_type = "non_ascii_whitespace"
+    non_ascii_ws_pattern = re.compile(r"[^\S\x00-\x7f]+")
 
 
-    def tokenize(self, document: str) -> List[dict]:
-        """Tokenize non-ascii whitespace in a document.
-
-        Each contiguous sequence of non-ascii whitespace characters becomes
-        a token.
+    def tokenize(self, document: str) -> list[TokenResult]:
+        """Tokenize all non-ASCII whitespace blocks in a document.
 
         Parameters
         ----------
@@ -50,24 +45,23 @@ class NonAsciiWhitespaceTokenizer(Tokenizer):
 
         ```python
         tokenizer = NonAsciiWhitespaceTokenizer()
-        tokens = tokenizer.tokenize("hello\\u00a0world\\u2003end")
+        tokens = tokenizer.tokenize("import\u00a0os\n")
         ```
 
         Returns
         -------
-        List[TokenResult]
-            List of token results, one per contiguous non-ascii whitespace sequence.
+        list[TokenResult]
+            List of token results for each non-ASCII whitespace block,
+            or an empty list if none exist.
 
             ```python
             [
-                {"token": "\\u00a0", "index": 5, "length": 1},
-                {"token": "\\u2003", "index": 11, "length": 1}
+                {"token": "\u00a0", "index": 6, "length": 1}
             ]
             ```
         """
-        tokens: List[dict] = []
-
-        for match in NON_ASCII_WHITESPACE_PATTERN.finditer(document):
+        tokens = []
+        for match in self.non_ascii_ws_pattern.finditer(document):
             tokens.append(
                 {
                     "token": match.group(),

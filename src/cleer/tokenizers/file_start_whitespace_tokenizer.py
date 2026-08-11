@@ -1,20 +1,20 @@
-"""File start whitespace tokenizer module."""
+"""See :class:`FileStartWhitespaceTokenizer`."""
 
-__all__ = ["FileStartWhitespaceTokenizer"]
+__all__ = [
+    "FileStartWhitespaceTokenizer"
+]
 
+import re
 
-from typing import List
-
-from cleer.tokenizers.tokenizer import Tokenizer
+from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
 
 
 class FileStartWhitespaceTokenizer(Tokenizer):
     """Tokenizes leading whitespace at the start of a file.
 
-    If the file starts with whitespace (spaces, tabs, newlines), a single
-    token of type `file_start_whitespace` is emitted containing that leading
-    whitespace. If the file does not start with whitespace, an empty list is
-    returned.
+    Emits a single token of type `file_start_whitespace` for the leading
+    whitespace before the first non-whitespace character. If the file has
+    no leading whitespace, an empty list is returned.
 
     Examples
     --------
@@ -23,13 +23,14 @@ class FileStartWhitespaceTokenizer(Tokenizer):
     from cleer import FileStartWhitespaceTokenizer
 
     tokenizer = FileStartWhitespaceTokenizer()
-    tokens = tokenizer.tokenize("\\n\\n  import os\\n")
+    tokens = tokenizer.tokenize("\n\nimport os\n")
     ```
     """
     emits_token_type = "file_start_whitespace"
+    leading_whitespace_pattern = re.compile(r"^\s*")
 
 
-    def tokenize(self, document: str) -> List[dict]:
+    def tokenize(self, document: str) -> list[TokenResult]:
         """Tokenize leading whitespace at the start of a document.
 
         Parameters
@@ -42,36 +43,31 @@ class FileStartWhitespaceTokenizer(Tokenizer):
 
         ```python
         tokenizer = FileStartWhitespaceTokenizer()
-        tokens = tokenizer.tokenize("\\n  import os\\n")
+        tokens = tokenizer.tokenize("\n\nimport os\n")
         ```
 
         Returns
         -------
-        List[dict]
+        list[TokenResult]
             List containing a single token result for the leading whitespace,
-            or an empty list if the document does not start with whitespace.
+            or an empty list if the file has no leading whitespace.
 
             ```python
             [
-                {"token": "\\n  ", "index": 0, "length": 3}
+                {"token": "\n\n", "index": 0, "length": 2}
             ]
             ```
         """
-        if not document:
+        match = self.leading_whitespace_pattern.search(document)
+        leading_ws = match.group()
+
+        if not leading_ws:
             return []
-
-        stripped = document.lstrip()
-        leading_length = len(document) - len(stripped)
-
-        if leading_length == 0:
-            return []
-
-        leading = document[:leading_length]
 
         return [
             {
-                "token": leading,
+                "token": leading_ws,
                 "index": 0,
-                "length": leading_length
+                "length": len(leading_ws)
             }
         ]

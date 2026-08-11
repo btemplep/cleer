@@ -1,33 +1,34 @@
-__all__ = []
+"""Cleer CLI entry point."""
 
+__all__ = []
 
 import argparse
 import importlib
 import json
 import os
 import sys
-from typing import List
 
 from loguru import logger
 
 from cleer import __version__ as cleer_version
-from cleer.default import cleer_default
+from cleer.cleer import Cleer
+from cleer.default import cleer_default_config
 
 
 class FMT:
-   purple = "\033[95m"
-   cyan = "\033[96m"
-   dark_cyan = "\033[36m"
-   blue = "\033[94m"
-   green = "\033[92m"
-   yellow = "\033[93m"
-   red = "\033[91m"
-   bold = "\033[1m"
-   underline = "\033[4m"
-   end = "\033[0m"
+    purple = "\033[95m"
+    cyan = "\033[96m"
+    dark_cyan = "\033[36m"
+    blue = "\033[94m"
+    green = "\033[92m"
+    yellow = "\033[93m"
+    red = "\033[91m"
+    bold = "\033[1m"
+    underline = "\033[4m"
+    end = "\033[0m"
 
 
-def main(argv: List[str]=None) -> None:
+def main(argv: list[str]=None) -> None:
     parser = argparse.ArgumentParser(
         prog="cleer",
         description="Inspect and format files with cleer!"
@@ -37,10 +38,7 @@ def main(argv: List[str]=None) -> None:
         action="version",
         version=cleer_version
     )
-    sub_parsers = parser.add_subparsers(
-        title="commands",
-        dest="command"
-    )
+    sub_parsers = parser.add_subparsers(title="commands", dest="command")
 
     command_args_parser = argparse.ArgumentParser(add_help=False)
     command_args_parser.add_argument(
@@ -58,9 +56,33 @@ def main(argv: List[str]=None) -> None:
         "-l",
         "--log-level",
         type=str,
-        default="CRITICAL",
-        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
-        help=f"{FMT.bold}[default: \"{FMT.end}{FMT.green}CRITICAL{FMT.end}{FMT.bold}\"]{FMT.end} Set logging level."
+        default="ERROR",
+        choices=[
+            "DEBUG",
+            "INFO",
+            "WARNING",
+            "ERROR",
+            "CRITICAL"
+        ],
+        help=f"{FMT.bold}[default: \"{FMT.end}{FMT.green}ERROR{FMT.end}{FMT.bold}\"]{FMT.end} Set logging level."
+    )
+    command_args_parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="Verbose output includes all fields from results: included, excluded, and invalidations. "
+    )
+    command_args_parser.add_argument(
+        "-e",
+        "--keep-excluded",
+        action="store_true",
+        help="Keep results for files that matched at least one group, but were excluded from all matches."
+    )
+    command_args_parser.add_argument(
+        "-n",
+        "--keep-no-match",
+        action="store_true",
+        help="Keep results for files that did not match any groups."
     )
     command_args_parser.add_argument(
         "path",
@@ -105,26 +127,76 @@ def main(argv: List[str]=None) -> None:
         logger.info(f"Imported Cleer instance from '{clr_path}'.")
     except Exception as exc:
         if args.cleer is not None:
-            logger.critical(f"Could not import Cleer instance from '{clr_path}': {exc}")
+            logger.critical(f"Could not import Cleer instance from custom path: '{clr_path}'. [{type(exc).__name__}]: {exc}")
             exit(1)
-        else:
-            logger.debug(f"Cleer instance from default path, 'clr:clr', could not be imported: {exc}")
 
-        clr = cleer_default()
+        if isinstance(exc, ModuleNotFoundError) is True:
+            logger.debug(
+                (
+                    f"Cleer instance path was not given, and the default path was not found. "
+                    f"[{type(exc).__name__}]: {exc}"
+                )
+            )
+        else:
+            logger.critical(
+                (
+                    f"Found the default module, 'clr.py', "
+                    f"but failed to import the Cleer instance from it. "
+                    f"[{type(exc).__name__}]: {exc}"
+                )
+            )
+            exit(1)
+
+        clr = Cleer(cleer_default_config())
         logger.info("Default Cleer instance generated.")
 
     if args.command == "inspect":
         logger.info("Running inspect command...")
-        print(json.dumps(
-                clr.inspect_path(args.path),
-                indent=4,
-                default=str
-            ), flush=True)
-        logger.info("Inspect command complete!")
+        try:
+            result = clr.inspect(
+                path=args.path,
+                keep_excluded=args.keep_excluded,
+                keep_no_match=args.keep_no_match
+            )
+            logger.info("Inspect command complete!")
+        except Exception as exc:
+            logger.opt(
+                exception=True if args.log_level == "DEBUG" else False
+            ).critical(
+                f"Inspect Failed! [{type(exc).__name__}]: {exc}"
+            )
+            exit(1)
+
     elif args.command == "format":
         logger.info("Running format command...")
-        clr.format_path(args.path)
-        logger.info("Format command complete!")
+        try:
+            result = clr.format(
+                path=args.path,
+                keep_excluded=args.keep_excluded,
+                keep_no_match=args.keep_no_match
+            )
+            logger.info("Format command complete!")
+        except Exception as exc:
+            logger.opt(
+                exception=True if args.log_level == "DEBUG" else False
+            ).critical(
+                f"Format Failed! [{type(exc).__name__}]: {exc}"
+            )
+            exit(1)
 
+    if args.verbose is False:
+        for r in result:
+            r.pop("included")
+            r.pop("excluded")
+            r.pop("invalidations")
+
+    print(
+        json.dumps(
+            result,
+            indent=4,
+            default=str
+        ),
+        flush=True
+    )
     logger.info("Exiting.")
     exit(0)
