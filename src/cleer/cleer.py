@@ -243,7 +243,10 @@ class Cleer:
             }
             ```
         """
-        return self._inspect_one(file_path=pathlib.Path(path), document=document)
+        return self._inspect_one(
+            file_path=pathlib.Path(path),
+            document=document
+        )
 
 
     def _keep_result(
@@ -489,7 +492,10 @@ class Cleer:
             }
             ```
         """
-        return self._format_one(file_path=pathlib.Path(path), document=document)
+        return self._format_one(
+            file_path=pathlib.Path(path),
+            document=document
+        )
 
 
     def format(
