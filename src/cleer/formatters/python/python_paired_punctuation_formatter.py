@@ -139,6 +139,7 @@ class PythonPairedPunctuationFormatter(Formatter):
         except SyntaxError:
             return token
 
+        self._line_offsets = self._build_line_offsets(token)
         nodes = self._collect_formattable_nodes(tree, token)
 
         if not nodes:
@@ -152,6 +153,7 @@ class PythonPairedPunctuationFormatter(Formatter):
             except SyntaxError:
                 break
 
+            self._line_offsets = self._build_line_offsets(doc)
             nodes = self._collect_formattable_nodes(tree, doc)
 
             if not nodes:
@@ -373,6 +375,12 @@ class PythonPairedPunctuationFormatter(Formatter):
             return
 
         if isinstance(parent, ast.BoolOp):
+            return
+
+        if isinstance(parent, ast.Assign):
+            return
+
+        if isinstance(parent, ast.Return):
             return
 
         if isinstance(parent, (ast.If, ast.While)):
@@ -2402,12 +2410,17 @@ class PythonPairedPunctuationFormatter(Formatter):
         return result
 
 
-    def _offset(self, document: str, lineno: int, col_offset: int) -> int:
-        line_start = 0
-        for i in range(lineno - 1):
-            line_start = document.index("\n", line_start) + 1
+    def _build_line_offsets(self, document: str) -> list[int]:
+        offsets = [0]
+        for i, ch in enumerate(document):
+            if ch == "\n":
+                offsets.append(i + 1)
 
-        return line_start + col_offset
+        return offsets
+
+
+    def _offset(self, document: str, lineno: int, col_offset: int) -> int:
+        return self._line_offsets[lineno - 1] + col_offset
 
 
     def _get_indent(self, document: str, offset: int) -> str:
@@ -2441,6 +2454,9 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _flatten(self, text: str) -> str:
+        if "\n" not in text:
+            return text
+
         result = []
         i = 0
         in_string = False
@@ -3261,6 +3277,10 @@ class PythonPairedPunctuationFormatter(Formatter):
 
 
     def _has_comment(self, text: str) -> bool:
+        return "#" in text and self._has_comment_full(text)
+
+
+    def _has_comment_full(self, text: str) -> bool:
         in_string = False
         string_char = ""
         i = 0
