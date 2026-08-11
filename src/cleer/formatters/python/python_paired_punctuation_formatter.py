@@ -144,80 +144,88 @@ class PythonPairedPunctuationFormatter(Formatter):
         if not nodes:
             return token
 
-        nodes.sort(key=lambda n: (-n['depth'], -n['start']))
-
         doc = token
-        applied = set()
 
-        for node_info in nodes:
-            node = node_info['node']
-            node_type = node_info['type']
-            start = node_info['start']
-            end = node_info['end']
+        for _ in range(10):
+            try:
+                tree = ast.parse(doc)
+            except SyntaxError:
+                break
 
-            key = (
-                node.lineno,
-                node.col_offset,
-                node_type
-            )
-            if key in applied:
-                continue
+            nodes = self._collect_formattable_nodes(tree, doc)
 
-            current_text = doc[start:end]
-            indent = self._get_indent(doc, start)
+            if not nodes:
+                break
 
-            if node_type == "boolop":
-                formatted = self._format_boolop(node, current_text, indent)
-            elif node_type == "if_boolop":
-                formatted = self._format_if_boolop(
-                    node,
-                    current_text,
-                    indent,
-                    node_info.get("parent_node")
-                )
-            elif node_type == "assign_boolop":
-                formatted = self._format_assign_boolop(node, current_text, indent)
-            elif node_type == "return_boolop":
-                formatted = self._format_return_boolop(node, current_text, indent)
-            elif node_type == "call":
-                formatted = self._format_call(node, current_text, indent)
-            elif node_type == "chain":
-                formatted = self._format_chain(node, current_text, indent)
-            elif node_type in ("list", "set"):
-                formatted = self._format_container(
-                    node,
-                    current_text,
-                    indent,
-                    is_nested=node_info.get("is_nested", False)
-                )
-            elif node_type == "dict":
-                formatted = self._format_dict(node, current_text, indent)
-            elif node_type == "tuple":
-                formatted = self._format_tuple(node, current_text, indent)
-            elif node_type == "funcdef":
-                formatted = self._format_funcdef(node, current_text, indent)
-            elif node_type == "subscript":
-                formatted = self._format_subscript(node, current_text, indent)
-            elif node_type == "string_concat":
-                formatted = self._format_string_concat(node, current_text, indent)
-            else:
-                continue
+            nodes.sort(key=lambda n: (-n['depth'], -n['start']))
 
-            if formatted != current_text:
-                size_diff = len(formatted) - len(current_text)
-                doc = doc[:start] + formatted + doc[end:]
+            changed = False
 
-                applied.add(key)
+            for node_info in nodes:
+                node = node_info['node']
+                node_type = node_info['type']
+                start = node_info['start']
+                end = node_info['end']
 
-                for other in nodes:
-                    if other is node_info:
-                        continue
+                current_text = doc[start:end]
+                indent = self._get_indent(doc, start)
 
-                    if other['start'] > start:
-                        other['start'] += size_diff
-                        other['end'] += size_diff
-                    elif other['end'] > start:
-                        other['end'] += size_diff
+                if node_type == "boolop":
+                    formatted = self._format_boolop(node, current_text, indent)
+                elif node_type == "if_boolop":
+                    formatted = self._format_if_boolop(
+                        node,
+                        current_text,
+                        indent,
+                        node_info.get("parent_node")
+                    )
+                elif node_type == "assign_boolop":
+                    formatted = self._format_assign_boolop(node, current_text, indent)
+                elif node_type == "return_boolop":
+                    formatted = self._format_return_boolop(node, current_text, indent)
+                elif node_type == "call":
+                    formatted = self._format_call(node, current_text, indent)
+                elif node_type == "chain":
+                    formatted = self._format_chain(node, current_text, indent)
+                elif node_type in ("list", "set"):
+                    formatted = self._format_container(
+                        node,
+                        current_text,
+                        indent,
+                        is_nested=node_info.get("is_nested", False)
+                    )
+                elif node_type == "dict":
+                    formatted = self._format_dict(node, current_text, indent)
+                elif node_type == "tuple":
+                    formatted = self._format_tuple(node, current_text, indent)
+                elif node_type == "funcdef":
+                    formatted = self._format_funcdef(node, current_text, indent)
+                elif node_type == "subscript":
+                    formatted = self._format_subscript(node, current_text, indent)
+                elif node_type == "dict_subscript":
+                    formatted = self._format_dict_subscript(node, current_text, indent)
+                elif node_type == "string_concat":
+                    formatted = self._format_string_concat(node, current_text, indent)
+                else:
+                    continue
+
+                if formatted != current_text:
+                    size_diff = len(formatted) - len(current_text)
+                    doc = doc[:start] + formatted + doc[end:]
+                    changed = True
+
+                    for other in nodes:
+                        if other is node_info:
+                            continue
+
+                        if other['start'] > start:
+                            other['start'] += size_diff
+                            other['end'] += size_diff
+                        elif other['end'] > start:
+                            other['end'] += size_diff
+
+            if not changed:
+                break
 
         doc = self._collapse_inline_spaces(doc)
         doc = self._collapse_short_parens(doc)
@@ -252,9 +260,12 @@ class PythonPairedPunctuationFormatter(Formatter):
         depth: int,
         parent: ast.AST=None
     ):
-        """Recursively walk the AST collecting formattable nodes."""
         for child in ast.iter_child_nodes(node):
             child._cleer_grandparent = parent
+
+            if self._is_comprehension_node(child):
+                continue
+
             self._walk(
                 child,
                 document,
@@ -759,22 +770,49 @@ class PythonPairedPunctuationFormatter(Formatter):
         depth: int,
         parent: ast.AST=None
     ):
-        """Add a Subscript node for formatting (type annotations)."""
         if not hasattr(node, "lineno"):
             return
 
-        start = self._offset(document, node.lineno, node.col_offset)
-        end = self._offset(document, node.end_lineno, node.end_col_offset)
+        is_dict_sub = self._is_dict_subscript(node)
 
-        nodes.append(
-            {
-                "node": node,
-                "type": "subscript",
-                "start": start,
-                "end": end,
-                "depth": depth
-            }
-        )
+        if is_dict_sub:
+            if isinstance(parent, ast.Subscript) and self._is_dict_subscript(parent):
+                return
+
+            start = self._offset(document, node.lineno, node.col_offset)
+            end = self._offset(document, node.end_lineno, node.end_col_offset)
+            nodes.append(
+                {
+                    "node": node,
+                    "type": "dict_subscript",
+                    "start": start,
+                    "end": end,
+                    "depth": depth
+                }
+            )
+        else:
+            start = self._offset(document, node.lineno, node.col_offset)
+            end = self._offset(document, node.end_lineno, node.end_col_offset)
+            nodes.append(
+                {
+                    "node": node,
+                    "type": "subscript",
+                    "start": start,
+                    "end": end,
+                    "depth": depth
+                }
+            )
+
+
+    def _is_dict_subscript(self, node: ast.Subscript) -> bool:
+        if isinstance(node.slice, ast.Tuple):
+            return False
+
+        if isinstance(node.slice, ast.Subscript):
+            if not self._is_dict_subscript(node.slice):
+                return False
+
+        return True
 
 
     def _format_boolop(
@@ -1572,29 +1610,26 @@ class PythonPairedPunctuationFormatter(Formatter):
                 if not seg['args']:
                     result_parts.append(f"{prefix}{seg['method']}()")
                 else:
-                    args_str = ", ".join(seg['args'])
-                    seg_flat_len = len(prefix) + len(seg['method']) + 1 + len(args_str) + 1
-                    if (
-                        seg_flat_len <= self._call_max_len
-                        and not any(self._is_kwarg_str(a) for a in seg['args'])
-                    ):
-                        result_parts.append(f"{prefix}{seg['method']}({args_str})")
-                    else:
-                        lines = [f"{prefix}{seg['method']}("]
-                        for j, arg in enumerate(seg['args']):
-                            comma = "," if j < len(seg['args']) - 1 else ""
-                            lines.append(f"{inner_indent}{arg}{comma}")
+                    lines = [f"{prefix}{seg['method']}("]
+                    for j, arg in enumerate(seg['args']):
+                        comma = "," if j < len(seg['args']) - 1 else ""
+                        lines.append(f"{inner_indent}{arg}{comma}")
 
-                        lines.append(f"{indent})")
-                        result_parts.append("\n".join(lines))
+                    lines.append(f"{indent})")
+                    result_parts.append("\n".join(lines))
 
             else:
                 method_call = f".{seg['method']}"
                 if not seg['args']:
                     result_parts.append(f"{method_call}()")
                 else:
-                    args_str = ", ".join(seg['args'])
-                    result_parts.append(f"{method_call}(\n{inner_indent}{args_str}\n{indent})")
+                    lines = [f"{method_call}("]
+                    for j, arg in enumerate(seg['args']):
+                        comma = "," if j < len(seg['args']) - 1 else ""
+                        lines.append(f"{inner_indent}{arg}{comma}")
+
+                    lines.append(f"{indent})")
+                    result_parts.append("\n".join(lines))
 
         return "".join(result_parts)
 
@@ -2245,6 +2280,42 @@ class PythonPairedPunctuationFormatter(Formatter):
         lines.append(f"{indent}]")
 
         return "\n".join(lines)
+
+
+    def _format_dict_subscript(
+        self,
+        node: ast.Subscript,
+        current_text: str,
+        indent: str
+    ) -> str:
+        if "\n" not in current_text:
+            return current_text
+
+        if self._has_comment(current_text):
+            return current_text
+
+        flat = self._flatten(current_text)
+
+        bracket_pos = flat.find("[")
+        if bracket_pos == -1:
+            return current_text
+
+        pos = bracket_pos
+        while pos < len(flat):
+            if flat[pos] != "[":
+                break
+
+            close_pos = self._find_matching_paren(flat, pos)
+            if close_pos is None:
+                return current_text
+
+            content = flat[pos + 1:close_pos]
+            if "\n" in content:
+                return current_text
+
+            pos = close_pos + 1
+
+        return flat
 
 
     def _subscript_nesting_depth(self, node: ast.Subscript) -> int:

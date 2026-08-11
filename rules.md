@@ -154,6 +154,11 @@
 - [x] Dictionaries
     - Always expanded if more than 0 items
 
+- [x] Dictionary key bracket notation
+    - Never expanded unless the item within the brackets is itself expanded (multi-line)
+    - Chained subscripts like `result['errors']['key']` stay flat as a unit
+    - Distinguished from type annotations by slice structure (type annotations have Tuple or Subscript slices)
+
 - [x] Lists, sets, tuples
     - Flatten first
     - Expand if literal length > lst_max_len (30) or with indent > lst_max_line_len (80)

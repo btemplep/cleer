@@ -891,4 +891,84 @@ class JSONValidator:
                 seen_ranges
             )
 
+        result['errors']['locality_incompatibility'] = [
+            {
+                "is_critical": False,
+                "message": f"The '{self._storage.locality}' storage locality is not compatible with the '{self._compute.locality}' compute locality."
+            }
+        ]
+        result['errors'][thing(here, "there")] = [
+            {
+                "is_critical": False,
+                "message": f"The '{self._storage.locality}' storage locality is not compatible with the '{self._compute.locality}' compute locality."
+            }
+        ]
+        identity_def_tasks = [create_task(self._storage.get_identity_def(it, config['get_identity_def'])) for it in request['identities']]
+
         return None
+
+
+batch_request_schema = {
+    "properties": {
+        "identities": _request_identities_schema | {
+            "description": _request_identities_schema['description'] + _request_level_description
+        },
+        "batch": {
+            "type": "array",
+            "description": "Batch of resources and contexts to process with shared identities, action, resource type, and context type.",
+            "minItems": 1,
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": [],
+                "properties": {
+                    "identities": _request_identities_schema | {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "description": _request_identities_schema['description'] + _batch_item_level_description
+                    },
+                    "resource_type": _resource_type_schema | {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": _resource_type_schema['description'] + _batch_item_level_description
+                    }
+                }
+            }
+        }
+    }
+}
+self._storage_dict['context_defs_lut'][context_def['context_type']] = context_def
+if jsonschema_rs.validator_for(
+    resource_def['schema']
+).is_valid(
+    request['resource']
+) is False:
+    print("here")
+
+
+class New:
+
+
+    @functions.signature(
+        {
+            "types": [
+                "array"
+            ]
+        },
+        {
+            "types": [
+                "array"
+            ]
+        },
+        {
+            "types": [
+                "string"
+            ]
+        }
+    )
+    def my_thing():
+        print("hello")

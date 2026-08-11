@@ -119,7 +119,9 @@ class PythonReturnYieldTokenizer(Tokenizer):
         line_offsets: list[int],
         document: str
     ) -> int:
-        """Get the end of the function including trailing blank lines."""
+        if node.end_lineno >= len(line_offsets):
+            return len(document)
+
         end_offset = line_offsets[node.end_lineno]
 
         while (
