@@ -23,18 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -->
 ## [0.1.0a5] - 2026-08-10
 
-### Added
-
-### Changed
-
-### Deprecated
-
-### Removed
-
 ### Fixed
     - Bugs with paired punct
-
-### Security 
 
 
 ## [0.1.0a4] - 2026-08-10
