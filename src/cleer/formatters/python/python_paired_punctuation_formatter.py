@@ -2417,15 +2417,52 @@ class PythonPairedPunctuationFormatter(Formatter):
 
     def _build_line_offsets(self, document: str) -> list[int]:
         offsets = [0]
+        self._line_byte_maps = {}
+        line_idx = 0
+        line_start = 0
+
         for i, ch in enumerate(document):
             if ch == "\n":
+                line = document[line_start:i]
+                if len(line.encode("utf-8")) != len(line):
+                    byte_to_char = {}
+                    byte_pos = 0
+                    for ci, c in enumerate(line):
+                        byte_to_char[byte_pos] = ci
+                        byte_pos += len(c.encode("utf-8"))
+
+                    byte_to_char[byte_pos] = len(line)
+                    self._line_byte_maps[line_idx] = byte_to_char
+
                 offsets.append(i + 1)
+                line_idx += 1
+                line_start = i + 1
+
+        line = document[line_start:]
+        if len(line.encode("utf-8")) != len(line):
+            byte_to_char = {}
+            byte_pos = 0
+            for ci, c in enumerate(line):
+                byte_to_char[byte_pos] = ci
+                byte_pos += len(c.encode("utf-8"))
+
+            byte_to_char[byte_pos] = len(line)
+            self._line_byte_maps[line_idx] = byte_to_char
 
         return offsets
 
 
     def _offset(self, document: str, lineno: int, col_offset: int) -> int:
-        return self._line_offsets[lineno - 1] + col_offset
+        line_start = self._line_offsets[lineno - 1]
+        byte_map = self._line_byte_maps.get(lineno - 1)
+        if byte_map is None:
+            return line_start + col_offset
+
+        char_offset = byte_map.get(col_offset)
+        if char_offset is not None:
+            return line_start + char_offset
+
+        return line_start + col_offset
 
 
     def _get_indent(self, document: str, offset: int) -> str:

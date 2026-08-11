@@ -732,3 +732,9 @@ class New:
     )
     def my_thing():
         print("hello")
+
+print(json.dumps(result, indent=4))
+if result['is_authorized'] is True:
+    print("✅ Access granted!")
+else:
+    print("❌ Access denied!")
