@@ -642,6 +642,11 @@ class PythonPairedPunctuationFormatter(Formatter):
         if isinstance(parent, (ast.For, ast.AsyncFor)):
             return
 
+        if isinstance(parent, ast.Assign):
+            for target in parent.targets:
+                if isinstance(target, ast.Name) and target.id == "__all__":
+                    return
+
         start = self._offset(document, node.lineno, node.col_offset)
         end = self._offset(document, node.end_lineno, node.end_col_offset)
 

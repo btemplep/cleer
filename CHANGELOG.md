@@ -21,6 +21,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security 
 -->
+
+## [0.1.0a6] - 2026-08-10
+
+### Fixed
+    - Bugs with paired punct giving violations when there aren't any.
+
 ## [0.1.0a5] - 2026-08-10
 
 ### Fixed
