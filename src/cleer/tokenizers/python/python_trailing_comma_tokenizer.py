@@ -124,10 +124,15 @@ class PythonTrailingCommaTokenizer(Tokenizer):
             return
 
         last = elements[-1]
-        start = line_offsets[last.end_lineno - 1] + last.end_col_offset
-        end = line_offsets[
-            container_node.end_lineno - 1
-        ] + container_node.end_col_offset - 1
+        start = (
+            line_offsets[last.end_lineno - 1]
+            + last.end_col_offset
+        )
+        end = (
+            line_offsets[container_node.end_lineno - 1]
+            + container_node.end_col_offset
+            - 1
+        )
 
         if end <= start:
             return
@@ -157,8 +162,15 @@ class PythonTrailingCommaTokenizer(Tokenizer):
     ):
         """Check for trailing comma in a dict."""
         last_value = node.values[-1]
-        start = line_offsets[last_value.end_lineno - 1] + last_value.end_col_offset
-        end = line_offsets[node.end_lineno - 1] + node.end_col_offset - 1
+        start = (
+            line_offsets[last_value.end_lineno - 1]
+            + last_value.end_col_offset
+        )
+        end = (
+            line_offsets[node.end_lineno - 1]
+            + node.end_col_offset
+            - 1
+        )
 
         if end <= start:
             return
@@ -187,7 +199,10 @@ class PythonTrailingCommaTokenizer(Tokenizer):
         tokens: list[TokenResult]
     ):
         """Check for trailing comma in a function call."""
-        all_args = list(node.args) + [kw.value for kw in node.keywords]
+        all_args = (
+            list(node.args)
+            + [kw.value for kw in node.keywords]
+        )
 
         if not all_args:
             return
@@ -199,8 +214,15 @@ class PythonTrailingCommaTokenizer(Tokenizer):
                 a.end_col_offset
             )
         )
-        start = line_offsets[last.end_lineno - 1] + last.end_col_offset
-        end = line_offsets[node.end_lineno - 1] + node.end_col_offset - 1
+        start = (
+            line_offsets[last.end_lineno - 1]
+            + last.end_col_offset
+        )
+        end = (
+            line_offsets[node.end_lineno - 1]
+            + node.end_col_offset
+            - 1
+        )
 
         if end <= start:
             return

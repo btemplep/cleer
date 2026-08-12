@@ -134,6 +134,29 @@ class PythonCompoundEndTokenizer(Tokenizer):
                 continue
 
             if i >= len(body) - 1:
+                compound_end_line = stmt.end_lineno
+
+                if compound_end_line is None:
+                    continue
+
+                if compound_end_line < len(lines):
+                    next_line = lines[compound_end_line]
+                    if next_line.strip() and next_line.lstrip().startswith("#"):
+                        start = line_offsets[compound_end_line]
+                        end = start
+                        token = ""
+                        token_key = (start, 0)
+
+                        if token_key not in seen:
+                            seen.add(token_key)
+                            tokens.append(
+                                {
+                                    "token": token,
+                                    "index": start,
+                                    "length": 0
+                                }
+                            )
+
                 continue
 
             next_stmt = body[i + 1]
@@ -168,6 +191,21 @@ class PythonCompoundEndTokenizer(Tokenizer):
                         "length": len(token)
                     }
                 )
+            elif compound_end_line < len(lines):
+                next_line = lines[compound_end_line]
+                if next_line.strip() and next_line.lstrip().startswith("#"):
+                    start = line_offsets[compound_end_line]
+                    token_key = (start, 0)
+
+                    if token_key not in seen:
+                        seen.add(token_key)
+                        tokens.append(
+                            {
+                                "token": "",
+                                "index": start,
+                                "length": 0
+                            }
+                        )
 
 
     def _build_line_offsets(self, document: str) -> list[int]:

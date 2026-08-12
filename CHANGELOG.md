@@ -22,6 +22,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security 
 -->
 
+## [Unreleased] - YYYY-MM-DD
+
+### Added
+- handle unicode chars
+- formatting for math and comparison operators. 
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+- comment indent being removed
+- spaces before comments being removed. 
+
+### Security 
+
+
 ## [0.1.0a7] - 2026-08-10
 
 ### Fixed

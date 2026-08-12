@@ -87,7 +87,10 @@ class PythonPairedPunctuationFormatter(Formatter):
         lst_max_num: int=3,
         annotation_max_len: int=40,
         annotation_max_line_len: int=80,
-        annotation_max_depth: int=2
+        annotation_max_depth: int=2,
+        binop_max_len: int=60,
+        binop_max_line_len: int=80,
+        binop_max_operands: int=4
     ):
         self._def_max_len = def_max_len
         self._def_max_line_len = def_max_line_len
@@ -105,6 +108,9 @@ class PythonPairedPunctuationFormatter(Formatter):
         self._annotation_max_len = annotation_max_len
         self._annotation_max_line_len = annotation_max_line_len
         self._annotation_max_depth = annotation_max_depth
+        self._binop_max_len = binop_max_len
+        self._binop_max_line_len = binop_max_line_len
+        self._binop_max_operands = binop_max_operands
 
 
     def inspect(self, token: str) -> list[FormatterViolation]:
@@ -208,6 +214,20 @@ class PythonPairedPunctuationFormatter(Formatter):
                     formatted = self._format_dict_subscript(node, current_text, indent)
                 elif node_type == "string_concat":
                     formatted = self._format_string_concat(node, current_text, indent)
+                elif node_type == "binop":
+                    formatted = self._format_binop(
+                        node,
+                        current_text,
+                        indent,
+                        node_info.get("parent_node")
+                    )
+                elif node_type == "compare":
+                    formatted = self._format_binop(
+                        node,
+                        current_text,
+                        indent,
+                        node_info.get("parent_node")
+                    )
                 else:
                     continue
 
@@ -361,6 +381,22 @@ class PythonPairedPunctuationFormatter(Formatter):
                 depth,
                 parent
             )
+        elif isinstance(node, ast.BinOp):
+            self._add_binop(
+                node,
+                document,
+                nodes,
+                depth,
+                parent
+            )
+        elif isinstance(node, ast.Compare):
+            self._add_compare(
+                node,
+                document,
+                nodes,
+                depth,
+                parent
+            )
 
 
     def _add_boolop(
@@ -390,7 +426,10 @@ class PythonPairedPunctuationFormatter(Formatter):
                 stmt_line_idx = parent.lineno - 1
                 for li in range(stmt_line_idx, len(lines)):
                     if lines[li].rstrip().endswith(":"):
-                        end = self._offset(document, li + 1, 0) + len(lines[li].rstrip())
+                        end = (
+                            self._offset(document, li + 1, 0)
+                            + len(lines[li].rstrip())
+                        )
                         break
 
                 else:
@@ -426,7 +465,10 @@ class PythonPairedPunctuationFormatter(Formatter):
             stmt_line_idx = grandparent.lineno - 1
             for li in range(stmt_line_idx, len(lines)):
                 if lines[li].rstrip().endswith(":"):
-                    end = self._offset(document, li + 1, 0) + len(lines[li].rstrip())
+                    end = (
+                        self._offset(document, li + 1, 0)
+                        + len(lines[li].rstrip())
+                    )
                     break
 
             else:
@@ -789,7 +831,10 @@ class PythonPairedPunctuationFormatter(Formatter):
         is_dict_sub = self._is_dict_subscript(node)
 
         if is_dict_sub:
-            if isinstance(parent, ast.Subscript) and self._is_dict_subscript(parent):
+            if (
+                isinstance(parent, ast.Subscript)
+                and self._is_dict_subscript(parent)
+            ):
                 return
 
             start = self._offset(document, node.lineno, node.col_offset)
@@ -813,6 +858,216 @@ class PythonPairedPunctuationFormatter(Formatter):
                     "start": start,
                     "end": end,
                     "depth": depth
+                }
+            )
+
+
+    def _add_binop(
+        self,
+        node: ast.BinOp,
+        document: str,
+        nodes: list,
+        depth: int,
+        parent: ast.AST=None
+    ):
+        if not hasattr(node, "lineno"):
+            return
+
+        if isinstance(parent, ast.BinOp):
+            return
+
+        if isinstance(parent, ast.Compare):
+            return
+
+        if isinstance(parent, ast.BoolOp):
+            return
+
+        if (
+            isinstance(parent, (ast.If, ast.While))
+            and node is parent.test
+        ):
+            start = self._offset(document, parent.lineno, parent.col_offset)
+            lines = document.split("\n")
+            stmt_line_idx = parent.lineno - 1
+            end = None
+            for li in range(stmt_line_idx, len(lines)):
+                if lines[li].rstrip().endswith(":"):
+                    end = (
+                        self._offset(document, li + 1, 0)
+                        + len(lines[li].rstrip())
+                    )
+                    break
+
+            if end is None:
+                end = self._offset(document, node.end_lineno, node.end_col_offset)
+
+            nodes.append(
+                {
+                    "node": node,
+                    "type": "binop",
+                    "start": start,
+                    "end": end,
+                    "depth": depth,
+                    "parent_node": parent
+                }
+            )
+        elif (
+            isinstance(parent, ast.Assign)
+            and node is parent.value
+        ):
+            start = self._offset(document, parent.lineno, parent.col_offset)
+            end = self._offset(
+                document,
+                parent.end_lineno,
+                parent.end_col_offset
+            )
+            nodes.append(
+                {
+                    "node": node,
+                    "type": "binop",
+                    "start": start,
+                    "end": end,
+                    "depth": depth,
+                    "parent_node": parent
+                }
+            )
+        elif (
+            isinstance(parent, ast.Return)
+            and node is parent.value
+        ):
+            start = self._offset(document, parent.lineno, parent.col_offset)
+            end = self._offset(
+                document,
+                parent.end_lineno,
+                parent.end_col_offset
+            )
+            nodes.append(
+                {
+                    "node": node,
+                    "type": "binop",
+                    "start": start,
+                    "end": end,
+                    "depth": depth,
+                    "parent_node": parent
+                }
+            )
+        elif isinstance(parent, ast.Expr) and node is parent.value:
+            start = self._offset(document, parent.lineno, parent.col_offset)
+            end = self._offset(
+                document,
+                parent.end_lineno,
+                parent.end_col_offset
+            )
+            nodes.append(
+                {
+                    "node": node,
+                    "type": "binop",
+                    "start": start,
+                    "end": end,
+                    "depth": depth,
+                    "parent_node": parent
+                }
+            )
+
+
+    def _add_compare(
+        self,
+        node: ast.Compare,
+        document: str,
+        nodes: list,
+        depth: int,
+        parent: ast.AST=None
+    ):
+        if not hasattr(node, "lineno"):
+            return
+
+        if isinstance(parent, ast.BoolOp):
+            return
+
+        if (
+            isinstance(parent, (ast.If, ast.While))
+            and node is parent.test
+        ):
+            start = self._offset(document, parent.lineno, parent.col_offset)
+            lines = document.split("\n")
+            stmt_line_idx = parent.lineno - 1
+            end = None
+            for li in range(stmt_line_idx, len(lines)):
+                if lines[li].rstrip().endswith(":"):
+                    end = (
+                        self._offset(document, li + 1, 0)
+                        + len(lines[li].rstrip())
+                    )
+                    break
+
+            if end is None:
+                end = self._offset(document, node.end_lineno, node.end_col_offset)
+
+            nodes.append(
+                {
+                    "node": node,
+                    "type": "compare",
+                    "start": start,
+                    "end": end,
+                    "depth": depth,
+                    "parent_node": parent
+                }
+            )
+        elif (
+            isinstance(parent, ast.Assign)
+            and node is parent.value
+        ):
+            start = self._offset(document, parent.lineno, parent.col_offset)
+            end = self._offset(
+                document,
+                parent.end_lineno,
+                parent.end_col_offset
+            )
+            nodes.append(
+                {
+                    "node": node,
+                    "type": "compare",
+                    "start": start,
+                    "end": end,
+                    "depth": depth,
+                    "parent_node": parent
+                }
+            )
+        elif (
+            isinstance(parent, ast.Return)
+            and node is parent.value
+        ):
+            start = self._offset(document, parent.lineno, parent.col_offset)
+            end = self._offset(
+                document,
+                parent.end_lineno,
+                parent.end_col_offset
+            )
+            nodes.append(
+                {
+                    "node": node,
+                    "type": "compare",
+                    "start": start,
+                    "end": end,
+                    "depth": depth,
+                    "parent_node": parent
+                }
+            )
+        elif isinstance(parent, ast.Expr) and node is parent.value:
+            start = self._offset(document, parent.lineno, parent.col_offset)
+            end = self._offset(
+                document,
+                parent.end_lineno,
+                parent.end_col_offset
+            )
+            nodes.append(
+                {
+                    "node": node,
+                    "type": "compare",
+                    "start": start,
+                    "end": end,
+                    "depth": depth,
+                    "parent_node": parent
                 }
             )
 
@@ -1290,7 +1545,10 @@ class PythonPairedPunctuationFormatter(Formatter):
 
         condition_flat = self._flatten(current_text)
         condition_flat = self._collapse_paren_spaces(condition_flat)
-        kw_end = condition_flat.find(keyword_prefix) + len(keyword_prefix)
+        kw_end = (
+            condition_flat.find(keyword_prefix)
+            + len(keyword_prefix)
+        )
         after_kw = condition_flat[kw_end:].strip()
         if after_kw.startswith("(") and after_kw.endswith("):"):
             after_kw = after_kw[1:-2].strip()
@@ -1830,7 +2088,12 @@ class PythonPairedPunctuationFormatter(Formatter):
                 return flat
 
         func_text = self._get_func_text(node, current_text)
-        content_len = len(func_text) + 1 + len(", ".join(all_args)) + 1
+        content_len = (
+            len(func_text)
+            + 1
+            + len(", ".join(all_args))
+            + 1
+        )
         indent_len = len(indent)
 
         should_expand = (
@@ -1864,9 +2127,13 @@ class PythonPairedPunctuationFormatter(Formatter):
             comma = "," if i < len(expanded_args) - 1 else ""
             if "\n" in arg:
                 arg_lines = arg.split("\n")
-                lines.append(f"{inner_indent}{arg_lines[0]}{comma}")
-                for al in arg_lines[1:]:
-                    lines.append(al)
+                for ai, al in enumerate(arg_lines):
+                    if ai == 0:
+                        lines.append(f"{inner_indent}{al}")
+                    elif ai == len(arg_lines) - 1:
+                        lines.append(f"{al}{comma}")
+                    else:
+                        lines.append(al)
 
             else:
                 lines.append(f"{inner_indent}{arg}{comma}")
@@ -1913,7 +2180,11 @@ class PythonPairedPunctuationFormatter(Formatter):
         if not items:
             return current_text
 
-        content_len = len(open_char) + len(", ".join(items)) + len(close_char)
+        content_len = (
+            len(open_char)
+            + len(", ".join(items))
+            + len(close_char)
+        )
         indent_len = len(indent)
 
         has_nested_children = any(isinstance(elt, (ast.Dict, ast.List, ast.Set, ast.Tuple)) and self._node_has_content(elt) for elt in elts)
@@ -1977,9 +2248,7 @@ class PythonPairedPunctuationFormatter(Formatter):
 
         flat = self._flatten(current_text)
         flat_items = self._split_by_commas(
-            flat[
-                flat.find("{") + 1:self._find_matching_paren(flat, flat.find("{"))
-            ]
+            flat[flat.find("{") + 1:self._find_matching_paren(flat, flat.find("{"))]
         )
 
         if not flat_items:
@@ -2415,6 +2684,365 @@ class PythonPairedPunctuationFormatter(Formatter):
         return result
 
 
+    def _format_binop(
+        self,
+        node: ast.AST,
+        current_text: str,
+        indent: str,
+        parent: ast.AST=None
+    ) -> str:
+        if self._has_comment(current_text):
+            return current_text
+
+        operands, operators = self._collect_binop_parts(node)
+        if not operands or not operators:
+            return current_text
+
+        if (
+            isinstance(node, ast.Compare)
+            and len(node.ops) == 1
+            and not isinstance(node.left, ast.BinOp)
+            and "\n" in current_text
+        ):
+            flat_check = self._flatten(current_text)
+            flat_check_len = len(flat_check)
+            if (
+                flat_check_len <= self._binop_max_len
+                and flat_check_len + len(indent) <= self._binop_max_line_len
+                and len(operands) <= self._binop_max_operands
+            ):
+                return flat_check
+
+            is_chain_left = (
+                isinstance(node.left, ast.Call)
+                and isinstance(node.left.func, ast.Attribute)
+                and isinstance(node.left.func.value, ast.Call)
+            )
+
+            if not is_chain_left:
+                lines = current_text.strip().split("\n")
+                last_line = lines[-1].strip()
+                if last_line.endswith(":"):
+                    last_line = last_line[:-1].strip()
+
+                for op in operators:
+                    if (
+                        last_line.startswith(f") {op} ")
+                        or last_line.startswith(f"){op} ")
+                    ):
+                        return current_text
+
+                    if last_line == f") {op}" or last_line == f"){op}":
+                        return current_text
+
+        flat = self._flatten(current_text)
+        flat = self._normalize_binop_spaces(flat, operators)
+        flat_len = len(flat)
+        indent_len = len(indent)
+
+        num_operands = len(operands)
+
+        should_expand = (
+            flat_len > self._binop_max_len
+            or flat_len + indent_len > self._binop_max_line_len
+            or num_operands > self._binop_max_operands
+        )
+
+        if not should_expand:
+            if isinstance(parent, (ast.Assign, ast.Return)):
+                if "=" in flat:
+                    eq_pos = flat.find("=")
+                    prefix = flat[:eq_pos + 1]
+                    value = flat[eq_pos + 1:].strip()
+                    if value.startswith("(") and value.endswith(")"):
+                        inner = value[1:-1].strip()
+                        flat = f"{prefix} {inner}"
+
+                elif flat.startswith("return "):
+                    value = flat[7:].strip()
+                    if value.startswith("(") and value.endswith(")"):
+                        inner = value[1:-1].strip()
+                        flat = f"return {inner}"
+
+            return flat
+
+        is_if_context = isinstance(parent, (ast.If, ast.While))
+        is_assign_context = isinstance(parent, ast.Assign)
+        is_return_context = isinstance(parent, ast.Return)
+
+        inner_indent = indent + "    "
+        op_texts = self._extract_binop_operand_texts(flat, operators)
+
+        if not op_texts or len(op_texts) != len(operands):
+            return flat if not should_expand else current_text
+
+        lines_out = []
+
+        if is_if_context:
+            keyword = "if" if isinstance(parent, ast.If) else "while"
+            keyword_line = flat
+            if keyword_line.startswith(keyword + " "):
+                expr_text = keyword_line[len(keyword) + 1:]
+            elif keyword_line.startswith(keyword + "("):
+                expr_text = keyword_line[len(keyword):]
+            else:
+                expr_text = flat
+
+            if expr_text.startswith("(") and expr_text.endswith("):"):
+                expr_text = expr_text[1:-2]
+            elif expr_text.endswith(":"):
+                expr_text = expr_text[:-1]
+
+            op_texts = self._extract_binop_operand_texts(
+                expr_text.strip(),
+                operators
+            )
+            if not op_texts or len(op_texts) != len(operands):
+                return current_text
+
+            lines_out.append(f"{keyword} (")
+            for i, op_text in enumerate(op_texts):
+                if i == 0:
+                    lines_out.append(f"{inner_indent}{op_text}")
+                else:
+                    lines_out.append(f"{inner_indent}{operators[i - 1]} {op_text}")
+
+            lines_out.append(f"{indent}):")
+        elif is_assign_context:
+            eq_pos = flat.find("=")
+            if eq_pos == -1:
+                return current_text
+
+            prefix = flat[:eq_pos + 1].rstrip()
+            value_text = flat[eq_pos + 1:].strip()
+
+            if value_text.startswith("(") and value_text.endswith(")"):
+                value_text = value_text[1:-1].strip()
+
+            op_texts = self._extract_binop_operand_texts(value_text, operators)
+            if not op_texts or len(op_texts) != len(operands):
+                return current_text
+
+            lines_out.append(f"{prefix} (")
+            for i, op_text in enumerate(op_texts):
+                if i == 0:
+                    lines_out.append(f"{inner_indent}{op_text}")
+                else:
+                    lines_out.append(f"{inner_indent}{operators[i - 1]} {op_text}")
+
+            lines_out.append(f"{indent})")
+        elif is_return_context:
+            if flat.startswith("return "):
+                value_text = flat[7:].strip()
+            else:
+                return current_text
+
+            if value_text.startswith("(") and value_text.endswith(")"):
+                value_text = value_text[1:-1].strip()
+
+            op_texts = self._extract_binop_operand_texts(value_text, operators)
+            if not op_texts or len(op_texts) != len(operands):
+                return current_text
+
+            lines_out.append("return (")
+            for i, op_text in enumerate(op_texts):
+                if i == 0:
+                    lines_out.append(f"{inner_indent}{op_text}")
+                else:
+                    lines_out.append(f"{inner_indent}{operators[i - 1]} {op_text}")
+
+            lines_out.append(f"{indent})")
+        else:
+            op_texts = self._extract_binop_operand_texts(flat, operators)
+            if not op_texts or len(op_texts) != len(operands):
+                return current_text
+
+            if flat.startswith("(") and flat.endswith(")"):
+                inner_flat = flat[1:-1].strip()
+                op_texts = self._extract_binop_operand_texts(inner_flat, operators)
+                if not op_texts or len(op_texts) != len(operands):
+                    return current_text
+
+            lines_out.append("(")
+            for i, op_text in enumerate(op_texts):
+                if i == 0:
+                    lines_out.append(f"{inner_indent}{op_text}")
+                else:
+                    lines_out.append(f"{inner_indent}{operators[i - 1]} {op_text}")
+
+            lines_out.append(f"{indent})")
+
+        result = "\n".join(lines_out)
+        if result == current_text:
+            return current_text
+
+        return result
+
+
+    def _collect_binop_parts(self, node: ast.AST) -> tuple[list, list]:
+        operands = []
+        operators = []
+
+        if isinstance(node, ast.BinOp):
+            self._flatten_binop_chain(node, operands, operators)
+        elif isinstance(node, ast.Compare):
+            if isinstance(node.left, ast.BinOp):
+                self._flatten_binop_chain(node.left, operands, operators)
+            else:
+                operands.append(node.left)
+
+            for op, comparator in zip(node.ops, node.comparators):
+                operators.append(self._compare_op_str(op))
+                operands.append(comparator)
+
+        else:
+            return [], []
+
+        return operands, operators
+
+
+    def _flatten_binop_chain(
+        self,
+        node: ast.BinOp,
+        operands: list,
+        operators: list
+    ):
+        if isinstance(node.left, ast.BinOp):
+            self._flatten_binop_chain(node.left, operands, operators)
+        else:
+            operands.append(node.left)
+
+        operators.append(self._binop_op_str(node.op))
+
+        if isinstance(node.right, ast.BinOp):
+            self._flatten_binop_chain(node.right, operands, operators)
+        else:
+            operands.append(node.right)
+
+
+    def _binop_op_str(self, op: ast.operator) -> str:
+        op_map = {
+            ast.Add: "+",
+            ast.Sub: "-",
+            ast.Mult: "*",
+            ast.Div: "/",
+            ast.FloorDiv: "//",
+            ast.Mod: "%",
+            ast.Pow: "**",
+            ast.MatMult: "@",
+            ast.BitOr: "|",
+            ast.BitAnd: "&",
+            ast.BitXor: "^",
+            ast.LShift: "<<",
+            ast.RShift: ">>"
+        }
+
+        return op_map.get(type(op), "+")
+
+
+    def _compare_op_str(self, op: ast.cmpop) -> str:
+        op_map = {
+            ast.Eq: "==",
+            ast.NotEq: "!=",
+            ast.Lt: "<",
+            ast.LtE: "<=",
+            ast.Gt: ">",
+            ast.GtE: ">=",
+            ast.Is: "is",
+            ast.IsNot: "is not",
+            ast.In: "in",
+            ast.NotIn: "not in"
+        }
+
+        return op_map.get(type(op), "==")
+
+
+    def _extract_binop_operand_texts(
+        self,
+        flat_expr: str,
+        operators: list[str]
+    ) -> list[str]:
+        parts = []
+        remaining = flat_expr.strip()
+
+        for i, op in enumerate(operators):
+            split_pos = self._find_binop_split(remaining, op)
+            if split_pos == -1:
+                return []
+
+            parts.append(remaining[:split_pos].strip())
+            remaining = remaining[split_pos + len(op):].strip()
+
+        parts.append(remaining)
+
+        return parts
+
+
+    def _find_binop_split(self, text: str, op: str) -> int:
+        depth = 0
+        in_string = False
+        string_char = ""
+        i = 0
+
+        while i < len(text):
+            ch = text[i]
+
+            if not in_string:
+                if ch in ('"', "'"):
+                    if text[i:i + 3] in ('"""', "'''"):
+                        in_string = True
+                        string_char = text[i:i + 3]
+                        i += 3
+                        continue
+                    else:
+                        in_string = True
+                        string_char = ch
+
+                elif ch in "([{":
+                    depth += 1
+                elif ch in ")]}":
+                    depth -= 1
+                elif depth == 0:
+                    if text[i:i + len(op)] == op:
+                        before = text[i - 1] if i > 0 else " "
+                        after = text[i + len(op)] if i + len(op) < len(text) else " "
+                        if len(op) >= 2:
+                            if (
+                                not before.isalnum()
+                                and before != "_"
+                                and not after.isalnum()
+                                and after != "_"
+                            ):
+                                return i
+
+                        else:
+                            if before == " " and after == " ":
+                                return i
+
+            else:
+                if len(string_char) == 3 and text[i:i + 3] == string_char:
+                    in_string = False
+                    i += 3
+                    continue
+                elif (
+                    len(string_char) == 1
+                    and ch == string_char
+                    and (
+                        i == 0
+                        or text[i - 1] != "\\"
+                    )
+                ):
+                    in_string = False
+
+            i += 1
+
+        return -1
+
+
+    def _normalize_binop_spaces(self, flat: str, operators: list[str]) -> str:
+        return flat
+
+
     def _build_line_offsets(self, document: str) -> list[int]:
         offsets = [0]
         self._line_byte_maps = {}
@@ -2490,7 +3118,10 @@ class PythonPairedPunctuationFormatter(Formatter):
             line = lines[line_idx]
             stripped = line.rstrip()
             if stripped.endswith(":"):
-                return self._offset(document, line_idx + 1, 0) + len(stripped)
+                return (
+                    self._offset(document, line_idx + 1, 0)
+                    + len(stripped)
+                )
 
         return self._offset(document, body_start_line, 0)
 
@@ -2754,6 +3385,7 @@ class PythonPairedPunctuationFormatter(Formatter):
                         and " and " not in content
                         and not any(c.startswith("f\"") or c.startswith("f'") or c.startswith("\"") or c.startswith("'") or c.startswith("b\"") or c.startswith("b'") for c in content_lines)
                         and not any("=" in c and not any(op in c for op in ["==", "!=", "<=", ">="]) for c in content_lines)
+                        and not any(c.startswith(("+", "-", "*", "/", "%", "@", "|", "&", "^", "<<", ">>", "==", "!=", "<", ">", "<=", ">=", "is ", "in ", "not ")) for c in content_lines)
                     ):
                         collapsed = f"{stripped}{content}{close_suffix}"
                         if len(collapsed) <= 120:
@@ -2836,6 +3468,10 @@ class PythonPairedPunctuationFormatter(Formatter):
             ch = line[i]
 
             if not in_string:
+                if ch == "#":
+                    result.append(line[i:])
+                    break
+
                 if ch in ('"', "'"):
                     if line[i:i + 3] in ('"""', "'''"):
                         in_string = True
@@ -2855,6 +3491,12 @@ class PythonPairedPunctuationFormatter(Formatter):
                     j = i + 1
                     while j < len(line) and line[j] == " ":
                         j += 1
+
+                    if j < len(line) and line[j] == "#":
+                        result.append(ch)
+                        result.append(" ")
+                        i = j
+                        continue
 
                     result.append(ch)
                     i = j
@@ -3027,7 +3669,10 @@ class PythonPairedPunctuationFormatter(Formatter):
     ) -> list[str]:
         """Get arg strings, with inner expansions applied for dicts/lists/tuples."""
         flat_args = self._get_call_args(node, current_text)
-        all_ast_args = list(node.args) + [kw.value for kw in node.keywords]
+        all_ast_args = (
+            list(node.args)
+            + [kw.value for kw in node.keywords]
+        )
 
         result = []
         for i, arg_str in enumerate(flat_args):

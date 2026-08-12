@@ -150,6 +150,9 @@
     - annotation_max_len: 40 — type annotation flat length
     - annotation_max_line_len: 80 — type annotation with indent
     - annotation_max_depth: 2 — max bracket nesting before expansion
+    - binop_max_len: 60 — math/comparison flat length, no indent
+    - binop_max_line_len: 80 — math/comparison with indent
+    - binop_max_operands: 4 — max operands before expansion
 
 - [x] Dictionaries
     - Always expanded if more than 0 items
@@ -216,6 +219,22 @@
     - Always multiline, surrounded by parenthesis
     - Fully expand containing context
     - Applies to return statements, assignments, and call args
+
+- [x] Math and comparison expressions (BinOp and Compare)
+    - Operators: `+`, `-`, `*`, `/`, `//`, `%`, `**`, `@`, `|`, `&`, `^`, `<<`, `>>`, `==`, `!=`, `<`, `>`, `<=`, `>=`
+    - Flatten first, then expand if:
+        - Flat length > binop_max_len (60) chars, not including indent
+        - With indent > binop_max_line_len (80) chars
+        - More than binop_max_operands (4) operands
+    - Expansion style:
+        - Each new line starts with the operator (prefix style)
+        - Wrap in parentheses if not already wrapped
+        - For `if`/`elif`/`while` conditions, wrap condition in `():`
+    - Inner calls/chains expand independently within their operand
+    - Configurable thresholds:
+        - binop_max_len: 60 — flat expression length, no indent
+        - binop_max_line_len: 80 — expression with indent
+        - binop_max_operands: 4 — max operands before expansion
 
 - [x] Dictionary key notation
     - Always flatten, never expand

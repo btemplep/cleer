@@ -114,7 +114,10 @@ class PythonCommaSpaceTokenizer(Tokenizer):
             left = elements[i]
             right = elements[i + 1]
 
-            start = line_offsets[left.end_lineno - 1] + left.end_col_offset
+            start = (
+                line_offsets[left.end_lineno - 1]
+                + left.end_col_offset
+            )
             end = line_offsets[right.lineno - 1] + right.col_offset
             token = document[start:end]
 
@@ -157,7 +160,10 @@ class PythonCommaSpaceTokenizer(Tokenizer):
             else:
                 right = right_key
 
-            start = line_offsets[left.end_lineno - 1] + left.end_col_offset
+            start = (
+                line_offsets[left.end_lineno - 1]
+                + left.end_col_offset
+            )
             end = line_offsets[right.lineno - 1] + right.col_offset
             token = document[start:end]
 

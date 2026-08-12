@@ -642,13 +642,30 @@ class JSONValidator:
             return None
 
 
-        should_expand = (
+        should_expand = ( 
             content_len > self._call_max_len
             or content_len + indent_len > self._call_max_line_len
             or len(all_args) > self._call_max_args
             or (any(self._is_kwarg_str(a) for a in all_args) and len(all_args) > self._call_max_args_kw)
             or self._any_arg_is_expanded(node)
         )
+        # OUTPUT:
+        # {
+        #     "is_authorized": true,
+        #     "grant": {
+        #         "effect": "allow",
+        #         "actions": [
+        #             "Balloon:Read",
+        #             "pop"
+        #         ],
+        #         "query": "contains(request.identities.User[0].role, 'admin')",
+        #         "equality": true,
+        #         "data": {}
+        #     },
+        #     "message": "An allow grant is applicable to the request, and there are no deny grants that are applicable to the request. Therefore, the request is authorized.",
+        #     "error": null
+        # }
+        # ✅ Access granted!
 
         if (
             not emitted
@@ -696,7 +713,7 @@ batch_request_schema = {
             "items": {
                 "type": "object",
                 "additionalProperties": False,
-                "required": [],
+                "required": [], # hello there
                 "properties": {
                     "identities": _request_identities_schema | {
                         "type": [
@@ -738,3 +755,53 @@ if result['is_authorized'] is True:
     print("✅ Access granted!")
 else:
     print("❌ Access denied!")
+# OUTPUT:
+# {
+#     "is_authorized": true,
+#     "grant": {
+#         "effect": "allow",
+#         "actions": [
+#             "Balloon:Read",
+#             "pop"
+#         ],
+#         "query": "contains(request.identities.User[0].role, 'admin')",
+#         "equality": true,
+#         "data": {}
+#     },
+#     "message": "An allow grant is applicable to the request, and there are no deny grants that are applicable to the request. Therefore, the request is authorized.",
+#     "error": null
+# }
+# ✅ Access granted!
+
+thing = len("alskdfjksdjf") + len("slkdfjsldkfj") + len("slkdfjslkdfjskdkdfjdk")
+thing = my_func_call(this="2dlkfjsdf", that={"hello": "there"}) + len("slkdfjdlkf")
+thing = jsonschema_rs.validator_for(resource_def['schema']).is_valid(request['resource']) + len("slkdfjdlkf")
+thing = len("alskdfjksdjf") + len("slkdfjsld") + len("")
+thing = len("") + len("kfj") + len("jdf") + len("fj")
+thing = len("") + len("") + len("") + len("") + len("")
+if len("alskdfjksdjf") + len("slkdfjsldkfj") + len("slkdfjslkdfjskdkdfjdk") == 100:
+    print("long!")
+
+thing = (
+    5
+    == 4
+)
+thing =my_long_call(
+    thing="that",
+    this="slkdfjsldfk",
+    there=4
+) + my_other_long_call(thing="slkdfjlsdfj", that=23434, there="aalskjdfsdlfkj")== 100
+if my_long_call(
+    thing="that",
+    this="slkdfjsldfk",
+    there=4
+) == my_other_long_call(
+    thing="slkdfjlsdfj",
+    that=23434,
+    there="aalskjdfsdlfkj"
+):
+    print("I got here")
+class CustomFunctions(jmespath.functions.Functions):
+    @jmespath.functions.signature({'types': ['number']}, {'types': ['number']})
+    def _func_my_add(self, x, y):
+        return x + y

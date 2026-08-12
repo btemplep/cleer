@@ -104,7 +104,10 @@ class PythonTypeHintTokenizer(Tokenizer):
             return
 
         start = line_offsets[annotation.lineno - 1]
-        end = line_offsets[annotation.end_lineno - 1] + annotation.end_col_offset
+        end = (
+            line_offsets[annotation.end_lineno - 1]
+            + annotation.end_col_offset
+        )
 
         if end > len(document):
             return

@@ -95,7 +95,10 @@ class PythonDictKeyQuoteTokenizer(Tokenizer):
             if end_lineno is None or end_col_offset is None:
                 continue
 
-            start_index = line_offsets[slice_node.lineno - 1] + slice_node.col_offset
+            start_index = (
+                line_offsets[slice_node.lineno - 1]
+                + slice_node.col_offset
+            )
             end_index = line_offsets[end_lineno - 1] + end_col_offset
             token = document[start_index:end_index]
 

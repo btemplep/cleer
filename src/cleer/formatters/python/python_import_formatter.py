@@ -144,7 +144,10 @@ class PythonImportFormatter(Formatter):
 
         trailing = "\n\n"
         stripped_end = token.rstrip(" \t")
-        trailing_newlines = len(stripped_end) - len(stripped_end.rstrip("\n"))
+        trailing_newlines = (
+            len(stripped_end)
+            - len(stripped_end.rstrip("\n"))
+        )
         if trailing_newlines > 2:
             trailing = "\n" * trailing_newlines
 

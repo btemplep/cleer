@@ -280,6 +280,13 @@ class PythonFunctionBoundaryTokenizer(Tokenizer):
             else:
                 break
 
+        if (
+            blank_end_idx < len(lines)
+            and lines[blank_end_idx].strip()
+            and lines[blank_end_idx].lstrip().startswith("#")
+        ):
+            return None
+
         start_offset = line_offsets[prev_end_idx]
         end_offset = line_offsets[blank_end_idx]
         token = document[start_offset:end_offset]

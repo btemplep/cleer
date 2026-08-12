@@ -127,7 +127,11 @@ class PythonKwargsSpaceTokenizer(Tokenizer):
                 )
 
         if args.posonlyargs:
-            num_pos_defaults = len(args.defaults) - len(args.args) + len(args.posonlyargs)
+            num_pos_defaults = (
+                len(args.defaults)
+                - len(args.args)
+                + len(args.posonlyargs)
+            )
             if num_pos_defaults > 0:
                 pos_defaults = args.defaults[:num_pos_defaults]
                 pos_args = args.posonlyargs[-num_pos_defaults:]
@@ -153,7 +157,10 @@ class PythonKwargsSpaceTokenizer(Tokenizer):
         if arg.end_lineno != default.lineno:
             return
 
-        start = line_offsets[arg.end_lineno - 1] + arg.end_col_offset
+        start = (
+            line_offsets[arg.end_lineno - 1]
+            + arg.end_col_offset
+        )
         end = line_offsets[default.lineno - 1] + default.col_offset
         token = document[start:end]
 

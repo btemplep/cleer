@@ -84,8 +84,14 @@ class PythonColonSpaceTokenizer(Tokenizer):
         if node.target.end_lineno != node.annotation.lineno:
             return
 
-        start = line_offsets[node.target.end_lineno - 1] + node.target.end_col_offset
-        end = line_offsets[node.annotation.lineno - 1] + node.annotation.col_offset
+        start = (
+            line_offsets[node.target.end_lineno - 1]
+            + node.target.end_col_offset
+        )
+        end = (
+            line_offsets[node.annotation.lineno - 1]
+            + node.annotation.col_offset
+        )
         token = document[start:end]
 
         if token == ": ":
@@ -114,7 +120,10 @@ class PythonColonSpaceTokenizer(Tokenizer):
             return
 
         start = line_offsets[node.lineno - 1] + arg_name_end_col
-        end = line_offsets[node.annotation.lineno - 1] + node.annotation.col_offset
+        end = (
+            line_offsets[node.annotation.lineno - 1]
+            + node.annotation.col_offset
+        )
         token = document[start:end]
 
         if token == ": ":
@@ -144,7 +153,10 @@ class PythonColonSpaceTokenizer(Tokenizer):
             if key.end_lineno != value.lineno:
                 continue
 
-            start = line_offsets[key.end_lineno - 1] + key.end_col_offset
+            start = (
+                line_offsets[key.end_lineno - 1]
+                + key.end_col_offset
+            )
             end = line_offsets[value.lineno - 1] + value.col_offset
             token = document[start:end]
 

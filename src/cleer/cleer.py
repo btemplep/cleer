@@ -427,7 +427,11 @@ class Cleer:
                             token = formatter.format(token)
 
                         index = tr['index'] + start_difference
-                        document = document[:index] + token + document[index + tr['length']:]
+                        document = (
+                            document[:index]
+                            + token
+                            + document[index + tr['length']:]
+                        )
                         start_difference += len(token) - tr['length']
 
                 if formatting['document'] is None:

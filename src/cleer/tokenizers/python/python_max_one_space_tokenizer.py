@@ -53,7 +53,8 @@ class PythonMaxOneSpaceTokenizer(Tokenizer):
 
         string_ranges = self._collect_string_ranges(tree, document)
         indent_ranges = self._collect_indent_ranges(document)
-        excluded = indent_ranges + string_ranges
+        comment_ranges = self._collect_comment_ranges(document)
+        excluded = indent_ranges + string_ranges + comment_ranges
         excluded.sort()
 
         tokens = []
@@ -108,6 +109,32 @@ class PythonMaxOneSpaceTokenizer(Tokenizer):
         return ranges
 
 
+    def _collect_comment_ranges(self, document: str) -> list[tuple[int, int]]:
+        import tokenize
+        import io
+
+        ranges = []
+        line_offsets = self._build_line_offsets(document)
+
+        try:
+            tokens = tokenize.generate_tokens(io.StringIO(document).readline)
+            for tok in tokens:
+                if tok.type == tokenize.COMMENT:
+                    start_line = tok.start[0] - 1
+                    start_col = tok.start[1]
+                    comment_start = line_offsets[start_line] + start_col
+                    end_of_line = document.find("\n", comment_start)
+                    if end_of_line == -1:
+                        end_of_line = len(document)
+
+                    ranges.append((comment_start, end_of_line))
+
+        except tokenize.TokenError:
+            pass
+
+        return ranges
+
+
     def _collect_string_ranges(
         self,
         tree: ast.Module,
@@ -123,7 +150,10 @@ class PythonMaxOneSpaceTokenizer(Tokenizer):
                 and isinstance(node.value, str)
             ):
                 start = line_offsets[node.lineno - 1] + node.col_offset
-                end = line_offsets[node.end_lineno - 1] + node.end_col_offset
+                end = (
+                    line_offsets[node.end_lineno - 1]
+                    + node.end_col_offset
+                )
                 ranges.append((start, end))
             elif isinstance(node, ast.JoinedStr):
                 if (
@@ -131,7 +161,10 @@ class PythonMaxOneSpaceTokenizer(Tokenizer):
                     and node.end_col_offset is not None
                 ):
                     start = line_offsets[node.lineno - 1] + node.col_offset
-                    end = line_offsets[node.end_lineno - 1] + node.end_col_offset
+                    end = (
+                        line_offsets[node.end_lineno - 1]
+                        + node.end_col_offset
+                    )
                     ranges.append((start, end))
 
             elif (
@@ -141,7 +174,10 @@ class PythonMaxOneSpaceTokenizer(Tokenizer):
                 and node.end_col_offset is not None
             ):
                 start = line_offsets[node.lineno - 1] + node.col_offset
-                end = line_offsets[node.end_lineno - 1] + node.end_col_offset
+                end = (
+                    line_offsets[node.end_lineno - 1]
+                    + node.end_col_offset
+                )
                 ranges.append((start, end))
 
         return ranges

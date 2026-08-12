@@ -117,7 +117,11 @@ class PythonAllPresenceFormatter(Formatter):
         after = lines[insert_after_line:]
 
         if before:
-            result = "\n".join(before) + "\n\n__all__ = []\n\n" + "\n".join(after)
+            result = (
+                "\n".join(before)
+                + "\n\n__all__ = []\n\n"
+                + "\n".join(after)
+            )
         else:
             result = "__all__ = []\n\n" + "\n".join(after)
 

@@ -18,7 +18,10 @@ class JSONFormatter(Formatter):
 
 
     def inspect(self, token: str) -> list[FormatterViolation]:
-        if token != json.dumps(json.loads(token), indent=self._indent):
+        if (
+            token
+            != json.dumps(json.loads(token), indent=self._indent)
+        ):
             return [
                 {
                     "start_index": 0,
