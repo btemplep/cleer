@@ -3620,6 +3620,15 @@ class PythonPairedPunctuationFormatter(Formatter):
                 if self._node_has_content(arg):
                     return True
 
+            if isinstance(arg, ast.Tuple):
+                if len(arg.elts) > 1:
+                    try:
+                        unparsed = ast.unparse(arg)
+                        if len(unparsed) > self._lst_max_len:
+                            return True
+                    except Exception:
+                        pass
+
             if isinstance(arg, ast.Call):
                 inner_args = arg.args + [kw.value for kw in arg.keywords]
                 if len(inner_args) > 1:
@@ -3629,6 +3638,15 @@ class PythonPairedPunctuationFormatter(Formatter):
             if isinstance(kw.value, (ast.Dict, ast.List, ast.Set)):
                 if self._node_has_content(kw.value):
                     return True
+
+            if isinstance(kw.value, ast.Tuple):
+                if len(kw.value.elts) > 1:
+                    try:
+                        unparsed = ast.unparse(kw.value)
+                        if len(unparsed) > self._lst_max_len:
+                            return True
+                    except Exception:
+                        pass
 
         return False
 

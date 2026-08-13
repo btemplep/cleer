@@ -57,6 +57,15 @@ class PythonMaxOneSpaceTokenizer(Tokenizer):
         excluded = indent_ranges + string_ranges + comment_ranges
         excluded.sort()
 
+        merged = []
+        for ex_start, ex_end in excluded:
+            if merged and ex_start <= merged[-1][1]:
+                merged[-1] = (merged[-1][0], max(merged[-1][1], ex_end))
+            else:
+                merged.append((ex_start, ex_end))
+
+        excluded = merged
+
         tokens = []
 
         for match in self._multi_space.finditer(document):
@@ -83,13 +92,25 @@ class PythonMaxOneSpaceTokenizer(Tokenizer):
         end: int,
         excluded: list[tuple[int, int]]
     ) -> bool:
-        """Check if a range overlaps with any excluded range."""
-        for ex_start, ex_end in excluded:
+        """Check if a range is contained within any excluded range.
+
+        Uses binary search. Requires `excluded` to be sorted and merged
+        (no overlapping ranges).
+        """
+        lo = 0
+        hi = len(excluded)
+
+        while lo < hi:
+            mid = (lo + hi) // 2
+            if excluded[mid][1] <= start:
+                lo = mid + 1
+            else:
+                hi = mid
+
+        if lo < len(excluded):
+            ex_start, ex_end = excluded[lo]
             if start >= ex_start and end <= ex_end:
                 return True
-
-            if ex_start > end:
-                break
 
         return False
 

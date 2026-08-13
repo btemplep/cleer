@@ -1,5 +1,9 @@
 """See :class:`PythonSyntaxValidator`."""
 
+__all__ = [
+    "PythonSyntaxValidator"
+]
+
 import ast
 
 from cleer.validators.validator import Validator

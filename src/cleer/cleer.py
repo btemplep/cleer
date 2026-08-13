@@ -88,13 +88,25 @@ class Cleer:
         file_path: pathlib.Path,
         patterns: list[str]
     ) -> str | None:
+        file_str = str(file_path)
+        try:
+            relative_str = str(file_path.relative_to(pathlib.Path.cwd()))
+        except ValueError:
+            relative_str = None
+
         for pattern in patterns:
             regex = glob_to_regex(
                 pattern=pattern,
                 recursive=True,
                 include_hidden=True
             )
-            if re.match(regex, str(file_path)) is not None:
+            if (
+                re.match(regex, file_str) is not None
+                or (
+                    relative_str is not None
+                    and re.match(regex, relative_str) is not None
+                )
+            ):
                 return pattern
 
         return None

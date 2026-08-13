@@ -802,6 +802,9 @@ if my_long_call(
 ):
     print("I got here")
 class CustomFunctions(jmespath.functions.Functions):
+    """
+    result = formatter.format("   ")
+    """
     @jmespath.functions.signature({'types': ['number']}, {'types': ['number']})
     def _func_my_add(self, x, y):
         return x + y

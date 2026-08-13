@@ -1099,6 +1099,9 @@ if (
 
 
 class CustomFunctions(jmespath.functions.Functions):
+    """
+    result = formatter.format("   ")
+    """
 
 
     @jmespath.functions.signature(

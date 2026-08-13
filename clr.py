@@ -10,7 +10,7 @@ clr = Cleer(
         excludes=[
             "**/.nox/**",
             "**/tests/unit/fixtures/format_*.py",
-            "**format_bad.py"
+            # "**/format_bad.py"
             # "**/format_good.py"
         ]
     )
