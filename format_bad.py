@@ -1106,3 +1106,5 @@ class ComplexProcessor(BaseProcessor, CacheMixin):
             raise ValueError(f"Invalid results: {len(results)} items, max_items={self.max_items}")
 
         return {"success": [r for r in results if r["values"]], "empty": [r for r in results if not r["values"]], "metadata": {"total": len(results), "config": self.default_config}}
+
+_context_type_schema = _type_schema | {"title": "Authzee Context Type", "description": "A unique name to identity this context type."}

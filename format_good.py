@@ -1711,3 +1711,12 @@ class ComplexProcessor(BaseProcessor, CacheMixin):
                 "config": self.default_config
             }
         }
+
+
+_context_type_schema = (
+    _type_schema
+    | {
+        "title": "Authzee Context Type",
+        "description": "A unique name to identity this context type."
+    }
+)

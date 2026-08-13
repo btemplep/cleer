@@ -3288,13 +3288,14 @@ class PythonPairedPunctuationFormatter(Formatter):
                 if close_idx is not None and inner_lines:
                     needs_fix = False
                     paren_depth = 0
+                    brace_depth = 0
                     for j in inner_lines:
                         l = lines[j]
                         l_stripped = l.strip()
                         if not l_stripped:
                             continue
 
-                        if paren_depth == 0:
+                        if paren_depth == 0 and brace_depth == 0:
                             actual = len(l) - len(l.lstrip())
                             if actual != expected_inner:
                                 needs_fix = True
@@ -3302,18 +3303,23 @@ class PythonPairedPunctuationFormatter(Formatter):
 
                         if l_stripped.endswith("("):
                             paren_depth += 1
+                        elif l_stripped.endswith("{"):
+                            brace_depth += 1
 
                         if l_stripped in (")", "),"):
                             paren_depth -= 1
+                        elif l_stripped in ("}", "},"):
+                            brace_depth -= 1
 
                     if needs_fix:
                         result.append(line)
                         paren_depth = 0
+                        brace_depth = 0
                         for j in inner_lines:
                             l = lines[j]
                             l_stripped = l.strip()
 
-                            if paren_depth > 0:
+                            if paren_depth > 0 or brace_depth > 0:
                                 result.append(l)
                             elif l_stripped:
                                 result.append(" " * expected_inner + l.lstrip())
@@ -3322,9 +3328,13 @@ class PythonPairedPunctuationFormatter(Formatter):
 
                             if l_stripped.endswith("("):
                                 paren_depth += 1
+                            elif l_stripped.endswith("{"):
+                                brace_depth += 1
 
                             if l_stripped in (")", "),"):
                                 paren_depth -= 1
+                            elif l_stripped in ("}", "},"):
+                                brace_depth -= 1
 
                         result.append(lines[close_idx])
                         i = close_idx + 1
