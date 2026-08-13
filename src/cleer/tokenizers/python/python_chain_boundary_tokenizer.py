@@ -83,7 +83,14 @@ class PythonChainBoundaryTokenizer(Tokenizer):
                     tokens,
                     seen
                 )
-            elif isinstance(node, (ast.For, ast.AsyncFor, ast.While)):
+            elif isinstance(
+                node,
+                (
+                    ast.For,
+                    ast.AsyncFor,
+                    ast.While
+                )
+            ):
                 self._check_for_while_else(
                     node,
                     document,

@@ -84,7 +84,13 @@ class PythonPairedPunctuationTokenizer(Tokenizer):
 
             emitted = False
 
-            if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            if isinstance(
+                child,
+                (
+                    ast.FunctionDef,
+                    ast.AsyncFunctionDef
+                )
+            ):
                 if (
                     child.args.args
                     or child.args.posonlyargs

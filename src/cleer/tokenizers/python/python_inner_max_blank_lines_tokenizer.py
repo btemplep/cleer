@@ -157,7 +157,13 @@ class PythonInnerMaxBlankLinesTokenizer(Tokenizer):
                 class_ranges.append((start_offset, end_offset))
 
         for node in ast.walk(tree):
-            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            if not isinstance(
+                node,
+                (
+                    ast.FunctionDef,
+                    ast.AsyncFunctionDef
+                )
+            ):
                 continue
 
             if not node.body:

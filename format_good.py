@@ -1118,3 +1118,596 @@ class CustomFunctions(jmespath.functions.Functions):
     )
     def _func_my_add(self, x, y):
         return x + y
+
+
+my_set = {1}
+my_set2 = {1, 2}
+long_set = {
+    "hello_there",
+    "how_are_you",
+    "doing_today"
+}
+nested_set = [
+    {
+        "alpha",
+        "beta"
+    },
+    {
+        "gamma",
+        "delta"
+    }
+]
+frozen = frozenset(
+    {
+        "thing_one",
+        "thing_two",
+        "thing_three"
+    }
+)
+
+
+while (
+    condition_a is True
+    or condition_b is True
+    or condition_c is True
+):
+    print("looping")
+
+while x < 10 and y < 20:
+    x += 1
+
+while (
+    some_long_variable_name is True
+    and another_long_variable_name is True
+    and yet_another_variable is True
+):
+    break
+
+while (
+    counter
+    + offset
+    + padding
+    + margin
+    > maximum_allowed_value
+):
+    counter -= 1
+
+
+should_run = x > 0 and y > 0
+should_stop = (
+    error_count > max_errors
+    or timeout_reached is True
+    or user_cancelled is True
+)
+is_valid = (
+    has_name is True
+    and has_email is True
+    and (is_admin is True or has_permission is True)
+)
+
+
+config['settings'] = "value"
+config['settings']['nested'] = "deep"
+result['errors']['locality_check'] = some_function(arg1, arg2)
+my_dict[compute_key(param1, param2, param3)] = "computed"
+
+
+@decorator_one
+@decorator_two
+@decorator_three(
+    param="value",
+    other="thing",
+    more="stuff"
+)
+def multi_decorated():
+    pass
+
+
+@app.route("/api/v1/endpoint")
+@requires_auth
+@rate_limit(max_calls=100, period=60)
+class DecoratedClass:
+    """Decorated class."""
+    pass
+
+
+my_lambda = lambda x: x + 1
+sorter = lambda item: item.get("priority", 0)
+transform = lambda x, y, z: x * y + z
+items.sort(key=lambda x: x.name)
+filtered = filter(lambda x: x > 0 and x < 100, numbers)
+
+
+first, *rest = my_list
+a, b, *remaining = get_values(
+    source="database",
+    timeout=30,
+    retries=3
+)
+merged = {
+    **defaults,
+    **overrides,
+    "extra": "value"
+}
+result = my_func(*args, **kwargs)
+combined = [
+    *list_one,
+    *list_two,
+    "extra"
+]
+
+
+try:
+    result = do_something()
+except ValueError as exc:
+    handle_error(exc)
+except (TypeError, KeyError):
+    handle_other()
+finally:
+    cleanup()
+
+try:
+    data = fetch_data(
+        url="https://example.com",
+        timeout=30,
+        headers={
+            "Authorization": "Bearer token"
+        }
+    )
+except requests.Timeout:
+    retry()
+except requests.HTTPError as exc:
+    log_error(message=str(exc), code=exc.response.status_code)
+else:
+    process(data)
+finally:
+    close_connection()
+
+
+with open("file.txt") as f:
+    content = f.read()
+
+with open("file.txt", "r") as f, open("out.txt", "w") as out:
+    out.write(f.read())
+
+with database.transaction(
+    isolation="serializable",
+    timeout=30,
+    retries=3
+) as txn:
+    txn.execute("SELECT 1")
+
+
+match command:
+    case "quit":
+        quit_game()
+    case "go" | "move":
+        do_move()
+    case _:
+        print("unknown")
+
+match point:
+    case (0, 0):
+        print("origin")
+    case (x, 0):
+        print(f"x={x}")
+    case (0, y):
+        print(f"y={y}")
+    case (x, y):
+        print(f"x={x}, y={y}")
+
+
+squares = [x ** 2 for x in range(10)]
+evens = [x for x in numbers if x % 2 == 0]
+mapping = {k: v for k, v in items.items() if v is not None}
+unique = {item.name for item in collection if item.active}
+total = sum(x.value for x in items if x.category == "primary")
+nested_comp = [item for sublist in matrix for item in sublist if item > 0]
+long_comp = [transform_function(item) for item in get_all_items_from_source() if item.is_valid()]
+
+
+def positional_only(
+    x: int,
+    y: int,
+    /,
+    z: int=0
+) -> int:
+    return x + y + z
+
+
+def keyword_only(
+    *,
+    name: str,
+    value: int,
+    default: bool=False
+) -> dict:
+    return {
+        "name": name,
+        "value": value
+    }
+
+
+def mixed_params(
+    pos_only: int,
+    /,
+    normal: str,
+    *args,
+    kw_only: bool=True,
+    **kwargs
+) -> None:
+    pass
+
+
+def short_star(
+    x,
+    /,
+    y,
+    *,
+    z
+):
+    return x + y + z
+
+
+class SimpleChild(BaseClass):
+    pass
+
+
+class MultiInherit(BaseOne, BaseTwo, BaseThree):
+    pass
+
+
+class WithMetaclass(BaseClass, metaclass=ABCMeta):
+    pass
+
+
+class LongInheritance(VeryLongBaseClassName, AnotherLongBaseClassName, ThirdBaseClassName, metaclass=CustomMetaclass):
+    """Class with many bases."""
+    pass
+
+
+assert x > 0
+assert result is not None, "Result should not be None"
+assert len(items) > 0, "Items list must not be empty after processing the input data from source"
+assert isinstance(value, str), f"Expected str, got {type(value).__name__}"
+
+
+counter += 1
+total += item.value
+message += "short"
+long_accumulator += first_long_value + second_long_value + third_long_value
+result -= overhead_cost + maintenance_fee + depreciation_amount
+buffer += chunk_one + chunk_two
+
+
+simple_f = f"Hello {name}"
+complex_f = f"Result: {obj.method(arg1, arg2)}"
+nested_f = f"Value: {data['key']}"
+multipart_f = f"{prefix}{separator}{suffix}"
+conditional_f = f"Status: {'active' if is_active else 'inactive'}"
+formatted_f = f"Price: ${amount:.2f}"
+long_fstring = f"The {item_type} with id={item_id} has status={status} and was last updated at {timestamp}"
+
+
+in_range = 0 < x < 100
+valid = 0 <= index < len(items)
+bounded = lower <= value <= upper
+if 0 < x < 10 and 0 < y < 10:
+    print("in bounds")
+
+
+value = "yes" if condition else "no"
+result = compute_a() if flag else compute_b()
+default = config.get("key") if config else None
+items = get_cached_items() if cache_valid else fetch_fresh_items()
+
+
+def simple_gen():
+    yield 1
+
+
+def multi_gen():
+    for item in source:
+        processed = transform(item)
+
+        yield processed
+
+    return None
+
+
+def yield_from_gen():
+    items = range(10)
+
+    yield from items
+
+    yield from other_generator(param1="value", param2="other")
+
+    return "done"
+
+
+def outer():
+    counter = 0
+
+    def inner():
+        nonlocal counter
+        counter += 1
+
+        return counter
+
+    return inner
+
+
+offset = (
+    calculate_base(x=start_pos, y=end_pos)
+    + calculate_adjustment(factor=scale, offset=margin)
+)
+is_match = normalize(input_text) == normalize(expected_text)
+
+
+short_call(a, b)
+medium_call(a, b, c, d)
+kwargs_call(key="val")
+mixed_short(a, key="val")
+mixed_expand(
+    first_arg,
+    second_arg,
+    keyword_one="value_one",
+    keyword_two="value_two"
+)
+all_kwargs_expand(
+    alpha="first",
+    beta="second",
+    gamma="third"
+)
+
+
+empty_structures = ([], {}, set(), ())
+single_items = ([1], {"k": "v"}, {1}, (1,))
+
+nested_in_if = (
+    isinstance(node, ast.Call)
+    and len(node.args) > 0
+    and any(isinstance(a, ast.Starred) for a in node.args)
+)
+
+long_method_chain = queryset.filter(
+    active=True
+).exclude(
+    deleted=True
+).order_by(
+    "-created"
+).select_related(
+    "author"
+)
+
+dict_with_calls = {
+    "computed": compute_value(input_data, transform="normalize"),
+    "static": "hello",
+    "nested": {
+        "inner": get_inner(key="test")
+    }
+}
+
+multiline_return_dict = {
+    "status": "success",
+    "data": process_response(
+        raw_data,
+        format="json",
+        validate=True
+    ),
+    "metadata": {
+        "timestamp": now(),
+        "version": "1.0"
+    }
+}
+
+
+result = (
+    my_func(
+        arg1,
+        arg2,
+        kwarg1="value1",
+        kwarg2="value2"
+    )
+    + other_func(
+        x,
+        y,
+        z,
+        key="thing"
+    )
+    == expected_val
+)
+
+if (
+    (
+        some_condition is True
+        or other_condition is True
+    )
+    and validate(
+        input_data,
+        schema={
+            "type": "object",
+            "required": [
+                "name",
+                "age"
+            ]
+        }
+    ) is True
+):
+    print("valid")
+
+config = {
+    "handlers": [
+        create_handler(
+            name="stdout",
+            level="DEBUG",
+            formatter=build_formatter(style="json", indent=4)
+        )
+    ],
+    "loggers": {
+        "root": {
+            "level": "INFO",
+            "handlers": [
+                "stdout"
+            ]
+        }
+    }
+}
+
+response = client.post(
+    "/api/v1/users",
+    json={
+        "name": "test",
+        "email": "test@example.com",
+        "roles": [
+            "admin",
+            "user"
+        ]
+    },
+    headers={
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+)
+
+pipeline = data.filter(
+    lambda x: x > 0
+).map(
+    lambda x: x * 2
+).reduce(
+    lambda acc, x: acc + x,
+    0
+)
+
+nested_comp_result = {key: [transform(item, config={"mode": "fast"}) for item in values] for key, values in grouped_data.items() if len(values) > threshold}
+
+
+def process_batch(
+    items: list[dict[str, str | int | None]],
+    config: dict[str, dict[str, list[str]]] | None=None,
+    callback: Callable[[dict], bool] | None=None
+) -> dict[str, list[dict[str, Any]]]:
+    pass
+
+
+class EventHandler(BaseHandler, LoggingMixin, metaclass=ABCMeta):
+    """Handler."""
+    pass
+
+
+result = (func_a(
+    x=1,
+    y=2,
+    z=3
+) if condition_alpha and condition_beta else func_b(
+    a="hello",
+    b="world",
+    c="test"
+))
+
+while (
+    not queue.empty()
+    and (
+        time.time() - start_time < timeout
+        or force_continue is True
+    )
+):
+    item = queue.get()
+
+try:
+    result = await asyncio.gather(
+        *[process_item(item, config={"timeout": 30, "retries": 3}) for item in batch]
+    )
+except (
+    asyncio.TimeoutError,
+    ConnectionError
+) as exc:
+    log_error(
+        message=f"Batch failed: {exc}",
+        context={
+            "batch_size": len(batch),
+            "elapsed": time.time() - start
+        }
+    )
+    raise
+
+
+def complex_function():
+    validated = schema.validate(
+        data={
+            "users": [{"name": n, "age": a} for n, a in zip(names, ages)],
+            "config": {
+                "strict": True,
+                "mode": "batch"
+            }
+        },
+        options={
+            "raise_on_error": True,
+            "collect_errors": False
+        }
+    )
+
+    if (
+        (
+            isinstance(node, ast.FunctionDef)
+            or isinstance(node, ast.AsyncFunctionDef)
+        )
+        and hasattr(node, "returns")
+        and node.returns is not None
+    ):
+        print("has return type")
+
+    mapping = {k: process(v, transform_fn=lambda x: x.strip().lower(), fallback=get_default(k, config={"env": "production"})) for k, v in raw.items() if v is not None and len(v) > 0}
+
+    result.update(
+        {
+            "processed": True,
+            "output": format_output(
+                data=result['raw'],
+                template=load_template(name="default", version=2),
+                options={
+                    "indent": 4,
+                    "sort_keys": True
+                }
+            )
+        }
+    )
+
+    return {
+        "items": sorted(
+            [{"id": item.id, "name": item.name, "score": calculate_score(item, weights={"relevance": 0.6, "freshness": 0.3, "popularity": 0.1})} for item in filtered_items],
+            key=lambda x: x['score'],
+            reverse=True
+        ),
+        "total": len(filtered_items)
+    }
+
+
+class ComplexProcessor(BaseProcessor, CacheMixin):
+    """Processor."""
+    default_config: dict = {
+        "timeout": 30,
+        "retries": 3
+    }
+
+
+    def process(
+        self,
+        items: list[dict[str, Any]],
+        callback: Callable[[str, dict], tuple[bool, str | None]] | None=None
+    ) -> dict[str, list[tuple[str, int]]]:
+        results = [{"key": k, "values": [v for v in item[k] if v > self.threshold]} for item in items for k in item if isinstance(item[k], list)]
+
+        if (
+            any(len(r['values']) > self.max_items for r in results)
+            or all(r['values'] == [] for r in results)
+        ):
+            raise ValueError(f"Invalid results: {len(results)} items, max_items={self.max_items}")
+
+        return {
+            "success": [r for r in results if r['values']],
+            "empty": [r for r in results if not r['values']],
+            "metadata": {
+                "total": len(results),
+                "config": self.default_config
+            }
+        }

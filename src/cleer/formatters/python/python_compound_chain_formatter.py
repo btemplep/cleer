@@ -140,7 +140,14 @@ class PythonCompoundChainFormatter(Formatter):
                 self._find_if_boundaries(child, boundaries)
             elif isinstance(child, ast.Try):
                 self._find_try_boundaries(child, boundaries)
-            elif isinstance(child, (ast.For, ast.AsyncFor, ast.While)):
+            elif isinstance(
+                child,
+                (
+                    ast.For,
+                    ast.AsyncFor,
+                    ast.While
+                )
+            ):
                 if child.orelse:
                     self._find_loop_boundaries(child, boundaries)
 

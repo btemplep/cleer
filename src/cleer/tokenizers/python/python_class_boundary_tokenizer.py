@@ -80,7 +80,13 @@ class PythonClassBoundaryTokenizer(Tokenizer):
                         "length": len(token)
                     }
                 )
-            elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            elif isinstance(
+                node,
+                (
+                    ast.FunctionDef,
+                    ast.AsyncFunctionDef
+                )
+            ):
                 self._walk(node.body, line_offsets, document, results)
 
 

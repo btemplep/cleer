@@ -241,3 +241,18 @@
 
 - [x] Inline generators
     - Always flatten, never expand
+
+- [x] Sets
+    - Same rules as lists
+    - Flatten first
+    - Expand if literal length > lst_max_len (30) or with indent > lst_max_line_len (80)
+
+- [x] Lambdas
+    - Always flatten, never expand
+
+- [x] Comprehensions (list/dict/set/generator)
+    - Always flatten, never expand
+
+- [x] Augmented assignments (`+=`, `-=`, `*=`, etc.)
+    - Right-hand side follows math/comparison expansion rules
+    - Same contexts and thresholds as regular assignments

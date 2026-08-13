@@ -56,7 +56,13 @@ class PythonKwargsSpaceTokenizer(Tokenizer):
         for node in ast.walk(tree):
             if isinstance(node, ast.keyword) and node.arg is not None:
                 self._add_keyword(node, document, line_offsets, tokens)
-            elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            elif isinstance(
+                node,
+                (
+                    ast.FunctionDef,
+                    ast.AsyncFunctionDef
+                )
+            ):
                 self._add_defaults(node, document, line_offsets, tokens)
 
         tokens.sort(key=lambda t: t['index'])

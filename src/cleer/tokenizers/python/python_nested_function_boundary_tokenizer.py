@@ -89,7 +89,13 @@ class PythonNestedFunctionBoundaryTokenizer(Tokenizer):
     ):
         """Walk the AST to find all nested functions and their boundaries."""
         for node in ast.walk(tree):
-            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            if not isinstance(
+                node,
+                (
+                    ast.FunctionDef,
+                    ast.AsyncFunctionDef
+                )
+            ):
                 continue
 
             self._process_body(

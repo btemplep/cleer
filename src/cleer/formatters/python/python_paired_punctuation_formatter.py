@@ -365,7 +365,13 @@ class PythonPairedPunctuationFormatter(Formatter):
                 depth,
                 parent
             )
-        elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+        elif isinstance(
+            node,
+            (
+                ast.FunctionDef,
+                ast.AsyncFunctionDef
+            )
+        ):
             self._add_funcdef(
                 node,
                 document,
@@ -3626,6 +3632,7 @@ class PythonPairedPunctuationFormatter(Formatter):
                         unparsed = ast.unparse(arg)
                         if len(unparsed) > self._lst_max_len:
                             return True
+
                     except Exception:
                         pass
 
@@ -3645,6 +3652,7 @@ class PythonPairedPunctuationFormatter(Formatter):
                         unparsed = ast.unparse(kw.value)
                         if len(unparsed) > self._lst_max_len:
                             return True
+
                     except Exception:
                         pass
 

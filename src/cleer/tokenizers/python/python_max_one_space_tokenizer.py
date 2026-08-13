@@ -60,7 +60,10 @@ class PythonMaxOneSpaceTokenizer(Tokenizer):
         merged = []
         for ex_start, ex_end in excluded:
             if merged and ex_start <= merged[-1][1]:
-                merged[-1] = (merged[-1][0], max(merged[-1][1], ex_end))
+                merged[-1] = (
+                    merged[-1][0],
+                    max(merged[-1][1], ex_end)
+                )
             else:
                 merged.append((ex_start, ex_end))
 

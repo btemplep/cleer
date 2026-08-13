@@ -78,7 +78,13 @@ class PythonCommaSpaceTokenizer(Tokenizer):
                 self._add_dict_commas(node, document, line_offsets, tokens)
             elif isinstance(node, ast.Call):
                 self._add_call_commas(node, document, line_offsets, tokens)
-            elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            elif isinstance(
+                node,
+                (
+                    ast.FunctionDef,
+                    ast.AsyncFunctionDef
+                )
+            ):
                 self._add_funcdef_commas(
                     node,
                     document,

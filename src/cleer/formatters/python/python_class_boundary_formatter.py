@@ -121,9 +121,15 @@ class PythonClassBoundaryFormatter(Formatter):
 
         header_end = self._find_header_end(body)
 
+        class_decl_end = class_line
+        for li in range(class_line, len(lines)):
+            if lines[li].rstrip().endswith(":"):
+                class_decl_end = li
+                break
+
         result = []
 
-        for line_idx in range(0, class_line + 1):
+        for line_idx in range(0, class_decl_end + 1):
             result.append(lines[line_idx])
 
         for i, node in enumerate(body):

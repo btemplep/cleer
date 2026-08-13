@@ -98,7 +98,13 @@ class PythonTrailingCommaTokenizer(Tokenizer):
                     line_offsets,
                     tokens
                 )
-            elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            elif isinstance(
+                node,
+                (
+                    ast.FunctionDef,
+                    ast.AsyncFunctionDef
+                )
+            ):
                 self._check_funcdef_trailing(
                     node,
                     document,

@@ -77,7 +77,13 @@ class PythonBlockStartTokenizer(Tokenizer):
                     seen
                 )
 
-                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                if isinstance(
+                    node,
+                    (
+                        ast.FunctionDef,
+                        ast.AsyncFunctionDef
+                    )
+                ):
                     self._check_after_docstring(
                         node,
                         line_offsets,

@@ -104,7 +104,14 @@ class PythonCompoundChainTokenizer(Tokenizer):
                     seen_ranges
                 )
                 emitted = True
-            elif isinstance(child, (ast.For, ast.AsyncFor, ast.While)):
+            elif isinstance(
+                child,
+                (
+                    ast.For,
+                    ast.AsyncFor,
+                    ast.While
+                )
+            ):
                 if child.orelse:
                     self._emit_simple_chain(
                         child,

@@ -63,7 +63,13 @@ class PythonReturnYieldTokenizer(Tokenizer):
     ):
         """Recursively find top-level functions with return/yield."""
         for node in body:
-            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            if isinstance(
+                node,
+                (
+                    ast.FunctionDef,
+                    ast.AsyncFunctionDef
+                )
+            ):
                 if self._contains_return_yield(node):
                     start = line_offsets[node.lineno - 1]
                     end = self._get_end(node, line_offsets, document)

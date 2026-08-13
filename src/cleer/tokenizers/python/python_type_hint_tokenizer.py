@@ -66,7 +66,13 @@ class PythonTypeHintTokenizer(Tokenizer):
                     tokens
                 )
             elif (
-                isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+                isinstance(
+                    node,
+                    (
+                        ast.FunctionDef,
+                        ast.AsyncFunctionDef
+                    )
+                )
                 and node.returns
             ):
                 self._maybe_add(
