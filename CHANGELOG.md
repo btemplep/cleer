@@ -22,20 +22,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security 
 -->
 
-## [Unreleased] - YYYY-MM-DD
-
-### Added
-
-### Changed
-
-### Deprecated
-
-### Removed
+## [0.1.0a9] - 2026-08-11
 
 ### Fixed
 - bad indent when formatting with `|`
 
-### Security 
 
 ## [0.1.0a8] - 2026-08-10
 
