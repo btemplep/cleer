@@ -21,6 +21,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security 
 -->
+## [0.1.0a11] - 2026-08-xx
+
+### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+- Missing bad indent formatting
+
+### Security 
+
 
 ## [0.1.0a10] - 2026-08-13
 

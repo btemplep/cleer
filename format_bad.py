@@ -1370,3 +1370,70 @@ process_batch = functools.partial(process_items, batch_size=100, timeout=30.0, r
 logging.config.dictConfig({"version": 1, "disable_existing_loggers": False, "formatters": {"standard": {"format": "%(asctime)s [%(levelname)s] %(name)s: %(message)s", "datefmt": "%Y-%m-%d %H:%M:%S"}}, "handlers": {"console": {"class": "logging.StreamHandler", "level": "DEBUG", "formatter": "standard", "stream": "ext://sys.stdout"}, "file": {"class": "logging.handlers.RotatingFileHandler", "level": "INFO", "formatter": "standard", "filename": "app.log", "maxBytes": 10485760, "backupCount": 5}}, "loggers": {"": {"level": "INFO", "handlers": ["console", "file"], "propagate": True}}})
 
 cleanup_tasks = [asyncio.create_task(resource.cleanup(), name=f"cleanup-{resource.name}") for resource in active_resources if resource.state != ResourceState.CLOSED and (resource.age > max_age or resource.error_count > max_errors)]
+batch_results.append(
+    {
+            "results": [],
+            "error": error
+    }
+)
+
+config_indent = create_config(
+    {
+              "host": "localhost",
+              "port": 8080,
+              "debug": True
+    }
+)
+
+items_indent = [
+        "first",
+        "second",
+        "third",
+        "fourth"
+]
+
+data_indent = {
+          "key1": "value1",
+          "key2": "value2",
+          "key3": "value3"
+}
+
+result_indent = my_function(
+         arg1,
+         arg2,
+         kwarg="value"
+)
+
+nested_indent = {
+    "outer": [
+              "inner1",
+              "inner2",
+              "inner3"
+    ]
+}
+
+response_indent = client.post(
+    "/api/endpoint",
+    json={
+               "name": "test",
+               "value": 42
+    }
+)
+
+my_list_indent = [
+      {
+            "id": 1,
+            "name": "first"
+      },
+      {
+            "id": 2,
+            "name": "second"
+      }
+]
+
+def my_func_indent(
+          a,
+          b,
+          c="default"
+):
+    pass

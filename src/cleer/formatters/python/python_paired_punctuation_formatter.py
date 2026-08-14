@@ -699,7 +699,8 @@ class PythonPairedPunctuationFormatter(Formatter):
         end = self._offset(document, node.end_lineno, node.end_col_offset)
 
         is_nested = isinstance(
-            parent, (
+            parent,
+            (
                 ast.Dict,
                 ast.List,
                 ast.Set,
@@ -3904,7 +3905,8 @@ class PythonPairedPunctuationFormatter(Formatter):
 
     def _is_comprehension_node(self, node: ast.AST) -> bool:
         return isinstance(
-            node, (
+            node,
+            (
                 ast.ListComp,
                 ast.SetComp,
                 ast.DictComp,
@@ -4278,6 +4280,15 @@ class PythonPairedPunctuationFormatter(Formatter):
             if line.strip():
                 if not line.startswith(inner_indent):
                     return False
+
+        first_content = next((l for l in lines[1:-1] if l.strip()), None)
+        if (
+            first_content is not None
+            and first_content.startswith(inner_indent)
+            and len(first_content) > len(inner_indent)
+            and first_content[len(inner_indent)] == " "
+        ):
+            return False
 
         if flat_items and len(flat_items) > 1:
             content_lines = [l for l in lines[1:-1] if l.strip()]

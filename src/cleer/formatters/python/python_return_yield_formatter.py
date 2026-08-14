@@ -92,7 +92,8 @@ class PythonReturnYieldFormatter(Formatter):
         func_node = tree.body[0]
 
         if not isinstance(
-            func_node, (
+            func_node,
+            (
                 ast.FunctionDef,
                 ast.AsyncFunctionDef
             )
