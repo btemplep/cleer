@@ -184,7 +184,11 @@ class PythonIndentFormatter(Formatter):
         """Walk an AST node, recording indent levels for each line."""
         if hasattr(node, "lineno"):
             line_idx = node.lineno - 1
-            indent_map[line_idx] = depth
+            if (
+                line_idx not in indent_map
+                or depth < indent_map[line_idx]
+            ):
+                indent_map[line_idx] = depth
 
         if hasattr(node, "decorator_list"):
             for decorator in node.decorator_list:

@@ -341,7 +341,7 @@ class PythonCommaSpaceTokenizer(Tokenizer):
                     args.vararg.end_lineno,
                     args.vararg.end_col_offset,
                     args.vararg.lineno,
-                    args.vararg.col_offset
+                    args.vararg.col_offset - 1
                 )
             )
 
@@ -351,7 +351,7 @@ class PythonCommaSpaceTokenizer(Tokenizer):
                     args.kwarg.end_lineno,
                     args.kwarg.end_col_offset,
                     args.kwarg.lineno,
-                    args.kwarg.col_offset
+                    args.kwarg.col_offset - 2
                 )
             )
 
