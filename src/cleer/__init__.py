@@ -9,7 +9,7 @@ results = clr.format("src/")
 ```
 """
 
-__version__ = "0.1.0a10"
+__version__ = "0.1.0a11"
 
 __all__ = [
     "Cleer",

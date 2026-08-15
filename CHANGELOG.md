@@ -23,18 +23,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -->
 ## [0.1.0a11] - 2026-08-xx
 
-### Added
-
-### Changed
-
-### Deprecated
-
-### Removed
+## Changed 
+- Switched to pyproject.toml only
 
 ### Fixed
 - Missing bad indent formatting
-
-### Security 
+- Violation for empty __all__
 
 
 ## [0.1.0a10] - 2026-08-13

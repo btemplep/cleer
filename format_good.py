@@ -2461,3 +2461,141 @@ def my_func_indent(
     c="default"
 ):
     pass
+
+
+__all_test__ = ["Zebra", "Apple", "Mango"]
+
+
+class TaskRunner:
+    """Runner."""
+
+
+    def run(self, task: str, **options) -> bool: ...
+
+
+    def cancel(self, task_id: int, *, force: bool=False) -> None: ...
+
+
+    def status(self, task_id: int) -> str: ...
+
+
+schema_merge = (
+    base_schema
+    | {
+        "required": [
+            "name",
+            "email",
+            "age"
+        ],
+        "properties": {
+            "name": {
+                "type": "string",
+                "minLength": 1
+            },
+            "email": {
+                "type": "string",
+                "format": "email"
+            },
+            "age": {
+                "type": "integer",
+                "minimum": 0
+            }
+        }
+    }
+)
+
+updated_config = (
+    default_config
+    | user_config
+    | {
+        "override": True,
+        "timestamp": time.time()
+    }
+)
+
+
+class Handler:
+    """Handler."""
+
+
+    def handle(
+        self,
+        event: str,
+        *args,
+        callback: Callable[..., None] | None=None,
+        **kwargs
+    ) -> None:
+        pass
+
+
+    def register(
+        self,
+        name: str,
+        handler: Callable[..., Any],
+        *,
+        priority: int=0,
+        **metadata
+    ) -> "Handler":
+        pass
+
+
+result_indent2 = result.copy()
+result_indent2.update(
+    {
+        "status": "complete",
+        "items": processed,
+        "metadata": {
+            "count": len(processed),
+            "elapsed": time.time() - start
+        }
+    }
+)
+
+response_indent2 = make_response(
+    data={
+        "users": filtered_users,
+        "pagination": {
+            "page": page,
+            "per_page": per_page,
+            "total": total_count
+        }
+    },
+    status=200
+)
+
+cache.set(
+    key,
+    {
+        "value": computed_result,
+        "expires": time.time() + ttl,
+        "tags": [
+            "user",
+            "profile"
+        ]
+    },
+    timeout=ttl
+)
+
+merged_perms = (
+    base_permissions
+    | role_permissions
+    | {
+        "admin": user.is_superuser,
+        "audit": user.has_perm("audit")
+    }
+)
+
+full_config = (
+    default_settings
+    | environment_overrides
+    | {
+        "debug": os.environ.get("DEBUG", "false").lower() == "true",
+        "version": __version__
+    }
+)
+
+
+def keyword_only_func(a, b, /, c, *, d=1, e=2): pass
+
+
+def only_keywords(*, name: str, value: int, flag: bool=False): pass

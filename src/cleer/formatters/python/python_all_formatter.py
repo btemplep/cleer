@@ -148,9 +148,9 @@ class PythonAllFormatter(Formatter):
         prefix = "\n" if leading_newline else ""
 
         if not items:
-            return f"{prefix}__all__ = []\n\n"
+            return f"{prefix}__all__ = []\n"
 
         lines = [f"    {q}{item}{q}" for item in items]
         items_str = ",\n".join(lines)
 
-        return f"{prefix}__all__ = [\n{items_str}\n]\n\n"
+        return f"{prefix}__all__ = [\n{items_str}\n]\n"
