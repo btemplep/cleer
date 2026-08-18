@@ -34,7 +34,7 @@ class Cleer:
 
     Examples
     --------
-    ``ython
+    ``python
     import pathlib
 
     from cleer import Cleer, LineTokenizer, TrailingWhitespaceFormatter
@@ -104,7 +104,10 @@ class Cleer:
                 re.match(regex, file_str) is not None
                 or (
                     relative_str is not None
-                    and re.match(regex, relative_str) is not None
+                    and (
+                        re.match(regex, relative_str) is not None
+                        or re.match(regex, f"./{relative_str}") is not None
+                    )
                 )
             ):
                 return pattern

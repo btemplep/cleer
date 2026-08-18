@@ -287,7 +287,7 @@ def config_default():
     }
 
 logger.debug(
-    f"Python Packages: {python_packages}\n"
+        f"Python Packages: {python_packages}\n"
     f"Internal Python Packages: {python_internal_packages}\n"
     f" Excludes: {json.dumps(excludes, indent=4)}"
 )

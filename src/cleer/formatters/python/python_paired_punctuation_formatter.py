@@ -2451,10 +2451,65 @@ class PythonPairedPunctuationFormatter(Formatter):
         except tokenize.TokenError:
             return []
 
+        fstring_start = getattr(tokenize, "FSTRING_START", None)
+        fstring_end = getattr(tokenize, "FSTRING_END", None)
+        tstring_start = getattr(tokenize, "TSTRING_START", None)
+        tstring_end = getattr(tokenize, "TSTRING_END", None)
+
         strings = []
-        for t in tokens:
+        i = 0
+        while i < len(tokens):
+            t = tokens[i]
             if t.type == tokenize.STRING:
                 strings.append(t.string)
+                i += 1
+            elif (
+                fstring_start is not None
+                and (
+                    t.type == fstring_start
+                    or (
+                        tstring_start is not None
+                        and t.type == tstring_start
+                    )
+                )
+            ):
+                end_type = (
+                    tstring_end
+                    if tstring_start is not None and t.type == tstring_start
+                    else fstring_end
+                )
+                depth = 1
+                j = i + 1
+                while j < len(tokens) and depth > 0:
+                    if tokens[j].type == t.type:
+                        depth += 1
+                    elif tokens[j].type == end_type:
+                        depth -= 1
+
+                    j += 1
+
+                end_token = tokens[j - 1]
+                start_line = t.start[0]
+                start_col = t.start[1]
+                end_line = end_token.end[0]
+                end_col = end_token.end[1]
+                lines = content.split("\n")
+                if start_line == end_line:
+                    string_text = lines[start_line - 1][start_col:end_col]
+                else:
+                    parts = [
+                        lines[start_line - 1][start_col:]
+                    ]
+                    for line_idx in range(start_line, end_line - 1):
+                        parts.append(lines[line_idx])
+
+                    parts.append(lines[end_line - 1][:end_col])
+                    string_text = "\n".join(parts)
+
+                strings.append(string_text)
+                i = j
+            else:
+                i += 1
 
         return strings
 
@@ -3942,10 +3997,59 @@ class PythonPairedPunctuationFormatter(Formatter):
         except tokenize.TokenError:
             return False
 
-        string_tokens = [
-            t for t in tokens
-            if t.type == tokenize.STRING
-        ]
+        fstring_start = getattr(tokenize, "FSTRING_START", None)
+        fstring_end = getattr(tokenize, "FSTRING_END", None)
+        tstring_start = getattr(tokenize, "TSTRING_START", None)
+        tstring_end = getattr(tokenize, "TSTRING_END", None)
+
+        string_tokens = []
+        fstring_depth = 0
+        i = 0
+        while i < len(tokens):
+            t = tokens[i]
+
+            if (
+                fstring_start is not None
+                and (
+                    t.type == fstring_start
+                    or (
+                        tstring_start is not None
+                        and t.type == tstring_start
+                    )
+                )
+            ):
+                if fstring_depth == 0:
+                    start_token = t
+
+                fstring_depth += 1
+                i += 1
+            elif (
+                fstring_end is not None
+                and (
+                    t.type == fstring_end
+                    or (
+                        tstring_end is not None
+                        and t.type == tstring_end
+                    )
+                )
+            ):
+                fstring_depth -= 1
+                if fstring_depth == 0:
+                    fake = tokenize.TokenInfo(
+                        type=tokenize.STRING,
+                        string="",
+                        start=start_token.start,
+                        end=t.end,
+                        line=""
+                    )
+                    string_tokens.append(fake)
+
+                i += 1
+            elif t.type == tokenize.STRING and fstring_depth == 0:
+                string_tokens.append(t)
+                i += 1
+            else:
+                i += 1
 
         if len(string_tokens) < 2:
             return False

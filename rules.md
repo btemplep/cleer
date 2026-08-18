@@ -215,9 +215,10 @@
     - Add parenthesis to clarify order of operations
 
 - [x] Native string concatenation
-    - Flatten first
-    - Always multiline, surrounded by parenthesis
-    - Fully expand containing context
+    - strings are never combined into one string if they are split
+    - Always multiline: one string per line
+    - always surrounded surrounded by parenthesis
+    - Fully expand containing context (function calls, assignments)
     - Applies to return statements, assignments, and call args
 
 - [x] Math and comparison expressions (BinOp and Compare)

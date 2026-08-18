@@ -242,7 +242,11 @@ class PythonCommaSpaceTokenizer(Tokenizer):
             if "," not in token:
                 continue
 
-            if ", *," in token or ",*," in token or token.strip().startswith("*,"):
+            if (
+                ", *," in token
+                or ",*," in token
+                or token.strip().startswith("*,")
+            ):
                 continue
 
             if ", /," in token or ",/," in token:

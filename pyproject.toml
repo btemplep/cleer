@@ -1,3 +1,64 @@
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "cleer"
+dynamic = ["version"]
+description = "Extensible, customizable, and transparent file formatter with people (me) friendly defaults."
+readme = {file = "README.md", content-type = "text/markdown"}
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+    {name = "Brandon Temple Paul", email = "btemplepgit@gmail.com"}
+]
+requires-python = ">= 3.11"
+dependencies = [
+    "loguru"
+]
+keywords = [
+    "format",
+    "formatter",
+    "file",
+    "extend",
+    "custom",
+    "inspect"
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Natural Language :: English",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: Unix",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Internet"
+]
+
+[project.urls]
+Repository = "https://github.com/btemplep/cleer"
+
+[project.scripts]
+cleer = "cleer.cli:main"
+
+[project.optional-dependencies]
+dev = [
+    "build",
+    "coverage",
+    "nox",
+    "pytest",
+    "pytest-cov",
+    "twine"
+]
+
+[tool.setuptools.dynamic]
+version = {attr = "cleer.__version__"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+exclude = ["tests"]

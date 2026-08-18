@@ -15,9 +15,10 @@ from cleer.validators import *
 
 
 def cleer_default_config(
+    *,
     python_packages: list[str] | None=None,
     python_internal_packages: list[str] | None=None,
-    excludes: list[str] | None=None
+    add_excludes: list[str] | None=None
 ) -> CleerConfig:
     """Generate a new instance of cleer with the default configs.
 
@@ -33,8 +34,8 @@ def cleer_default_config(
         List of internal package names for import formatting.
         Internal packages are those that are hosted on private
         repositories, not including current packages.
-    excludes : list[str] | None, default=["**/venv*/**", "**/.venv*/**"]
-        File patterns to exclude from formatting files.
+    add_excludes : list[str] | None, default=[]
+        Additional file patterns to exclude from formatting files.
 
     Returns
     -------
@@ -50,13 +51,19 @@ def cleer_default_config(
     if python_internal_packages is None:
         python_internal_packages = []
 
-    if excludes is None:
-        excludes = []
-
-    excludes += [
+    excludes = [
+        "./build/**",
+        "./dist/**",
+        "./htmlcov/**",
+        "**/*.egg-info",
+        "**/.nox/**",
+        "**/__pycache__/**",
         "**/.venv*/**",
         "**/venv*/**"
     ]
+    if add_excludes is not None:
+        excludes = list(set(excludes + add_excludes))
+
     logger.debug(
         (
             f"Python Packages: {python_packages}\n"

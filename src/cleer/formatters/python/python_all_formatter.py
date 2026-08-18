@@ -55,6 +55,9 @@ class PythonAllFormatter(Formatter):
         """
         expected = self._format_token(token)
         if token != expected:
+            if token.rstrip("\n") == expected.rstrip("\n"):
+                return []
+
             return [
                 {
                     "start_index": 0,
@@ -148,9 +151,9 @@ class PythonAllFormatter(Formatter):
         prefix = "\n" if leading_newline else ""
 
         if not items:
-            return f"{prefix}__all__ = []\n"
+            return f"{prefix}__all__ = []\n\n"
 
         lines = [f"    {q}{item}{q}" for item in items]
         items_str = ",\n".join(lines)
 
-        return f"{prefix}__all__ = [\n{items_str}\n]\n"
+        return f"{prefix}__all__ = [\n{items_str}\n]\n\n"

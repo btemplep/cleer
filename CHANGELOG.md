@@ -21,10 +21,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security 
 -->
-## [0.1.0a11] - 2026-08-xx
 
-## Changed 
+## [0.1.0a12] - YYYY-MM-DD
+
+### Added
+
+- relative paths now work with and without `./`.
+- default excludes not include more common python excludes
+
+### Changed
+
 - Switched to pyproject.toml only
+- excludes changed to add_excludes to make it more clear that they are added to the defaults.  
+
+### Deprecated
+
+### Removed
+
+### Fixed
+- bad __all__ blank lines when empty
+
+### Security 
+
+
+## [0.1.0a11] - 2026-08-15
 
 ### Fixed
 - Missing bad indent formatting
