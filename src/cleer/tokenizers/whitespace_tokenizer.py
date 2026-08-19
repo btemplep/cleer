@@ -1,4 +1,4 @@
-"""See :class:`WhitespaceTokenizer`."""
+"""See [](#cleer.tokenizers.whitespace_tokenizer.WhitespaceTokenizer)"""
 
 __all__ = [
     "WhitespaceTokenizer"

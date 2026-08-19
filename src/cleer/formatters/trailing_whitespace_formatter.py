@@ -1,4 +1,4 @@
-"""See :class:`TrailingWhitespaceFormatter`."""
+"""See [](#cleer.formatters.trailing_whitespace_formatter.TrailingWhitespaceFormatter)"""
 
 __all__ = [
     "TrailingWhitespaceFormatter"

@@ -1,4 +1,4 @@
-"""See :class:`PythonPairedPunctuationTokenizer`."""
+"""See [](#cleer.tokenizers.python.python_paired_punctuation_tokenizer.PythonPairedPunctuationTokenizer)"""
 
 __all__ = [
     "PythonPairedPunctuationTokenizer"

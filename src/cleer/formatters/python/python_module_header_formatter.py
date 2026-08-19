@@ -1,4 +1,4 @@
-"""See :class:`PythonModuleHeaderFormatter`."""
+"""See [](#cleer.formatters.python.python_module_header_formatter.PythonModuleHeaderFormatter)"""
 
 __all__ = [
     "PythonModuleHeaderFormatter"

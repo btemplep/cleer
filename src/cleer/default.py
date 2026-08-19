@@ -1,4 +1,4 @@
-"""See :func:`cleer_default_config`."""
+"""See [](#cleer.default.cleer_default_config)"""
 
 __all__ = [
     "cleer_default_config"

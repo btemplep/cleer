@@ -1,4 +1,4 @@
-"""See :class:`PythonCommaSpaceFormatter`."""
+"""See [](#cleer.formatters.python.python_comma_space_formatter.PythonCommaSpaceFormatter)"""
 
 __all__ = [
     "PythonCommaSpaceFormatter"

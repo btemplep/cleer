@@ -1,4 +1,4 @@
-"""See :class:`PythonTypeHintTokenizer`."""
+"""See [](#cleer.tokenizers.python.python_type_hint_tokenizer.PythonTypeHintTokenizer)"""
 
 __all__ = [
     "PythonTypeHintTokenizer"

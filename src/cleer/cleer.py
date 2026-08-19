@@ -1,4 +1,4 @@
-"""See :class:`Cleer`."""
+"""See [](#cleer.cleer.Cleer)"""
 
 __all__ = [
     "Cleer"

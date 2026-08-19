@@ -1,4 +1,4 @@
-"""See :class:`LineTokenizer`."""
+"""See [](#cleer.tokenizers.line_tokenizer.LineTokenizer)"""
 
 __all__ = [
     "LineTokenizer"

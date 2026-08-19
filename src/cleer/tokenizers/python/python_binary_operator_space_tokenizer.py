@@ -1,4 +1,4 @@
-"""See :class:`PythonBinaryOperatorSpaceTokenizer`."""
+"""See [](#cleer.tokenizers.python.python_binary_operator_space_tokenizer.PythonBinaryOperatorSpaceTokenizer)"""
 
 __all__ = [
     "PythonBinaryOperatorSpaceTokenizer"

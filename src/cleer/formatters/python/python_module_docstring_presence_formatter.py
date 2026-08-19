@@ -1,4 +1,4 @@
-"""See :class:`PythonModuleDocstringPresenceFormatter`."""
+"""See [](#cleer.formatters.python.python_module_docstring_presence_formatter.PythonModuleDocstringPresenceFormatter)"""
 
 __all__ = [
     "PythonModuleDocstringPresenceFormatter"

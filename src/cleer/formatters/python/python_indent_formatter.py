@@ -1,4 +1,4 @@
-"""See :class:`PythonIndentFormatter`."""
+"""See [](#cleer.formatters.python.python_indent_formatter.PythonIndentFormatter)"""
 
 __all__ = [
     "PythonIndentFormatter"

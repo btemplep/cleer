@@ -1,4 +1,4 @@
-"""See :class:`PythonReturnYieldTokenizer`."""
+"""See [](#cleer.tokenizers.python.python_return_yield_tokenizer.PythonReturnYieldTokenizer)"""
 
 __all__ = [
     "PythonReturnYieldTokenizer"

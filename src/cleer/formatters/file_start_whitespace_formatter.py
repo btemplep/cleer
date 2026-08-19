@@ -1,4 +1,4 @@
-"""See :class:`FileStartWhitespaceFormatter`."""
+"""See [](#cleer.formatters.file_start_whitespace_formatter.FileStartWhitespaceFormatter)"""
 
 __all__ = [
     "FileStartWhitespaceFormatter"

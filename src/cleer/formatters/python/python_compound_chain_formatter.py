@@ -1,4 +1,4 @@
-"""See :class:`PythonCompoundChainFormatter`."""
+"""See [](#cleer.formatters.python.python_compound_chain_formatter.PythonCompoundChainFormatter)"""
 
 __all__ = [
     "PythonCompoundChainFormatter"

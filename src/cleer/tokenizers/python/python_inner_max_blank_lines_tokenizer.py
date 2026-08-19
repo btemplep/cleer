@@ -1,4 +1,4 @@
-"""See :class:`PythonInnerMaxBlankLinesTokenizer`."""
+"""See [](#cleer.tokenizers.python.python_inner_max_blank_lines_tokenizer.PythonInnerMaxBlankLinesTokenizer)"""
 
 __all__ = [
     "PythonInnerMaxBlankLinesTokenizer"

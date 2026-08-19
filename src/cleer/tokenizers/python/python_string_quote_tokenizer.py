@@ -1,4 +1,4 @@
-"""See :class:`PythonStringQuoteTokenizer`."""
+"""See [](#cleer.tokenizers.python.python_string_quote_tokenizer.PythonStringQuoteTokenizer)"""
 
 __all__ = [
     "PythonStringQuoteTokenizer"

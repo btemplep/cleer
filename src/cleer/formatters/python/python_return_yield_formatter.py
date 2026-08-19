@@ -1,4 +1,4 @@
-"""See :class:`PythonReturnYieldFormatter`."""
+"""See [](#cleer.formatters.python.python_return_yield_formatter.PythonReturnYieldFormatter)"""
 
 __all__ = [
     "PythonReturnYieldFormatter"

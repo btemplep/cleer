@@ -1,4 +1,4 @@
-"""See :class:`PythonKwargsSpaceTokenizer`."""
+"""See [](#cleer.tokenizers.python.python_kwargs_space_tokenizer.PythonKwargsSpaceTokenizer)"""
 
 __all__ = [
     "PythonKwargsSpaceTokenizer"

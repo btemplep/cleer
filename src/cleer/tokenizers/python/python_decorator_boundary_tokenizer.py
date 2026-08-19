@@ -1,4 +1,4 @@
-"""See :class:`PythonDecoratorBoundaryTokenizer`."""
+"""See [](#cleer.tokenizers.python.python_decorator_boundary_tokenizer.PythonDecoratorBoundaryTokenizer)"""
 
 __all__ = [
     "PythonDecoratorBoundaryTokenizer"

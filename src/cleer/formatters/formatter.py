@@ -1,4 +1,4 @@
-"""See :class:`Formatter` and :class:`FormatterViolation`."""
+"""See [](#cleer.formatters.formatter.Formatter) and [](#cleer.formatters.formatter.FormatterViolation)"""
 
 __all__ = [
     "Formatter",

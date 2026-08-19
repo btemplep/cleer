@@ -1,4 +1,4 @@
-"""See :class:`PythonMaxOneSpaceFormatter`."""
+"""See [](#cleer.formatters.python.python_max_one_space_formatter.PythonMaxOneSpaceFormatter)"""
 
 __all__ = [
     "PythonMaxOneSpaceFormatter"

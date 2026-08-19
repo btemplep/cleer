@@ -1,4 +1,4 @@
-"""See :class:`PythonAllFormatter`."""
+"""See [](#cleer.formatters.python.python_all_formatter.PythonAllFormatter)"""
 
 __all__ = [
     "PythonAllFormatter"

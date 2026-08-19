@@ -1,4 +1,4 @@
-"""See :class:`PythonClassBoundaryFormatter`."""
+"""See [](#cleer.formatters.python.python_class_boundary_formatter.PythonClassBoundaryFormatter)"""
 
 __all__ = [
     "PythonClassBoundaryFormatter"

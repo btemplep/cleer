@@ -1,4 +1,4 @@
-"""See :class:`NonAsciiWhitespaceFormatter`."""
+"""See [](#cleer.formatters.non_ascii_whitespace_formatter.NonAsciiWhitespaceFormatter)"""
 
 __all__ = [
     "NonAsciiWhitespaceFormatter"

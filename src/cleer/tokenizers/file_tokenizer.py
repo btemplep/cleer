@@ -1,4 +1,4 @@
-"""See :class:`FileTokenizer`."""
+"""See [](#cleer.tokenizers.file_tokenizer.FileTokenizer)"""
 
 __all__ = [
     "FileTokenizer"

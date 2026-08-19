@@ -1,4 +1,4 @@
-"""See :class:`JSONFormatter`."""
+"""See [](#cleer.formatters.json_formatter.JSONFormatter)"""
 
 __all__ = [
     "JSONFormatter"

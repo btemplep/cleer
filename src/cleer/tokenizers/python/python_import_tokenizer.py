@@ -1,4 +1,4 @@
-"""See :class:`PythonImportTokenizer`."""
+"""See [](#cleer.tokenizers.python.python_import_tokenizer.PythonImportTokenizer)"""
 
 __all__ = [
     "PythonImportTokenizer"

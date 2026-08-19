@@ -1,4 +1,4 @@
-"""See :class:`PythonDictKeyQuoteFormatter`."""
+"""See [](#cleer.formatters.python.python_dict_key_quote_formatter.PythonDictKeyQuoteFormatter)"""
 
 __all__ = [
     "PythonDictKeyQuoteFormatter"

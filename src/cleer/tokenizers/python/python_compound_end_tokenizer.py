@@ -1,4 +1,4 @@
-"""See :class:`PythonCompoundEndTokenizer`."""
+"""See [](#cleer.tokenizers.python.python_compound_end_tokenizer.PythonCompoundEndTokenizer)"""
 
 __all__ = [
     "PythonCompoundEndTokenizer"

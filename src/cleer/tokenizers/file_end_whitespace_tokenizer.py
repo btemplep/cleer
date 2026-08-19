@@ -1,4 +1,4 @@
-"""See :class:`FileEndWhitespaceTokenizer`."""
+"""See [](#cleer.tokenizers.file_end_whitespace_tokenizer.FileEndWhitespaceTokenizer)"""
 
 __all__ = [
     "FileEndWhitespaceTokenizer"

@@ -1,4 +1,4 @@
-"""See :class:`PythonMaxOneSpaceTokenizer`."""
+"""See [](#cleer.tokenizers.python.python_max_one_space_tokenizer.PythonMaxOneSpaceTokenizer)"""
 
 __all__ = [
     "PythonMaxOneSpaceTokenizer"

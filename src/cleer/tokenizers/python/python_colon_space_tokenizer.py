@@ -1,4 +1,4 @@
-"""See :class:`PythonColonSpaceTokenizer`."""
+"""See [](#cleer.tokenizers.python.python_colon_space_tokenizer.PythonColonSpaceTokenizer)"""
 
 __all__ = [
     "PythonColonSpaceTokenizer"

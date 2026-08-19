@@ -1,4 +1,4 @@
-"""See :class:`PythonPairedPunctuationFormatter`."""
+"""See [](#cleer.formatters.python.python_paired_punctuation_formatter.PythonPairedPunctuationFormatter)"""
 
 __all__ = [
     "PythonPairedPunctuationFormatter"

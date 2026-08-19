@@ -1,4 +1,4 @@
-"""See :class:`PythonUnaryOperatorSpaceFormatter`."""
+"""See [](#cleer.formatters.python.python_unary_operator_space_formatter.PythonUnaryOperatorSpaceFormatter)"""
 
 __all__ = [
     "PythonUnaryOperatorSpaceFormatter"

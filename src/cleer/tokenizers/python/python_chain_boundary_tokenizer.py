@@ -1,4 +1,4 @@
-"""See :class:`PythonChainBoundaryTokenizer`."""
+"""See [](#cleer.tokenizers.python.python_chain_boundary_tokenizer.PythonChainBoundaryTokenizer)"""
 
 __all__ = [
     "PythonChainBoundaryTokenizer"

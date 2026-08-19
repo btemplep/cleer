@@ -1,4 +1,4 @@
-"""See :class:`PythonNestedFunctionBoundaryTokenizer`."""
+"""See [](#cleer.tokenizers.python.python_nested_function_boundary_tokenizer.PythonNestedFunctionBoundaryTokenizer)"""
 
 __all__ = [
     "PythonNestedFunctionBoundaryTokenizer"

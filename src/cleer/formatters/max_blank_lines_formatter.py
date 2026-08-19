@@ -1,4 +1,4 @@
-"""See :class:`MaxBlankLinesFormatter`."""
+"""See [](#cleer.formatters.max_blank_lines_formatter.MaxBlankLinesFormatter)"""
 
 __all__ = [
     "MaxBlankLinesFormatter"

@@ -1,4 +1,4 @@
-"""See :class:`BlankLineFormatter`."""
+"""See [](#cleer.formatters.blank_line_formatter.BlankLineFormatter)"""
 
 __all__ = [
     "BlankLineFormatter"

@@ -1,4 +1,4 @@
-"""See :class:`PythonIndentTokenizer`."""
+"""See [](#cleer.tokenizers.python.python_indent_tokenizer.PythonIndentTokenizer)"""
 
 __all__ = [
     "PythonIndentTokenizer"

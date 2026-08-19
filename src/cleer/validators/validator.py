@@ -1,4 +1,4 @@
-"""See :class:`Validator`."""
+"""See [](#cleer.validators.validator.Validator)"""
 
 __all__ = [
     "Validator"

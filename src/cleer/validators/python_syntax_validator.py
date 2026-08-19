@@ -1,4 +1,4 @@
-"""See :class:`PythonSyntaxValidator`."""
+"""See [](#cleer.validators.python_syntax_validator.PythonSyntaxValidator)"""
 
 __all__ = [
     "PythonSyntaxValidator"

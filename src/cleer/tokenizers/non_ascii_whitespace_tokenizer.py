@@ -1,4 +1,4 @@
-"""See :class:`NonAsciiWhitespaceTokenizer`."""
+"""See [](#cleer.tokenizers.non_ascii_whitespace_tokenizer.NonAsciiWhitespaceTokenizer)"""
 
 __all__ = [
     "NonAsciiWhitespaceTokenizer"
