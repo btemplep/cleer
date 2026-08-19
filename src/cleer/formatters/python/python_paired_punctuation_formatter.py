@@ -187,6 +187,8 @@ class PythonPairedPunctuationFormatter(Formatter):
                         indent,
                         node_info.get("parent_node")
                     )
+                elif node_type == "assert_boolop":
+                    formatted = self._format_assert_boolop(node, current_text, indent)
                 elif node_type == "assign_boolop":
                     formatted = self._format_assign_boolop(node, current_text, indent)
                 elif node_type == "return_boolop":
@@ -424,6 +426,28 @@ class PythonPairedPunctuationFormatter(Formatter):
 
         if isinstance(parent, ast.Return):
             return
+
+        if isinstance(parent, ast.Assert):
+            if node is parent.test:
+                start = self._offset(document, parent.lineno, parent.col_offset)
+                end = self._offset(
+                    document,
+                    parent.end_lineno,
+                    parent.end_col_offset
+                )
+
+                nodes.append(
+                    {
+                        "node": node,
+                        "type": "assert_boolop",
+                        "start": start,
+                        "end": end,
+                        "depth": depth,
+                        "parent_node": parent
+                    }
+                )
+
+                return
 
         if isinstance(parent, (ast.If, ast.While)):
             if node is parent.test:
@@ -1134,6 +1158,80 @@ class PythonPairedPunctuationFormatter(Formatter):
                 lines.append(f"{indent}{op_str} {part}")
 
         return "\n".join(lines)
+
+
+    def _format_assert_boolop(
+        self,
+        node: ast.BoolOp,
+        current_text: str,
+        indent: str
+    ) -> str:
+        """Format a BoolOp inside an assert statement.
+
+        Wraps the condition in parens when expanded.
+        """
+        if self._has_comment(current_text):
+            return current_text
+
+        flat = self._flatten(current_text)
+        flat = self._collapse_paren_spaces(flat)
+        flat_len = len(flat)
+        indent_len = len(indent)
+
+        op_str = "or" if isinstance(node.op, ast.Or) else "and"
+        num_parts = len(node.values)
+
+        should_expand = (
+            num_parts > 2
+            or flat_len > self._call_max_len
+            or flat_len + indent_len > self._call_max_line_len
+        )
+
+        if not should_expand:
+            return flat
+
+        assert_prefix = "assert "
+        if not flat.startswith(assert_prefix):
+            return current_text
+
+        condition = flat[len(assert_prefix):]
+        if condition.startswith("(") and condition.endswith(")"):
+            condition = condition[1:-1].strip()
+
+        parts = self._split_boolop_by_op(condition, op_str)
+
+        if not parts:
+            return current_text
+
+        inner_indent = indent + "    "
+
+        if "\n" in current_text:
+            lines = current_text.split("\n")
+            first_stripped = lines[0].strip()
+            last_stripped = lines[-1].strip()
+            if first_stripped == "assert (" and last_stripped == ")":
+                has_bad_indent = False
+                for line in lines[1:-1]:
+                    if not line.strip():
+                        continue
+
+                    leading = len(line) - len(line.lstrip())
+                    if leading != len(inner_indent):
+                        has_bad_indent = True
+                        break
+
+                if not has_bad_indent:
+                    return current_text
+
+        result_lines = [f"assert ("]
+
+        for i, part in enumerate(parts):
+            prefix = "" if i == 0 else f"{op_str} "
+            result_lines.append(f"{inner_indent}{prefix}{part}")
+
+        result_lines.append(f"{indent})")
+
+        return "\n".join(result_lines)
 
 
     def _get_boolop_parts(self, node: ast.BoolOp, current_text: str) -> list[str]:

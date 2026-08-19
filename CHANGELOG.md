@@ -22,7 +22,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security 
 -->
 
-## [0.1.0a12] - YYYY-MM-DD
+## [0.1.0a13] - 2026-08-18
+
+### Fixed
+- Bad `assert` handling for paired punctuation. 
+
+
+## [0.1.0a12] - 2026-08-16
 
 ### Added
 
@@ -34,14 +40,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Switched to pyproject.toml only
 - excludes changed to add_excludes to make it more clear that they are added to the defaults.  
 
-### Deprecated
-
-### Removed
-
 ### Fixed
 - bad __all__ blank lines when empty
-
-### Security 
 
 
 ## [0.1.0a11] - 2026-08-15

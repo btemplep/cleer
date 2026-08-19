@@ -2599,3 +2599,123 @@ def keyword_only_func(a, b, /, c, *, d=1, e=2): pass
 
 
 def only_keywords(*, name: str, value: int, flag: bool=False): pass
+
+
+def test_assert_boolop():
+    assert (
+        "NonExistent" in r['error']['message']
+        or "resource" in r['error']['message'].lower()
+    )
+    assert (
+        result.get("error") is not None
+        and result['error']['error_type'] == "locality_incompatibility"
+    )
+    assert (
+        a
+        or b
+        or c
+        or d
+    )
+    assert short or x
+    assert (
+        some_long_variable_name in some_container
+        and other_long_variable_name in other_container
+    )
+    assert (already_expanded_correctly or second_condition)
+    assert (
+        condition_one
+        and condition_two
+        and condition_three
+        and condition_four
+    )
+    assert (
+        func_call(arg1, arg2, kwarg="value")
+        or other_func(x, y)
+        or fallback
+    )
+    assert (
+        isinstance(result, dict)
+        and "key" in result
+        and result['key'] is not None
+    )
+
+
+def test_assert_with_structures():
+    assert (
+        result == {"status": "ok", "data": [1, 2, 3]}
+        or result == {"status": "pending", "data": []}
+    )
+    assert response.json() == {
+        "users": [
+            {
+                "id": 1,
+                "name": "Alice"
+            },
+            {
+                "id": 2,
+                "name": "Bob"
+            }
+        ],
+        "total": 2
+    }
+    assert (
+        sorted(items) == ["alpha", "beta", "gamma", "delta"]
+        and len(items) == 4
+    )
+    assert config == {
+        "host": "localhost",
+        "port": 8080,
+        "debug": True,
+        "options": {
+            "timeout": 30,
+            "retries": 3
+        }
+    }
+    assert (
+        errors == []
+        and warnings == []
+        and result is not None
+    )
+    assert (
+        output in [{"type": "success"}, {"type": "partial"}]
+        or output.get("override") is True
+    )
+    assert (
+        all(isinstance(item, dict) and "id" in item for item in results)
+        and len(results) > 0
+    )
+    assert data == [
+        {
+            "key": "value",
+            "nested": {
+                "inner": [
+                    1,
+                    2,
+                    3
+                ]
+            }
+        },
+        {
+            "key": "other",
+            "nested": {
+                "inner": [
+                    4,
+                    5,
+                    6
+                ]
+            }
+        }
+    ]
+    assert (
+        validate({"name": "test", "items": [{"id": i} for i in range(10)]})
+        or skip_validation
+    )
+    assert response == {
+        "headers": {
+            "content-type": "application/json",
+            "x-request-id": request_id
+        },
+        "body": {
+            "result": "ok"
+        }
+    }
