@@ -1461,7 +1461,20 @@ all_kwargs_expand(
 
 
 empty_structures = ([], {}, set(), ())
-single_items = ([1], {"k": "v"}, {1}, (1,))
+single_items = (
+    [
+        1
+    ],
+    {
+        "k": "v"
+    },
+    {
+        1
+    },
+    (
+        1,
+    )
+)
 
 nested_in_if = (
     isinstance(node, ast.Call)
@@ -1809,7 +1822,10 @@ async def fetch_all(
     session: aiohttp.ClientSession,
     max_concurrent: int=10,
     timeout: float=30.0,
-    retry_config: dict[str, int]={"max_retries": 3, "backoff": 2}
+    retry_config: dict[str, int]={
+        "max_retries": 3,
+        "backoff": 2
+    }
 ) -> list[dict[str, str | int | None]]:
     """Fetch."""
     semaphore = asyncio.Semaphore(max_concurrent)
@@ -1819,10 +1835,7 @@ async def fetch_all(
     return [t.result() for t in tasks]
 
 
-@app.route(
-    "/api/v1/users",
-    methods=["GET", "POST"]
-)
+@app.route("/api/v1/users", methods=["GET", "POST"])
 @require_auth(
     roles=["admin", "manager"],
     permissions=["read:users", "write:users"]
@@ -2187,9 +2200,9 @@ class Validator:
                         code="required"
                     )
                 )
-            elif value is not None and not isinstance(
-                value,
-                rules.get("type", object)
+            elif (
+                value is not None
+                and not isinstance(value, rules.get("type", object))
             ):
                 errors.append(
                     self.ValidationError(
@@ -2629,7 +2642,11 @@ def test_assert_boolop():
         and condition_four
     )
     assert (
-        func_call(arg1, arg2, kwarg="value")
+        func_call(
+            arg1,
+            arg2,
+            kwarg="value"
+        )
         or other_func(x, y)
         or fallback
     )
@@ -2642,8 +2659,18 @@ def test_assert_boolop():
 
 def test_assert_with_structures():
     assert (
-        result == {"status": "ok", "data": [1, 2, 3]}
-        or result == {"status": "pending", "data": []}
+        result == {
+            "status": "ok",
+            "data": [
+                1,
+                2,
+                3
+            ]
+        }
+        or result == {
+            "status": "pending",
+            "data": []
+        }
     )
     assert response.json() == {
         "users": [
@@ -2659,7 +2686,12 @@ def test_assert_with_structures():
         "total": 2
     }
     assert (
-        sorted(items) == ["alpha", "beta", "gamma", "delta"]
+        sorted(items) == [
+            "alpha",
+            "beta",
+            "gamma",
+            "delta"
+        ]
         and len(items) == 4
     )
     assert config == {
@@ -2677,7 +2709,14 @@ def test_assert_with_structures():
         and result is not None
     )
     assert (
-        output in [{"type": "success"}, {"type": "partial"}]
+        output in [
+            {
+                "type": "success"
+            },
+            {
+                "type": "partial"
+            }
+        ]
         or output.get("override") is True
     )
     assert (
@@ -2707,7 +2746,12 @@ def test_assert_with_structures():
         }
     ]
     assert (
-        validate({"name": "test", "items": [{"id": i} for i in range(10)]})
+        validate(
+            {
+                "name": "test",
+                "items": [{"id": i} for i in range(10)]
+            }
+        )
         or skip_validation
     )
     assert response == {

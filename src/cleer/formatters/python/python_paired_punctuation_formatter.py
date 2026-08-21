@@ -153,109 +153,695 @@ class PythonPairedPunctuationFormatter(Formatter):
 
         doc = token
 
-        for _ in range(10):
-            try:
-                tree = ast.parse(doc)
-            except SyntaxError:
-                break
+        top_level = self._identify_top_level_nodes(nodes)
+        top_level.sort(key=lambda n: n['start'])
+        top_level_set = set(id(n) for n in top_level)
 
-            self._line_offsets = self._build_line_offsets(doc)
-            nodes = self._collect_formattable_nodes(tree, doc)
+        for tl_node in top_level:
+            start = tl_node['start']
+            end = tl_node['end']
+            current_text = doc[start:end]
+            indent = self._get_indent(doc, start)
 
-            if not nodes:
-                break
+            if self._has_comment(current_text):
+                continue
 
-            nodes.sort(key=lambda n: (-n['depth'], -n['start']))
+            children = [
+                n for n in nodes
+                if n is not tl_node
+                and n['start'] >= start
+                and n['end'] <= end
+            ]
 
-            changed = False
+            formatted = self._process_node_tree(
+                tl_node,
+                children,
+                current_text,
+                indent,
+                start
+            )
 
-            for node_info in nodes:
-                node = node_info['node']
-                node_type = node_info['type']
-                start = node_info['start']
-                end = node_info['end']
+            if formatted != current_text:
+                size_diff = len(formatted) - len(current_text)
+                doc = doc[:start] + formatted + doc[end:]
 
-                current_text = doc[start:end]
-                indent = self._get_indent(doc, start)
+                for other in top_level:
+                    if other is tl_node:
+                        other['end'] = start + len(formatted)
+                        continue
 
-                if node_type == "boolop":
-                    formatted = self._format_boolop(node, current_text, indent)
-                elif node_type == "if_boolop":
-                    formatted = self._format_if_boolop(
-                        node,
-                        current_text,
-                        indent,
-                        node_info.get("parent_node")
-                    )
-                elif node_type == "assert_boolop":
-                    formatted = self._format_assert_boolop(node, current_text, indent)
-                elif node_type == "assign_boolop":
-                    formatted = self._format_assign_boolop(node, current_text, indent)
-                elif node_type == "return_boolop":
-                    formatted = self._format_return_boolop(node, current_text, indent)
-                elif node_type == "call":
-                    formatted = self._format_call(node, current_text, indent)
-                elif node_type == "chain":
-                    formatted = self._format_chain(node, current_text, indent)
-                elif node_type in ("list", "set"):
-                    formatted = self._format_container(
-                        node,
-                        current_text,
-                        indent,
-                        is_nested=node_info.get("is_nested", False)
-                    )
-                elif node_type == "dict":
-                    formatted = self._format_dict(node, current_text, indent)
-                elif node_type == "tuple":
-                    formatted = self._format_tuple(node, current_text, indent)
-                elif node_type == "funcdef":
-                    formatted = self._format_funcdef(node, current_text, indent)
-                elif node_type == "subscript":
-                    formatted = self._format_subscript(node, current_text, indent)
-                elif node_type == "dict_subscript":
-                    formatted = self._format_dict_subscript(node, current_text, indent)
-                elif node_type == "string_concat":
-                    formatted = self._format_string_concat(node, current_text, indent)
-                elif node_type == "binop":
-                    formatted = self._format_binop(
-                        node,
-                        current_text,
-                        indent,
-                        node_info.get("parent_node")
-                    )
-                elif node_type == "compare":
-                    formatted = self._format_binop(
-                        node,
-                        current_text,
-                        indent,
-                        node_info.get("parent_node")
-                    )
-                else:
-                    continue
+                    if other['start'] > start:
+                        other['start'] += size_diff
+                        other['end'] += size_diff
 
-                if formatted != current_text:
-                    size_diff = len(formatted) - len(current_text)
-                    doc = doc[:start] + formatted + doc[end:]
-                    changed = True
+                for other in nodes:
+                    if id(other) in top_level_set:
+                        continue
 
-                    for other in nodes:
-                        if other is node_info:
-                            continue
-
-                        if other['start'] > start:
-                            other['start'] += size_diff
-                            other['end'] += size_diff
-                        elif other['end'] > start:
-                            other['end'] += size_diff
-
-            if not changed:
-                break
+                    if other['start'] > end:
+                        other['start'] += size_diff
+                        other['end'] += size_diff
 
         doc = self._collapse_inline_spaces(doc)
-        doc = self._collapse_short_parens(doc)
-        doc = self._normalize_paren_indent(doc)
 
         return doc
+
+    def _identify_top_level_nodes(self, nodes: list) -> list:
+        """Identify nodes not contained within any other node's range."""
+        nodes_sorted = sorted(nodes, key=lambda n: (n['start'], -n['end']))
+        top_level = []
+
+        for node in nodes_sorted:
+            is_nested = False
+            for tl in top_level:
+                if node['start'] >= tl['start'] and node['end'] <= tl['end']:
+                    is_nested = True
+                    break
+
+            if not is_nested:
+                top_level.append(node)
+
+        return top_level
+
+    def _process_node_tree(
+        self,
+        root_node: dict,
+        children: list,
+        current_text: str,
+        indent: str,
+        doc_offset: int
+    ) -> str:
+        """Process a top-level node and all its children.
+
+        Flatten, evaluate expand decisions, then build output.
+        """
+        if "\n" in current_text:
+            flat = self._flatten(current_text)
+            flat = self._collapse_paren_spaces(flat)
+        else:
+            flat = current_text
+
+        node = root_node['node']
+        node_type = root_node['type']
+
+        all_nodes = [root_node] + children
+        for n in all_nodes:
+            n['_flat_start'] = n['start'] - doc_offset
+            n['_flat_end'] = n['end'] - doc_offset
+            n['_expand'] = False
+            n['_children'] = []
+            n['_parent_punc'] = None
+
+        if flat != current_text:
+            self._remap_positions_to_flat(
+                all_nodes,
+                current_text,
+                flat,
+                doc_offset
+            )
+
+        self._build_punc_tree(all_nodes)
+        self._evaluate_expand_decisions(all_nodes, flat)
+        result = self._build_output(root_node, flat, indent)
+
+        return result
+
+    def _remap_positions_to_flat(
+        self,
+        nodes: list,
+        original: str,
+        flat: str,
+        doc_offset: int
+    ):
+        """Remap node positions from original multiline text to flat text.
+
+        Uses AST node line/col info to find positions in the flat string.
+        """
+        for n in nodes:
+            node = n['node']
+            if not hasattr(node, 'lineno'):
+                continue
+
+            orig_start = n['start'] - doc_offset
+            orig_end = n['end'] - doc_offset
+            orig_text = original[orig_start:orig_end]
+
+            if not orig_text:
+                continue
+
+            flat_text = self._flatten(orig_text)
+            flat_text = self._collapse_paren_spaces(flat_text)
+
+            pos = flat.find(flat_text)
+            if pos != -1:
+                n['_flat_start'] = pos
+                n['_flat_end'] = pos + len(flat_text)
+            else:
+                n['_flat_start'] = 0
+                n['_flat_end'] = len(flat)
+
+    def _build_punc_tree(self, nodes: list):
+        """Build parent-child relationships among paired punc nodes."""
+        sorted_nodes = sorted(
+            nodes,
+            key=lambda n: (n['_flat_start'], -n['_flat_end'])
+        )
+
+        for i, node in enumerate(sorted_nodes):
+            for j in range(i - 1, -1, -1):
+                candidate = sorted_nodes[j]
+                if (
+                    candidate['_flat_start'] <= node['_flat_start']
+                    and candidate['_flat_end'] >= node['_flat_end']
+                    and candidate is not node
+                ):
+                    node['_parent_punc'] = candidate
+                    candidate['_children'].append(node)
+                    break
+
+    def _evaluate_expand_decisions(self, nodes: list, flat: str):
+        """Evaluate expand/no-expand for all nodes.
+
+        Bottom-up: determine if each node should expand based on thresholds.
+        Then propagate: child expanded -> parent expands,
+        parent expanded + nested container -> container expands.
+        """
+        sorted_deepest_first = sorted(
+            nodes,
+            key=lambda n: (-n['depth'], -n['_flat_start'])
+        )
+
+        for n in sorted_deepest_first:
+            node_text = flat[n['_flat_start']:n['_flat_end']]
+            n['_flat_text'] = node_text
+            n['_expand'] = self._should_expand_node(n, node_text)
+
+        for n in sorted_deepest_first:
+            if n['_expand']:
+                parent = n['_parent_punc']
+                if parent is not None and not parent['_expand']:
+                    parent['_expand'] = True
+
+        shallowest_first = sorted(
+            nodes,
+            key=lambda n: (n['depth'], n['_flat_start'])
+        )
+        for n in shallowest_first:
+            if n['_expand'] and n['_children']:
+                if n['type'] not in ("list", "set", "dict", "tuple"):
+                    continue
+
+                for child in n['_children']:
+                    if child['type'] in (
+                        "list", "set", "dict", "tuple"
+                    ):
+                        child_text = child.get('_flat_text', '')
+                        if (
+                            child_text
+                            and child_text not in ('[]', '{}', '()')
+                        ):
+                            child['_expand'] = True
+
+        for n in shallowest_first:
+            if n['_expand'] and n['_children']:
+                if n['type'] not in ("list", "set", "dict", "tuple"):
+                    continue
+
+                expanding_siblings = [
+                    c for c in n['_children']
+                    if c['_expand']
+                    and c['type'] in ("list", "set", "dict", "tuple")
+                ]
+                if expanding_siblings:
+                    for child in n['_children']:
+                        if child['type'] in ("list", "set", "tuple"):
+                            child_text = child.get('_flat_text', '')
+                            if (
+                                child_text
+                                and child_text not in ('[]', '{}', '()', '(,)')
+                            ):
+                                child['_expand'] = True
+
+    def _should_expand_node(self, node_info: dict, flat_text: str) -> bool:
+        """Determine if a single node should expand based on relative thresholds."""
+        node_type = node_info['type']
+        node = node_info['node']
+        flat_len = len(flat_text)
+
+        if node_type == "dict":
+            if isinstance(node, ast.Dict) and node.keys:
+                return True
+
+            return False
+
+        elif node_type == "dict_subscript":
+            return False
+
+        elif node_type in ("list", "set"):
+            if node_info.get("is_nested"):
+                if flat_text not in ("[]", "{}", "()", "set()"):
+                    return True
+
+            return flat_len > self._lst_max_len
+
+        elif node_type == "tuple":
+            return flat_len > self._lst_max_len
+
+        elif node_type == "call":
+            num_args = len(node.args) + len(node.keywords)
+            has_kwargs = len(node.keywords) > 0
+
+            if num_args == 0:
+                return False
+
+            if self._has_string_concat_arg(flat_text):
+                return True
+
+            if (
+                num_args == 1
+                and not has_kwargs
+                and self._is_single_string_arg(node)
+            ):
+                return False
+
+            if flat_len > self._call_max_len:
+                return True
+
+            if num_args > self._call_max_args:
+                return True
+
+            if has_kwargs and num_args > self._call_max_args_kw:
+                return True
+
+            return False
+
+        elif node_type == "funcdef":
+            params = self._extract_params(node, flat_text)
+            num_params = len(params) if params else 0
+            has_defaults = any(
+                "=" in p for p in params
+            ) if params else False
+
+            if flat_len > self._def_max_len:
+                return True
+
+            if num_params > self._def_max_args:
+                return True
+
+            if has_defaults and num_params > self._def_max_args_kw:
+                return True
+
+            return False
+
+        elif node_type == "subscript":
+            nesting_depth = self._subscript_nesting_depth(node)
+            if nesting_depth > self._annotation_max_depth:
+                return True
+
+            return flat_len > self._annotation_max_len
+
+        elif node_type == "chain":
+            if flat_len > self._chain_call_max_len:
+                return True
+
+            return False
+
+        elif node_type in ("binop", "compare"):
+            operands, operators = self._collect_binop_parts(node)
+            if not operands:
+                return False
+
+            if len(operands) > self._binop_max_operands:
+                return True
+
+            return flat_len > self._binop_max_len
+
+        elif node_type in ("boolop", "assign_boolop", "return_boolop"):
+            num_parts = len(node.values) if hasattr(node, 'values') else 0
+            if num_parts > 2:
+                return True
+
+            return flat_len > self._call_max_len
+
+        elif node_type in ("if_boolop", "assert_boolop"):
+            boolop_node = node
+            num_parts = len(boolop_node.values) if hasattr(boolop_node, 'values') else 0
+            if num_parts > 2:
+                return True
+
+            return flat_len > self._call_max_len
+
+        elif node_type == "string_concat":
+            return True
+
+        return False
+
+    def _build_output(
+        self,
+        root_node: dict,
+        flat: str,
+        indent: str
+    ) -> str:
+        """Build the final output text from expand decisions.
+
+        Format the root node, then find and expand all descendant
+        nodes that still need expansion in the result.
+        """
+        has_expanding_children = any(
+            c['_expand'] for c in root_node['_children']
+        )
+
+        if not root_node['_expand'] and not has_expanding_children:
+            return flat
+
+        if not root_node['_expand']:
+            root_node['_expand'] = True
+
+        result = self._apply_formatter(root_node, flat, indent)
+
+        if result == flat and root_node['_expand']:
+            result = self._force_expand(root_node, flat, indent)
+
+        all_expanding = []
+        self._collect_expanding_descendants(root_node, all_expanding)
+
+        all_expanding.sort(key=lambda n: (n['depth'], n['_flat_start']))
+
+        for child in all_expanding:
+            child_flat = child.get('_flat_text', '')
+            if not child_flat:
+                continue
+
+            pos = self._find_safe(result, child_flat)
+            if pos == -1:
+                continue
+
+            if pos > 0:
+                prev_char = result[pos - 1]
+                if prev_char not in (" ", "\n", "(", "[", ",", "=", ":"):
+                    continue
+
+            child_indent = self._get_indent(result, pos)
+            child_formatted = self._apply_formatter(
+                child,
+                child_flat,
+                child_indent
+            )
+
+            if child_formatted == child_flat and child['_expand']:
+                child_formatted = self._force_expand(
+                    child,
+                    child_flat,
+                    child_indent
+                )
+
+            if child_formatted != child_flat:
+                result = (
+                    result[:pos]
+                    + child_formatted
+                    + result[pos + len(child_flat):]
+                )
+
+        return result
+
+    def _find_safe(self, text: str, needle: str) -> int:
+        """Find needle in text, skipping matches inside string literals."""
+        start = 0
+        while True:
+            pos = text.find(needle, start)
+            if pos == -1:
+                return -1
+
+            if not self._pos_in_string(text, pos):
+                return pos
+
+            start = pos + 1
+
+    def _pos_in_string(self, text: str, pos: int) -> bool:
+        """Check if position is inside a string literal."""
+        in_string = False
+        string_char = ""
+        i = 0
+
+        while i < pos:
+            if not in_string:
+                if text[i:i + 3] in ('"""', "'''"):
+                    in_string = True
+                    string_char = text[i:i + 3]
+                    i += 3
+                elif text[i] in ('"', "'"):
+                    if i > 0 and text[i - 1] in "fFbBrRuU":
+                        pass
+
+                    in_string = True
+                    string_char = text[i]
+                    i += 1
+                else:
+                    i += 1
+            else:
+                if (
+                    len(string_char) == 3
+                    and text[i:i + 3] == string_char
+                ):
+                    in_string = False
+                    i += 3
+                elif (
+                    len(string_char) == 1
+                    and text[i] == string_char
+                    and (i == 0 or text[i - 1] != "\\")
+                ):
+                    in_string = False
+                    i += 1
+                else:
+                    i += 1
+
+        return in_string
+
+    def _collect_expanding_descendants(self, node: dict, result: list):
+        """Collect all expanding descendants (not including node itself)."""
+        for child in node.get('_children', []):
+            if child['_expand']:
+                result.append(child)
+
+            self._collect_expanding_descendants(child, result)
+
+    def _force_expand(
+        self,
+        node_info: dict,
+        flat: str,
+        indent: str
+    ) -> str:
+        """Force expand a node when the decision pass says expand but the
+        formatter's own threshold check would keep it flat."""
+        node_type = node_info['type']
+
+        if node_type in ("list", "set", "tuple"):
+            opener = "(" if node_type == "tuple" else ("[" if node_type == "list" else "{")
+            closer = ")" if node_type == "tuple" else ("]" if node_type == "list" else "}")
+
+            start = flat.find(opener)
+            if start == -1:
+                return flat
+
+            end = len(flat) - 1 - flat[::-1].find(closer)
+            content = flat[start + 1:end]
+            items = self._split_by_commas(content)
+
+            if not items:
+                return flat
+
+            inner_indent = indent + "    "
+            lines = [flat[:start] + opener]
+            for i, item in enumerate(items):
+                if i < len(items) - 1:
+                    comma = ","
+                elif node_type == "tuple" and len(items) == 1:
+                    comma = ","
+                else:
+                    comma = ""
+
+                lines.append(f"{inner_indent}{item.strip()}{comma}")
+
+            lines.append(f"{indent}{closer}" + flat[end + 1:])
+
+            return "\n".join(lines)
+
+        elif node_type == "call":
+            return self._format_call(
+                node_info['node'],
+                flat,
+                indent
+            )
+
+        return flat
+
+    def _find_child_in_result(
+        self,
+        result: str,
+        child: dict,
+        parent: dict
+    ) -> int:
+        """Find child's flat text in parent's formatted result via AST."""
+        child_flat = child.get('_flat_text', '')
+        if not child_flat:
+            return -1
+
+        child_node = child['node']
+        parent_node = parent['node']
+        parent_type = parent['type']
+
+        hint_line = None
+
+        if parent_type == "call" and isinstance(parent_node, ast.Call):
+            idx = self._find_arg_index(parent_node, child_node)
+            if idx is not None:
+                hint_line = idx + 1
+
+        elif parent_type in ("list", "set") and isinstance(
+            parent_node, (ast.List, ast.Set)
+        ):
+            idx = self._find_elt_index(parent_node, child_node)
+            if idx is not None:
+                hint_line = idx + 1
+
+        elif parent_type == "dict" and isinstance(parent_node, ast.Dict):
+            idx = self._find_dict_value_index(parent_node, child_node)
+            if idx is not None:
+                hint_line = idx + 1
+
+        elif parent_type == "funcdef" and isinstance(
+            parent_node, (ast.FunctionDef, ast.AsyncFunctionDef)
+        ):
+            pass
+
+        if hint_line is not None:
+            lines = result.split("\n")
+            if hint_line < len(lines):
+                offset = sum(len(lines[i]) + 1 for i in range(hint_line))
+                pos = result.find(child_flat, offset)
+                if pos != -1:
+                    return pos
+
+                search_start = max(
+                    0,
+                    offset - len(lines[hint_line]) - 1
+                )
+                pos = result.find(child_flat, search_start)
+                if pos != -1:
+                    return pos
+
+        pos = result.find(child_flat)
+
+        return pos
+
+    def _find_arg_index(
+        self,
+        call_node: ast.Call,
+        child_node: ast.AST
+    ) -> int | None:
+        """Find which arg index a child node is in a call."""
+        for i, arg in enumerate(call_node.args):
+            if arg is child_node:
+                return i
+
+        for i, kw in enumerate(call_node.keywords):
+            if kw.value is child_node:
+                return len(call_node.args) + i
+
+        return None
+
+    def _find_elt_index(
+        self,
+        container_node: ast.List | ast.Set,
+        child_node: ast.AST
+    ) -> int | None:
+        """Find which element index a child is in a list/set."""
+        for i, elt in enumerate(container_node.elts):
+            if elt is child_node:
+                return i
+
+        return None
+
+    def _find_dict_value_index(
+        self,
+        dict_node: ast.Dict,
+        child_node: ast.AST
+    ) -> int | None:
+        """Find which value index a child is in a dict."""
+        for i, val in enumerate(dict_node.values):
+            if val is child_node:
+                return i
+
+        for i, key in enumerate(dict_node.keys):
+            if key is child_node:
+                return i
+
+        return None
+
+    def _apply_formatter(
+        self,
+        node_info: dict,
+        current_text: str,
+        indent: str
+    ) -> str:
+        """Apply the appropriate formatter for a node type."""
+        node = node_info['node']
+        node_type = node_info['type']
+
+        if node_type == "boolop":
+            return self._format_boolop(node, current_text, indent)
+        elif node_type == "if_boolop":
+            return self._format_if_boolop(
+                node,
+                current_text,
+                indent,
+                node_info.get("parent_node")
+            )
+        elif node_type == "assert_boolop":
+            return self._format_assert_boolop(node, current_text, indent)
+        elif node_type == "assign_boolop":
+            return self._format_assign_boolop(node, current_text, indent)
+        elif node_type == "return_boolop":
+            return self._format_return_boolop(node, current_text, indent)
+        elif node_type == "call":
+            return self._format_call(node, current_text, indent)
+        elif node_type == "chain":
+            return self._format_chain(node, current_text, indent)
+        elif node_type in ("list", "set"):
+            return self._format_container(
+                node,
+                current_text,
+                indent,
+                is_nested=node_info.get("is_nested", False)
+            )
+        elif node_type == "dict":
+            return self._format_dict(node, current_text, indent)
+        elif node_type == "tuple":
+            return self._format_tuple(node, current_text, indent)
+        elif node_type == "funcdef":
+            return self._format_funcdef(node, current_text, indent)
+        elif node_type == "subscript":
+            return self._format_subscript(node, current_text, indent)
+        elif node_type == "dict_subscript":
+            return self._format_dict_subscript(node, current_text, indent)
+        elif node_type == "string_concat":
+            return self._format_string_concat(node, current_text, indent)
+        elif node_type == "binop":
+            return self._format_binop(
+                node,
+                current_text,
+                indent,
+                node_info.get("parent_node")
+            )
+        elif node_type == "compare":
+            return self._format_binop(
+                node,
+                current_text,
+                indent,
+                node_info.get("parent_node")
+            )
+
+        return current_text
 
 
     def _collect_formattable_nodes(
@@ -1107,9 +1693,22 @@ class PythonPairedPunctuationFormatter(Formatter):
         if isinstance(node.slice, ast.Tuple):
             return False
 
-        if isinstance(node.slice, ast.Subscript):
-            if not self._is_dict_subscript(node.slice):
+        if isinstance(node.value, ast.Name):
+            name = node.value.id
+            if name[0].isupper() or name in (
+                "list", "dict", "set", "tuple",
+                "frozenset", "type"
+            ):
                 return False
+
+        if isinstance(node.value, ast.Attribute):
+            pass
+
+        if isinstance(node.slice, ast.BinOp):
+            return False
+
+        if isinstance(node.slice, ast.Subscript):
+            return self._is_dict_subscript(node.slice)
 
         return True
 
@@ -1190,6 +1789,56 @@ class PythonPairedPunctuationFormatter(Formatter):
         if not should_expand:
             return flat
 
+        inner_indent = indent + "    "
+
+        if "\n" in current_text:
+            lines = current_text.split("\n")
+            first_stripped = lines[0].strip()
+            last_stripped = lines[-1].strip()
+            if first_stripped == "assert (" and last_stripped == ")":
+                inner_lines = lines[1:-1]
+                top_level_lines = []
+                paren_depth = 0
+                bracket_depth = 0
+                brace_depth = 0
+                for line in inner_lines:
+                    stripped = line.strip()
+                    if not stripped:
+                        continue
+
+                    if (
+                        paren_depth == 0
+                        and bracket_depth == 0
+                        and brace_depth == 0
+                    ):
+                        leading = len(line) - len(line.lstrip())
+                        if leading != len(inner_indent):
+                            break
+
+                        top_level_lines.append(stripped)
+
+                    for ch in stripped:
+                        if ch == "(":
+                            paren_depth += 1
+                        elif ch == ")":
+                            paren_depth -= 1
+                        elif ch == "[":
+                            bracket_depth += 1
+                        elif ch == "]":
+                            bracket_depth -= 1
+                        elif ch == "{":
+                            brace_depth += 1
+                        elif ch == "}":
+                            brace_depth -= 1
+                else:
+                    if top_level_lines:
+                        ops_correct = all(
+                            line.startswith(f"{op_str} ")
+                            for line in top_level_lines[1:]
+                        )
+                        if ops_correct:
+                            return current_text
+
         assert_prefix = "assert "
         if not flat.startswith(assert_prefix):
             return current_text
@@ -1202,26 +1851,6 @@ class PythonPairedPunctuationFormatter(Formatter):
 
         if not parts:
             return current_text
-
-        inner_indent = indent + "    "
-
-        if "\n" in current_text:
-            lines = current_text.split("\n")
-            first_stripped = lines[0].strip()
-            last_stripped = lines[-1].strip()
-            if first_stripped == "assert (" and last_stripped == ")":
-                has_bad_indent = False
-                for line in lines[1:-1]:
-                    if not line.strip():
-                        continue
-
-                    leading = len(line) - len(line.lstrip())
-                    if leading != len(inner_indent):
-                        has_bad_indent = True
-                        break
-
-                if not has_bad_indent:
-                    return current_text
 
         result_lines = [f"assert ("]
 
@@ -2934,7 +3563,8 @@ class PythonPairedPunctuationFormatter(Formatter):
         op_texts = self._extract_binop_operand_texts(flat, operators)
 
         if not op_texts or len(op_texts) != len(operands):
-            return flat if not should_expand else current_text
+            if not is_if_context and not is_assign_context and not is_return_context:
+                return flat if not should_expand else current_text
 
         lines_out = []
 
