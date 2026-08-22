@@ -424,10 +424,7 @@ class PythonPairedPunctuationTokenizer(Tokenizer):
 
 
     def _find_funcdef_end(self, node, lines: list[str]) -> int:
-        for line_idx in range(
-            node.lineno - 1,
-            min(node.end_lineno, len(lines))
-        ):
+        for line_idx in range(node.lineno - 1, min(node.end_lineno, len(lines))):
             line = lines[line_idx]
             stripped = line.rstrip()
             if stripped.endswith(":"):

@@ -100,12 +100,7 @@ class PythonReturnYieldTokenizer(Tokenizer):
                 if handlers:
                     for handler in handlers:
                         if handler.body:
-                            self._walk(
-                                handler.body,
-                                line_offsets,
-                                document,
-                                results
-                            )
+                            self._walk(handler.body, line_offsets, document, results)
 
 
     def _contains_return_yield(self, func_node: ast.stmt) -> bool:

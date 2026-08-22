@@ -109,10 +109,7 @@ class PythonReturnYieldFormatter(Formatter):
             return token
 
         edits.sort(
-            key=lambda e: (
-                e[0],
-                1 if e[1] == "add_after" else 0
-            ),
+            key=lambda e: (e[0], 1 if e[1] == "add_after" else 0),
             reverse=True
         )
 

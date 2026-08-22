@@ -121,6 +121,7 @@
 - [x] Core behavior
     - Flatten first, then expand based on thresholds
     - Expand starting from the outside, working in. 
+    - if a child is expands, expand all parents.
     - Any paired punctuation containing a comment is not formatted
     - No space between openers/closers and inner values on the same line
     - Excludes: `__all__`, for loop variables

@@ -52,8 +52,10 @@ class PythonCompoundChainFormatter(Formatter):
                 {
                     "start_index": 0,
                     "length": len(token),
-                    "message": "Compound statement chains (if/elif/else, try/except/finally) should have no blank lines between parts, "
+                    "message": (
+                        "Compound statement chains (if/elif/else, try/except/finally) should have no blank lines between parts, "
                         "except after return/yield/exit statements."
+                    )
                 }
             ]
 

@@ -193,11 +193,7 @@ class PythonIndentTokenizer(Tokenizer):
                     self._walk_for_indent_check(first_else, depth, indent_map)
                 else:
                     for child in node.orelse:
-                        self._walk_for_indent_check(
-                            child,
-                            child_depth,
-                            indent_map
-                        )
+                        self._walk_for_indent_check(child, child_depth, indent_map)
 
         elif (
             hasattr(node, "orelse")

@@ -92,3 +92,65 @@ class MyClass:
                 in_string = False
 
             result.append(ch)
+
+
+def test_validate_grant_invalid(authz):
+    result = asyncio.run(
+        authz.validate_grant(
+            {
+                "effect": "bad"
+            }
+        )
+    )
+
+
+class PythonCompoundChainFormatter(Formatter):
+    """Format blank lines between parts of compound statement chains.
+
+    Rules:
+    - Between compound parts (if→elif, try→except, etc.): no blank line
+    - Exception: after return/yield/exit → 1 blank line
+    - Exception: after a compound statement (if/for/while/with/try) as
+    the last statement → 1 blank line
+
+    Examples
+    --------
+
+    ```python
+    from cleer import PythonCompoundChainFormatter
+
+    formatter = PythonCompoundChainFormatter()
+    result = formatter.format("if x:\\n    pass\\n\\nelse:\\n    pass\\n")
+    ```
+    """
+    accepts_token_types = ["python_compound_chain"]
+
+
+    def inspect(self, token: str) -> list[FormatterViolation]:
+        """Inspect compound chain for incorrect blank lines.
+
+        Parameters
+        ----------
+        token : str
+            Token containing the full compound chain.
+
+        Returns
+        -------
+        list[FormatterViolation]
+            List of violations. Empty if blank lines are correct.
+        """
+        formatted = self.format(token)
+
+        if formatted != token:
+            return [
+                {
+                    "start_index": 0,
+                    "length": len(token),
+                    "message": (
+                        "Compound statement chains (if/elif/else, try/except/finally) should have no blank lines between parts, "
+                        "except after return/yield/exit statements."
+                    )
+                }
+            ]
+
+        return []

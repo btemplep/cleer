@@ -215,10 +215,7 @@ class PythonTrailingCommaTokenizer(Tokenizer):
 
         last = max(
             all_args,
-            key=lambda a: (
-                a.end_lineno,
-                a.end_col_offset
-            )
+            key=lambda a: (a.end_lineno, a.end_col_offset)
         )
         start = (
             line_offsets[last.end_lineno - 1]
