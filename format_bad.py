@@ -1527,3 +1527,29 @@ def test_assert_with_structures():
     assert data == [{"key": "value", "nested": {"inner": [1, 2, 3]}}, {"key": "other", "nested": {"inner": [4, 5, 6]}}]
     assert validate({"name": "test", "items": [{"id": i} for i in range(10)]}) or skip_validation
     assert response == {"headers": {"content-type": "application/json", "x-request-id": request_id}, "body": {"result": "ok"}}
+
+
+# tuple inside call - should not expand (tuple is single arg to .add())
+positions.add((slice_node.lineno, slice_node.col_offset))
+my_set.add((some_really_long_variable_name, another_long_variable_name_here))
+
+# elif with in-tuple comparison - should not be reformatted
+def check_type(node_type, flat_len):
+    if node_type in ("binop", "compare"):
+        return flat_len > 60
+
+    elif node_type in ("boolop", "assign_boolop", "return_boolop"):
+        num_parts = len(node.values)
+        if num_parts > 2:
+            return True
+
+        return flat_len > 60
+
+    elif node_type in ("if_boolop", "assert_boolop"):
+        num_parts = len(node.values)
+        if num_parts > 2:
+            return True
+
+        return flat_len > 60
+
+    return False

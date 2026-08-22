@@ -22,6 +22,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security 
 -->
 
+## [0.1.0a14] - 2026-08-22
+
+### Fixed
+- Large rework of paired punctuation for performance and reoccurring bugs. 
+
+
 ## [0.1.0a13] - 2026-08-18
 
 ### Fixed

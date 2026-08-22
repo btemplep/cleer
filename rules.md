@@ -120,10 +120,12 @@
 
 - [x] Core behavior
     - Flatten first, then expand based on thresholds
+    - Expand starting from the outside, working in. 
     - Any paired punctuation containing a comment is not formatted
     - No space between openers/closers and inner values on the same line
     - Excludes: `__all__`, for loop variables
     - All length thresholds are relative (content only, not including indent)
+
 
 - [x] Configurable thresholds (PythonPairedPunctuationFormatter parameters):
     - def_max_len: 80 — func def flat length
@@ -152,7 +154,7 @@
     - Flatten first
     - Expand if literal length > lst_max_len (30)
     - Nested containers (inside another list, dict, set, tuple) always expand if non-empty
-    - If any nested containers expand, all siblings expand too (unless empty)
+    - If any nested containers expand, all parents expand.
 
 - [x] Function definitions
     - Flatten first
@@ -238,9 +240,10 @@
     - Right-hand side follows math/comparison expansion rules
     - Same contexts and thresholds as regular assignments
 
-- [x] Type Hints/Annotatinos
+- [x] Type Hints/Annotations
     - Colon spacing follows the colons rule (no space before, one space after)
     - Flatten first, then expand if:
         - Over annotation_max_len (40) chars
         - Nesting exceeds annotation_max_depth (2) bracket levels
+    - When expanding, start at the outer most level and work inward
     - Handles all annotation contexts: function params, return types, variable annotations, type aliases

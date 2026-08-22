@@ -356,11 +356,14 @@ class Cleer:
         path = pathlib.Path(path).resolve()
         if path.is_file() is True:
             inspection = self._inspect_one(file_path=path, document=None)
-            if self._keep_result(
-                result=inspection,
-                keep_excluded=keep_excluded,
-                keep_no_match=keep_no_match
-            ) is False:
+            if (
+                self._keep_result(
+                    result=inspection,
+                    keep_excluded=keep_excluded,
+                    keep_no_match=keep_no_match
+                )
+                is False
+            ):
                 return []
 
             return [inspection]
@@ -370,11 +373,14 @@ class Cleer:
             for p in path.rglob("*"):
                 if p.is_file() is True:
                     inspection = self._inspect_one(file_path=p, document=None)
-                    if self._keep_result(
-                        result=inspection,
-                        keep_excluded=keep_excluded,
-                        keep_no_match=keep_no_match
-                    ) is True:
+                    if (
+                        self._keep_result(
+                            result=inspection,
+                            keep_excluded=keep_excluded,
+                            keep_no_match=keep_no_match
+                        )
+                        is True
+                    ):
                         inspections.append(inspection)
 
             return inspections
@@ -581,11 +587,14 @@ class Cleer:
         path = pathlib.Path(path).resolve()
         if path.is_file() is True:
             formatting = self._format_one(file_path=path, document=None)
-            if self._keep_result(
-                result=formatting,
-                keep_excluded=keep_excluded,
-                keep_no_match=keep_no_match
-            ) is False:
+            if (
+                self._keep_result(
+                    result=formatting,
+                    keep_excluded=keep_excluded,
+                    keep_no_match=keep_no_match
+                )
+                is False
+            ):
                 return []
 
             formatting.pop("document")
@@ -597,11 +606,14 @@ class Cleer:
             for p in path.rglob("*"):
                 if p.is_file() is True:
                     formatting = self._format_one(file_path=p, document=None)
-                    if self._keep_result(
-                        result=formatting,
-                        keep_excluded=keep_excluded,
-                        keep_no_match=keep_no_match
-                    ) is True:
+                    if (
+                        self._keep_result(
+                            result=formatting,
+                            keep_excluded=keep_excluded,
+                            keep_no_match=keep_no_match
+                        )
+                        is True
+                    ):
                         formatting.pop("document")
                         formattings.append(formatting)
 

@@ -1596,9 +1596,15 @@ nested_comp_result = {key: [transform(item, config={"mode": "fast"}) for item in
 
 def process_batch(
     items: list[dict[str, str | int | None]],
-    config: dict[str, dict[str, list[str]]] | None=None,
+    config: dict[
+        str,
+        dict[str, list[str]]
+    ] | None=None,
     callback: Callable[[dict], bool] | None=None
-) -> dict[str, list[dict[str, Any]]]:
+) -> dict[
+    str,
+    list[dict[str, Any]]
+]:
     pass
 
 
@@ -1706,8 +1712,14 @@ class ComplexProcessor(BaseProcessor, CacheMixin):
     def process(
         self,
         items: list[dict[str, Any]],
-        callback: Callable[[str, dict], tuple[bool, str | None]] | None=None
-    ) -> dict[str, list[tuple[str, int]]]:
+        callback: Callable[
+            [str, dict],
+            tuple[bool, str | None]
+        ] | None=None
+    ) -> dict[
+        str,
+        list[tuple[str, int]]
+    ]:
         results = [{"key": k, "values": [v for v in item[k] if v > self.threshold]} for item in items for k in item if isinstance(item[k], list)]
 
         if (
@@ -2763,3 +2775,38 @@ def test_assert_with_structures():
             "result": "ok"
         }
     }
+
+
+# tuple inside call - should not expand (tuple is single arg to .add())
+positions.add((slice_node.lineno, slice_node.col_offset))
+my_set.add(
+    (
+        some_really_long_variable_name,
+        another_long_variable_name_here
+    )
+)
+
+# elif with in-tuple comparison - should not be reformatted
+def check_type(node_type, flat_len):
+    if node_type in ("binop", "compare"):
+        return flat_len > 60
+
+    elif node_type in (
+        "boolop",
+        "assign_boolop",
+        "return_boolop"
+    ):
+        num_parts = len(node.values)
+        if num_parts > 2:
+            return True
+
+        return flat_len > 60
+
+    elif node_type in ("if_boolop", "assert_boolop"):
+        num_parts = len(node.values)
+        if num_parts > 2:
+            return True
+
+        return flat_len > 60
+
+    return False
