@@ -1,8 +1,8 @@
 """See [](#cleer.tokenizers.tokenizer.Tokenizer) and [](#cleer.tokenizers.tokenizer.TokenResult)"""
 
 __all__ = [
-    "TokenResult",
-    "Tokenizer"
+    "Tokenizer",
+    "TokenResult"
 ]
 
 from typing import TypedDict

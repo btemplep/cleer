@@ -232,12 +232,12 @@ class PythonImportFormatter(Formatter):
         leading_dots = line[:len(line) - len(stripped)]
 
         if stripped.startswith("from "):
-            return leading_dots + stripped[5:]
+            return (leading_dots + stripped[5:]).lower().replace("_", "")
 
         if stripped.startswith("import "):
-            return leading_dots + stripped[7:]
+            return (leading_dots + stripped[7:]).lower().replace("_", "")
 
-        return line
+        return line.lower().replace("_", "")
 
 
     def _format_import(self, imp: dict) -> list[str]:
@@ -253,7 +253,10 @@ class PythonImportFormatter(Formatter):
         module = imp['module']
         full_module = f"{prefix}{module}"
 
-        names = sorted(imp['names'], key=lambda n: n['name'])
+        names = sorted(
+            imp['names'],
+            key=lambda n: n['name'].lower().replace("_", "")
+        )
         name_parts = []
 
         for n in names:
@@ -284,8 +287,8 @@ class PythonImportFormatter(Formatter):
 
     def _sort_key(self, imp: dict) -> str:
         if imp['type'] == "import":
-            return imp['module']
+            return imp['module'].lower().replace("_", "")
 
         prefix = "." * imp['level']
 
-        return f"{prefix}{imp['module']}"
+        return f"{prefix}{imp['module']}".lower().replace("_", "")

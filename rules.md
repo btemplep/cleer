@@ -84,7 +84,7 @@
     - Should exist in all modules belonging to configured packages
     - One blank line before and after
     - One item per line if more than 0 items
-    - Sorted alphabetically
+    - Sorted alphabetically (case-insensitive, ignoring underscores)
     - Only formats the first `__all__` assignment in a module
 
 ### Imports
@@ -95,8 +95,8 @@
         2. Third party (PyPI)
         3. Internal libraries (private repos)
         4. Current package
-    - Each block sorted alphabetically (not including `import`/`from` keyword)
-    - Items within a multi-import statement sorted alphabetically
+    - Each block sorted alphabetically (case-insensitive, ignoring underscores, not including `import`/`from` keyword)
+    - Items within a multi-import statement sorted alphabetically (case-insensitive, ignoring underscores)
     - Flatten each import; if over 80 chars, expand to one per line
     - 1 blank line before, 2 blank lines after an import section
 

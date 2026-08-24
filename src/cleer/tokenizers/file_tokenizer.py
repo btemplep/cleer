@@ -4,7 +4,7 @@ __all__ = [
     "FileTokenizer"
 ]
 
-from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
+from cleer.tokenizers.tokenizer import Tokenizer, TokenResult
 
 
 class FileTokenizer(Tokenizer):

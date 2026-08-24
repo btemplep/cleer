@@ -22,6 +22,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security 
 -->
 
+## [0.1.0a15] - 2026-08-23
+
+### Changed
+- `__all__` and import sorting now uses case-insensitive comparison, not including underscores `_`.
+
+
 ## [0.1.0a14] - 2026-08-22
 
 ### Fixed

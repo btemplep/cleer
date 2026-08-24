@@ -7,7 +7,7 @@ __all__ = [
 import ast
 import re
 
-from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
+from cleer.tokenizers.tokenizer import Tokenizer, TokenResult
 
 
 class PythonMaxOneSpaceTokenizer(Tokenizer):

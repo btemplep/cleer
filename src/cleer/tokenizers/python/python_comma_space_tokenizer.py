@@ -6,7 +6,7 @@ __all__ = [
 
 import ast
 
-from cleer.tokenizers.tokenizer import TokenResult, Tokenizer
+from cleer.tokenizers.tokenizer import Tokenizer, TokenResult
 
 
 class PythonCommaSpaceTokenizer(Tokenizer):

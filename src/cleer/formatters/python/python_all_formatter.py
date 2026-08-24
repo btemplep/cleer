@@ -91,7 +91,7 @@ class PythonAllFormatter(Formatter):
         if items is None:
             return token
 
-        items.sort()
+        items.sort(key=lambda s: s.lower().replace("_", ""))
 
         leading_newline = token.startswith("\n")
 
