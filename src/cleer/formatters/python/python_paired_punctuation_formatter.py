@@ -680,9 +680,7 @@ class PythonPairedPunctuationFormatter(Formatter):
             all_expanding
         )
 
-        all_expanding.sort(
-            key=lambda n: (n['depth'], n['_flat_start'])
-        )
+        all_expanding.sort(key=lambda n: (n['depth'], n['start']))
 
         for child in all_expanding:
             child_flat = child.get("_flat_text", "")

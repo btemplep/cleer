@@ -22,6 +22,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security 
 -->
 
+## [0.1.0a16] - 2026-08-25
+
+### Fixed
+- Paired punctuation child expansion now uses original document position ordering, fixing incorrect formatting of deeply nested dicts with repeated sub-expressions.
+
+
 ## [0.1.0a15] - 2026-08-23
 
 ### Changed
