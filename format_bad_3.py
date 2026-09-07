@@ -313,3 +313,5 @@ def override_config(override: dict | None, default: dict) -> dict:
             full[key] = default[key]
 
     return full
+
+context_def: ContextDefDB | None = (await db_sess.execute(select(ContextDefDB).where(ContextDefDB.context_type == context_type))).scalar_one_or_none()

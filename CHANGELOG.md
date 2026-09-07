@@ -22,6 +22,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security 
 -->
 
+## [0.1.0a17] - 2026-09-07
+
+### Fixed
+- A chain whose receiver is a parenthesized expression (e.g. `(await ...).method()`) now breaks the grouping parenthesis onto its own layer instead of fusing it with the inner call.
+
+
 ## [0.1.0a16] - 2026-08-25
 
 ### Fixed

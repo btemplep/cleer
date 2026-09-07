@@ -1016,7 +1016,12 @@ class PythonPairedPunctuationFormatter(Formatter):
             return self._format_call(node, current_text, indent)
 
         elif node_type == "chain":
-            return self._format_chain(node, current_text, indent)
+            return self._format_chain(
+                node,
+                current_text,
+                indent,
+                node_info.get("_paren_group", False)
+            )
 
         elif node_type in ("list", "set"):
             return self._format_container(
@@ -1446,15 +1451,54 @@ class PythonPairedPunctuationFormatter(Formatter):
         start = self._offset(document, root.lineno, root.col_offset)
         end = self._offset(document, node.end_lineno, node.end_col_offset)
 
+        paren_group = False
+        receiver = node.func.value if isinstance(node.func, ast.Attribute) else None
+        if (
+            receiver is not None
+            and not isinstance(receiver, ast.Call)
+            and self._chain_receiver_contains_call(receiver)
+            and hasattr(receiver, "lineno")
+        ):
+            recv_start = self._offset(document, receiver.lineno, receiver.col_offset)
+            recv_end = self._offset(
+                document,
+                receiver.end_lineno,
+                receiver.end_col_offset
+            )
+            group_start = self._grouping_paren_start(document, recv_start)
+            if group_start is not None:
+                close = self._find_matching_paren(document, group_start)
+                if (
+                    close is not None
+                    and close >= recv_end
+                    and document[recv_end:close].strip() == ""
+                ):
+                    start = group_start
+                    paren_group = True
+
         nodes.append(
             {
                 "node": node,
                 "type": "chain",
                 "start": start,
                 "end": end,
-                "depth": depth
+                "depth": depth,
+                "_paren_group": paren_group
             }
         )
+
+
+    def _grouping_paren_start(self, document: str, start: int) -> int | None:
+        """If the char immediately before ``start`` (skipping whitespace) is an
+        opening paren, return its offset. Otherwise ``None``."""
+        i = start - 1
+        while i >= 0 and document[i] in (" ", "\t", "\n"):
+            i -= 1
+
+        if i >= 0 and document[i] == "(":
+            return i
+
+        return None
 
 
     def _get_chain_root(self, node: ast.Call) -> ast.AST:
@@ -2804,7 +2848,44 @@ class PythonPairedPunctuationFormatter(Formatter):
         return "\n".join(lines)
 
 
-    def _format_chain(self, node: ast.Call, current_text: str, indent: str) -> str:
+    def _format_paren_group_chain(self, flat: str, indent: str) -> str:
+        """Format a chain whose receiver is a parenthesized expression, breaking
+        the grouping paren onto its own layer.
+
+        Turns ``(await x.y(...)).z()`` into::
+
+            (
+                await x.y(...)
+            ).z()
+
+        The inner receiver is left flat here; nested calls/chains inside it are
+        expanded independently by the child expansion pass.
+        """
+        if not flat.startswith("("):
+            return flat
+
+        close = self._find_matching_paren(flat, 0)
+        if close is None:
+            return flat
+
+        inner = flat[1:close].strip()
+        trailing = flat[close + 1:]
+        inner_indent = indent + "    "
+
+        return (
+            "(\n"
+            + f"{inner_indent}{inner}\n"
+            + f"{indent}){trailing}"
+        )
+
+
+    def _format_chain(
+        self,
+        node: ast.Call,
+        current_text: str,
+        indent: str,
+        paren_group: bool=False
+    ) -> str:
         if self._has_comment(current_text):
             return current_text
 
@@ -2812,6 +2893,9 @@ class PythonPairedPunctuationFormatter(Formatter):
         flat = self._collapse_paren_spaces(flat)
         flat_len = len(flat)
         indent_len = len(indent)
+
+        if paren_group:
+            return self._format_paren_group_chain(flat, indent)
 
         segments = self._get_chain_segments(node, indent)
 
@@ -4796,13 +4880,28 @@ class PythonPairedPunctuationFormatter(Formatter):
         if not isinstance(node.func, ast.Attribute):
             return False
 
-        if not isinstance(node.func.value, ast.Call):
-            return False
-
         if isinstance(parent, ast.Attribute):
             return False
 
-        return True
+        if isinstance(node.func.value, ast.Call):
+            return True
+
+        if self._chain_receiver_contains_call(node.func.value):
+            return True
+
+        return False
+
+
+    def _chain_receiver_contains_call(self, node: ast.AST) -> bool:
+        """Whether a chain receiver (e.g. an await/parenthesized expr) wraps a
+        Call, meaning the receiver is worth breaking onto its own paren layer."""
+        if isinstance(node, ast.Call):
+            return True
+
+        if isinstance(node, ast.Await):
+            return self._chain_receiver_contains_call(node.value)
+
+        return False
 
 
     def _get_expanded_args(
