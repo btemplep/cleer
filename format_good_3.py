@@ -320,3 +320,17 @@ context_def: ContextDefDB | None = (
         select(ContextDefDB).where(ContextDefDB.context_type == context_type)
     )
 ).scalar_one_or_none()
+
+
+@thing(
+    here={
+        200: {
+            "bad": (
+                "this here"
+                "is bad"
+            )
+        }
+    }
+)
+def here_we_are():
+    print("There!")

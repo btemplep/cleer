@@ -4715,13 +4715,16 @@ class PythonPairedPunctuationFormatter(Formatter):
 
                 if (
                     ch == " "
-                    and i + 1 < len(line)
-                    and line[i + 1] in ")]}"
                     and result
                     and result[-1] not in " \t"
                 ):
-                    i += 1
-                    continue
+                    j = i
+                    while j < len(line) and line[j] == " ":
+                        j += 1
+
+                    if j < len(line) and line[j] in ")]}":
+                        i = j
+                        continue
 
                 result.append(ch)
             else:
@@ -4780,13 +4783,14 @@ class PythonPairedPunctuationFormatter(Formatter):
 
                     continue
 
-                if (
-                    ch == " "
-                    and i + 1 < len(flat)
-                    and flat[i + 1] in ")]}"
-                ):
-                    i += 1
-                    continue
+                if ch == " ":
+                    j = i
+                    while j < len(flat) and flat[j] == " ":
+                        j += 1
+
+                    if j < len(flat) and flat[j] in ")]}":
+                        i = j
+                        continue
 
                 result.append(ch)
             else:
@@ -5146,15 +5150,27 @@ class PythonPairedPunctuationFormatter(Formatter):
 
         content = flat[paren_start + 1:paren_end].strip()
 
-        if content.startswith("("):
-            inner_end = self._find_matching_paren(content, 0)
-            if inner_end is not None and inner_end == len(content) - 1:
-                content = content[1:-1].strip()
+        for arg in self._split_by_commas(content):
+            if self._is_string_concat(arg.strip()):
+                return True
 
-        return self._is_string_concat(content)
+        return False
 
 
     def _is_string_concat(self, content: str) -> bool:
+        content = content.strip()
+
+        stripped_kwarg = re.match(r"^([A-Za-z_]\w*)\s*=\s*(?![=])", content)
+        if stripped_kwarg:
+            content = content[stripped_kwarg.end():].strip()
+
+        while content.startswith("(") and content.endswith(")"):
+            inner_end = self._find_matching_paren(content, 0)
+            if inner_end is None or inner_end != len(content) - 1:
+                break
+
+            content = content[1:-1].strip()
+
         try:
             tokens = list(
                 tokenize.generate_tokens(io.StringIO(content).readline)
@@ -5217,6 +5233,44 @@ class PythonPairedPunctuationFormatter(Formatter):
                 i += 1
 
         if len(string_tokens) < 2:
+            return False
+
+        ignored_types = {
+            tokenize.STRING,
+            tokenize.NL,
+            tokenize.NEWLINE,
+            tokenize.INDENT,
+            tokenize.DEDENT,
+            tokenize.COMMENT,
+            tokenize.ENCODING,
+            tokenize.ENDMARKER
+        }
+        open_types = set()
+        close_types = set()
+        if fstring_start is not None:
+            open_types.add(fstring_start)
+            close_types.add(fstring_end)
+
+        if tstring_start is not None:
+            open_types.add(tstring_start)
+            close_types.add(tstring_end)
+
+        depth_check = 0
+        for t in tokens:
+            if t.type in open_types:
+                depth_check += 1
+                continue
+
+            if t.type in close_types:
+                depth_check = max(0, depth_check - 1)
+                continue
+
+            if depth_check > 0:
+                continue
+
+            if t.type in ignored_types:
+                continue
+
             return False
 
         lines = content.split("\n")

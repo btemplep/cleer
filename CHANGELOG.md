@@ -22,6 +22,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security 
 -->
 
+## [0.1.0a18] - 2026-09-17
+
+### Fixed
+- String concatenation is no longer falsely detected when adjacent string literals appear nested inside a call argument (e.g. a dict value), which previously corrupted the surrounding structure.
+- String concatenation detection now checks each call argument individually, so a concatenated argument alongside other arguments is handled correctly.
+- All whitespace before a closing bracket is now removed, not just a single space (e.g. `print("x"  )` collapses fully).
+
+
 ## [0.1.0a17] - 2026-09-07
 
 ### Fixed
